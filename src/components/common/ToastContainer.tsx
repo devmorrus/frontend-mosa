@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { AlertTriangle, CheckCircle2, Info, X } from 'lucide-react'
 import { useUiStore, type Toast, type ToastVariant } from '@/stores/uiStore'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 
 const VARIANT_STYLES: Record<ToastVariant, string> = {
   error: 'border-red-200 bg-red-50 text-red-800',
@@ -26,21 +28,23 @@ function ToastItem({ toast }: { toast: Toast }) {
   }, [toast.id, dismissToast])
 
   return (
-    <div
+    <Card
       role="alert"
-      className={`flex w-full items-start gap-2 rounded-lg border px-3.5 py-3 shadow-sm ${VARIANT_STYLES[toast.variant]}`}
+      className={`flex w-full items-start gap-2 rounded-2xl px-3.5 py-3 shadow-lg ${VARIANT_STYLES[toast.variant]}`}
     >
       <Icon size={18} className="mt-0.5 shrink-0" />
       <p className="flex-1 text-sm leading-snug">{toast.message}</p>
-      <button
+      <Button
         type="button"
         onClick={() => dismissToast(toast.id)}
         aria-label="Tutup notifikasi"
-        className="shrink-0 opacity-60 hover:opacity-100"
+        variant="ghost"
+        size="sm"
+        className="h-auto shrink-0 px-1 py-1 opacity-60 hover:bg-transparent hover:opacity-100"
       >
         <X size={16} />
-      </button>
-    </div>
+      </Button>
+    </Card>
   )
 }
 

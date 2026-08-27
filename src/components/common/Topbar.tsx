@@ -1,6 +1,8 @@
 import { LogOut, Menu } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/stores/uiStore'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 
 function getInitials(name?: string): string {
   if (!name) return 'MO'
@@ -16,14 +18,16 @@ export function Topbar() {
 
   return (
     <header className="sticky top-0 z-20 flex h-20 shrink-0 items-center justify-between border-b border-slate-200/80 bg-paper/90 px-4 backdrop-blur-sm sm:px-6 lg:px-8">
-      <button
+      <Button
         type="button"
+        variant="secondary"
+        size="icon"
         onClick={toggleMobileSidebar}
         aria-label="Buka menu"
-        className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm hover:border-slate-300 hover:bg-slate-50 md:hidden"
+        className="md:hidden"
       >
         <Menu size={20} />
-      </button>
+      </Button>
 
       <div className="hidden md:block">
         <p className="font-display text-lg font-semibold text-ink">MOSA Workspace</p>
@@ -35,17 +39,19 @@ export function Topbar() {
           <p className="text-sm font-semibold text-slate-900">{user?.name ?? '—'}</p>
           <p className="text-xs text-slate-500">{user?.roles.join(', ') ?? 'Pengguna'}</p>
         </div>
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-ink/10 bg-ink text-sm font-semibold text-paper shadow-[0_10px_24px_rgba(18,48,46,0.16)]">
-          {initials}
-        </div>
-        <button
+        <Avatar>
+          <AvatarFallback>{initials}</AvatarFallback>
+        </Avatar>
+        <Button
           type="button"
           onClick={() => void logout()}
           aria-label="Keluar"
-          className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-500 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+          variant="secondary"
+          size="icon"
+          className="text-slate-500 hover:text-slate-900"
         >
           <LogOut size={18} />
-        </button>
+        </Button>
       </div>
     </header>
   )
