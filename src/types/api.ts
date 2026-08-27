@@ -6,12 +6,14 @@ export interface ApiResponse<T> {
 
 /** Generic paginated envelope expected from list endpoints. */
 export interface ApiPaginatedResponse<T> {
-  data: T[]
-  meta: {
-    currentPage: number
-    perPage: number
-    total: number
-    lastPage: number
+  items: T[]
+  pagination: {
+    page: number
+    pageSize: number
+    totalItems: number
+    totalPages: number
+    hasPreviousPage: boolean
+    hasNextPage: boolean
   }
 }
 

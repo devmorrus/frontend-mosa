@@ -33,12 +33,6 @@ export interface SidebarIconMap {
 
 export const placeholderRoutes: PlaceholderRoute[] = [
   {
-    title: 'Suppliers',
-    path: '/suppliers',
-    description: 'Foundation route untuk modul Supplier sudah siap dan diproteksi permission.',
-    permission: 'suppliers.view',
-  },
-  {
     title: 'Raw Materials',
     path: '/raw-materials',
     description: 'Foundation route untuk modul Raw Materials sudah siap dan diproteksi permission.',
@@ -49,18 +43,6 @@ export const placeholderRoutes: PlaceholderRoute[] = [
     path: '/products',
     description: 'Foundation route untuk modul Products sudah siap dan diproteksi permission.',
     permission: 'products.view',
-  },
-  {
-    title: 'Units',
-    path: '/units',
-    description: 'Foundation route untuk modul Units sudah siap dan diproteksi permission.',
-    permission: 'uoms.view',
-  },
-  {
-    title: 'Warehouses',
-    path: '/warehouses',
-    description: 'Foundation route untuk modul Warehouses sudah siap dan diproteksi permission.',
-    permission: 'warehouses.view',
   },
   {
     title: 'Goods Receiving',

@@ -5,6 +5,9 @@ import { LoginPage } from '@/pages/auth/LoginPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { ForbiddenPage } from '@/pages/errors/ForbiddenPage'
 import { NotFoundPage } from '@/pages/errors/NotFoundPage'
+import { SuppliersPage } from '@/pages/master-data/SuppliersPage'
+import { UnitsPage } from '@/pages/master-data/UnitsPage'
+import { WarehousesPage } from '@/pages/master-data/WarehousesPage'
 import { ModulePlaceholderPage } from '@/pages/modules/ModulePlaceholderPage'
 import { placeholderRoutes } from '@/routes/navigation.config'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
@@ -27,6 +30,21 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+
+          <Route element={<ProtectedRoute requiredPermission="suppliers.view" />}>
+            <Route path="/suppliers" element={<SuppliersPage />} />
+            <Route path="/master/suppliers" element={<SuppliersPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="uoms.view" />}>
+            <Route path="/units" element={<UnitsPage />} />
+            <Route path="/master/units" element={<UnitsPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="warehouses.view" />}>
+            <Route path="/warehouses" element={<WarehousesPage />} />
+            <Route path="/master/warehouses" element={<WarehousesPage />} />
+          </Route>
 
           {placeholderRoutes.map((route) => (
             <Route
