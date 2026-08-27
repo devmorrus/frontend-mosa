@@ -13,11 +13,11 @@ import { Topbar } from '@/components/common/Topbar'
  */
 export function MainLayout() {
   return (
-    <div className="flex h-dvh w-full bg-slate-50">
+    <div className="flex h-dvh w-full bg-[linear-gradient(180deg,#f7f6f2_0%,#f3f0e8_100%)]">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <main className="flex-1 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
           <Outlet />
         </main>
       </div>
