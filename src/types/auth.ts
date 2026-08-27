@@ -15,6 +15,16 @@ export interface User {
   permissions: Permission[]
 }
 
+export interface SidebarItem {
+  id: string
+  code: string
+  name: string
+  path?: string | null
+  icon?: string | null
+  sortOrder: number
+  children: SidebarItem[]
+}
+
 export interface LoginPayload {
   email: string
   password: string
@@ -30,6 +40,7 @@ export interface AuthTokens {
 export interface LoginResponse {
   user: User
   tokens: AuthTokens
+  sidebar: SidebarItem[]
 }
 
 export interface BackendAuthenticatedUser {
@@ -53,4 +64,14 @@ export interface BackendLoginResponse {
   refreshToken: string
   expiresAtUtc: string
   user: BackendAuthenticatedUser
+}
+
+export interface BackendSidebarItem {
+  id: string
+  code: string
+  name: string
+  path?: string | null
+  icon?: string | null
+  sortOrder: number
+  children: BackendSidebarItem[]
 }

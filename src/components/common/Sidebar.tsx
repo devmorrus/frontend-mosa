@@ -1,60 +1,116 @@
-import type { ReactNode } from 'react'
+import { createElement, type ReactNode } from 'react'
 import { PanelLeftClose } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
-import { navItems } from '@/routes/navigation.config'
-import { useAuthStore } from '@/stores/authStore'
+import { useAuth } from '@/hooks/useAuth'
+import { getSidebarIcon } from '@/routes/navigation.config'
 import { useUiStore } from '@/stores/uiStore'
+import type { SidebarItem } from '@/types/auth'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 
-function SidebarContent() {
-  const hasPermission = useAuthStore((state) => state.hasPermission)
+function SidebarEntry({
+  item,
+  level = 0,
+}: {
+  item: SidebarItem
+  level?: number
+}) {
   const closeMobileSidebar = useUiStore((state) => state.closeMobileSidebar)
-
-  const visibleItems = navItems.filter(
-    (item) => !item.permission || hasPermission(item.permission),
-  )
+  const iconComponent = getSidebarIcon(item.code)
+  const hasChildren = item.children.length > 0
+  const isClickable = Boolean(item.path)
 
   return (
-    <nav className="flex h-full flex-col gap-1 overflow-y-auto px-3 py-4">
-      {visibleItems.map((item) => {
-        const Icon = item.icon
-        return (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            onClick={closeMobileSidebar}
-            className={({ isActive }) =>
-              cn(
-                'group relative flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200',
-                isActive
-                  ? 'bg-paper/8 text-paper shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
-                  : 'text-paper/62 hover:bg-paper/6 hover:text-paper',
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <span
-                  aria-hidden
-                  className={[
-                    'absolute inset-y-2 left-0 w-1 rounded-r-full transition-colors',
-                    isActive ? 'bg-signal' : 'bg-transparent group-hover:bg-paper/15',
-                  ].join(' ')}
-                />
-                <Icon
-                  size={18}
-                  className={isActive ? 'text-signal' : 'text-paper/60 group-hover:text-paper'}
-                />
-                <span>{item.label}</span>
-              </>
-            )}
-          </NavLink>
-        )
-      })}
+    <div className="space-y-1">
+      {isClickable ? (
+        <NavLink
+          to={item.path!}
+          onClick={closeMobileSidebar}
+          className={({ isActive }) =>
+            cn(
+              'group relative flex items-center gap-3 rounded-2xl py-3 text-sm font-medium transition-all duration-200',
+              level > 0 ? 'pl-11 pr-4' : 'px-4',
+              isActive
+                ? 'bg-paper/8 text-paper shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
+                : 'text-paper/62 hover:bg-paper/6 hover:text-paper',
+            )
+          }
+        >
+          {({ isActive }) => (
+            <>
+              <span
+                aria-hidden
+                className={[
+                  'absolute inset-y-2 left-0 w-1 rounded-r-full transition-colors',
+                  isActive ? 'bg-signal' : 'bg-transparent group-hover:bg-paper/15',
+                ].join(' ')}
+              />
+              {createElement(iconComponent, {
+                size: 18,
+                className: cn(
+                  'shrink-0',
+                  level > 0 ? 'absolute left-4 top-1/2 -translate-y-1/2' : '',
+                  isActive ? 'text-signal' : 'text-paper/60 group-hover:text-paper',
+                ),
+              })}
+              <span>{item.name}</span>
+            </>
+          )}
+        </NavLink>
+      ) : (
+        <div
+          className={cn(
+            'relative flex items-center gap-3 rounded-2xl py-3 text-sm font-medium text-paper/72',
+            level > 0 ? 'pl-11 pr-4' : 'px-4',
+            hasChildren ? 'bg-paper/5' : 'border border-dashed border-paper/10 bg-paper/[0.03]',
+          )}
+        >
+          {createElement(iconComponent, {
+            size: 18,
+            className: cn(
+              'shrink-0 text-paper/58',
+              level > 0 ? 'absolute left-4 top-1/2 -translate-y-1/2' : '',
+            ),
+          })}
+          <span className="flex-1">{item.name}</span>
+          {!hasChildren && <Badge variant="subtle">Soon</Badge>}
+        </div>
+      )}
+
+      {hasChildren && (
+        <div className={cn('space-y-1', level === 0 ? 'pl-2' : 'pl-4')}>
+          {item.children
+            .slice()
+            .sort((a, b) => a.sortOrder - b.sortOrder)
+            .map((child) => (
+              <SidebarEntry key={child.id} item={child} level={level + 1} />
+            ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SidebarContent() {
+  const { sidebarItems } = useAuth()
+
+  return (
+    <nav className="flex h-full flex-col gap-2 overflow-y-auto px-3 py-4">
+      {sidebarItems
+        .slice()
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((item) => (
+          <SidebarEntry key={item.id} item={item} />
+        ))}
+
+      {sidebarItems.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-paper/10 px-4 py-4 text-sm text-paper/45">
+          Navigasi sedang disiapkan dari server.
+        </div>
+      )}
     </nav>
   )
 }
@@ -102,25 +158,18 @@ function SidebarShell({
   )
 }
 
-/**
- * Sidebar foundation: a fixed column on desktop/tablet (md and up), and an
- * off-canvas drawer with a backdrop on mobile. The item list itself is
- * shared (`SidebarContent`) so both presentations always stay in sync.
- */
 export function Sidebar() {
   const isMobileSidebarOpen = useUiStore((state) => state.isMobileSidebarOpen)
   const closeMobileSidebar = useUiStore((state) => state.closeMobileSidebar)
 
   return (
     <>
-      {/* Desktop / tablet: persistent column */}
       <aside className="hidden w-72 shrink-0 border-r border-paper/8 md:block">
         <SidebarShell>
           <SidebarContent />
         </SidebarShell>
       </aside>
 
-      {/* Mobile: off-canvas drawer */}
       <Sheet open={isMobileSidebarOpen} onOpenChange={(open) => !open && closeMobileSidebar()}>
         <SheetContent side="left" className="w-72 border-r border-paper/8 p-0 md:hidden">
           <SheetHeader className="sr-only">
@@ -129,7 +178,12 @@ export function Sidebar() {
           <SidebarShell withFooter={false}>
             <div className="flex items-center justify-between px-6 pb-2 pt-5">
               <Badge variant="subtle">Navigation</Badge>
-              <Button variant="ghost" size="icon" onClick={closeMobileSidebar} aria-label="Tutup menu">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={closeMobileSidebar}
+                aria-label="Tutup menu"
+              >
                 <PanelLeftClose size={18} />
               </Button>
             </div>

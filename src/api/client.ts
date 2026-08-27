@@ -21,13 +21,29 @@ export const apiClient = axios.create({
   timeout: 15000,
 })
 
+const refreshClient = axios.create({
+  baseURL: env.apiBaseUrl,
+  headers: {
+    Accept: 'application/json',
+  },
+  timeout: 15000,
+})
+
 /** Requests some endpoints (e.g. login) intentionally skip auth/error side effects. */
 declare module 'axios' {
   export interface AxiosRequestConfig {
     skipAuthRedirect?: boolean
     skipForbiddenRedirect?: boolean
+    _retry?: boolean
   }
 }
+
+interface RefreshResponse {
+  accessToken: string
+  refreshToken: string
+}
+
+let refreshRequest: Promise<RefreshResponse> | null = null
 
 // Attach Authorization header from centralized token storage.
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
@@ -41,7 +57,14 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 function normalizeError(error: AxiosError): ApiError {
   const status = error.response?.status ?? null
   const body = error.response?.data as
-    | { message?: string; errors?: Record<string, string[]>; code?: string }
+    | {
+        message?: string
+        detail?: string
+        title?: string
+        errors?: Record<string, string[]>
+        code?: string
+        errorCode?: string
+      }
     | undefined
 
   if (!error.response) {
@@ -53,10 +76,31 @@ function normalizeError(error: AxiosError): ApiError {
 
   return {
     status,
-    message: body?.message ?? 'Terjadi kesalahan pada server.',
+    message: body?.message ?? body?.detail ?? body?.title ?? 'Terjadi kesalahan pada server.',
     errors: body?.errors,
-    code: body?.code,
+    code: body?.code ?? body?.errorCode,
   }
+}
+
+async function refreshAccessToken(): Promise<RefreshResponse> {
+  const refreshToken = tokenStorage.getRefreshToken()
+  if (!refreshToken) {
+    throw new Error('Refresh token is unavailable.')
+  }
+
+  if (!refreshRequest) {
+    refreshRequest = refreshClient
+      .post<RefreshResponse>('/auth/refresh', { refreshToken })
+      .then((response) => {
+        tokenStorage.setTokens(response.data.accessToken, response.data.refreshToken)
+        return response.data
+      })
+      .finally(() => {
+        refreshRequest = null
+      })
+  }
+
+  return refreshRequest
 }
 
 // Centralized error handling: normalize every error, react to 401/403,
@@ -68,6 +112,26 @@ apiClient.interceptors.response.use(
     const apiError = normalizeError(error)
     const skipAuthRedirect = error.config?.skipAuthRedirect
     const skipForbiddenRedirect = error.config?.skipForbiddenRedirect
+    const originalRequest = error.config
+
+    if (apiError.status === 401 && !skipAuthRedirect && originalRequest && !originalRequest._retry) {
+      originalRequest._retry = true
+
+      return refreshAccessToken()
+        .then(({ accessToken }) => {
+          originalRequest.headers.set('Authorization', `Bearer ${accessToken}`)
+          return apiClient(originalRequest)
+        })
+        .catch(() => {
+          useAuthStore.getState().clearSession()
+          useUiStore.getState().pushToast('error', 'Sesi Anda berakhir. Silakan login kembali.')
+          if (window.location.pathname !== '/login') {
+            window.location.assign('/login')
+          }
+
+          return Promise.reject(apiError)
+        })
+    }
 
     if (apiError.status === 401 && !skipAuthRedirect) {
       useAuthStore.getState().clearSession()

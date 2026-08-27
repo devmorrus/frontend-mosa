@@ -1,16 +1,18 @@
 import { create } from 'zustand'
-import type { AuthTokens, Permission, User } from '@/types/auth'
+import type { AuthTokens, Permission, SidebarItem, User } from '@/types/auth'
 import { tokenStorage } from '@/utils/tokenStorage'
 
 interface AuthState {
   user: User | null
+  sidebarItems: SidebarItem[]
   isAuthenticated: boolean
   /** True while we're restoring session on app boot (checking token + fetching /me). */
   isInitializing: boolean
 
-  setSession: (user: User, tokens: AuthTokens) => void
+  setSession: (user: User, tokens: AuthTokens, sidebarItems: SidebarItem[]) => void
   clearSession: () => void
   setInitializing: (value: boolean) => void
+  setSidebarItems: (sidebarItems: SidebarItem[]) => void
   hasPermission: (permission: Permission) => boolean
   hasAnyPermission: (permissions: Permission[]) => boolean
 }
@@ -23,20 +25,22 @@ interface AuthState {
  */
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
+  sidebarItems: [],
   isAuthenticated: false,
   isInitializing: true,
 
-  setSession: (user, tokens) => {
+  setSession: (user, tokens, sidebarItems) => {
     tokenStorage.setTokens(tokens.accessToken, tokens.refreshToken)
-    set({ user, isAuthenticated: true, isInitializing: false })
+    set({ user, sidebarItems, isAuthenticated: true, isInitializing: false })
   },
 
   clearSession: () => {
     tokenStorage.clear()
-    set({ user: null, isAuthenticated: false, isInitializing: false })
+    set({ user: null, sidebarItems: [], isAuthenticated: false, isInitializing: false })
   },
 
   setInitializing: (value) => set({ isInitializing: value }),
+  setSidebarItems: (sidebarItems) => set({ sidebarItems }),
 
   hasPermission: (permission) => {
     const { user } = get()

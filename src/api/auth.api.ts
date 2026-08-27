@@ -2,8 +2,10 @@ import { apiClient } from '@/api/client'
 import type {
   BackendCurrentUser,
   BackendLoginResponse,
+  BackendSidebarItem,
   LoginPayload,
   LoginResponse,
+  SidebarItem,
   User,
 } from '@/types/auth'
 import { tokenStorage } from '@/utils/tokenStorage'
@@ -17,6 +19,49 @@ function mapCurrentUser(user: BackendCurrentUser): User {
     roles: user.roles,
     permissions: user.permissions,
   }
+}
+
+function mapSidebarItem(item: BackendSidebarItem): SidebarItem {
+  return {
+    id: item.id,
+    code: item.code,
+    name: item.name,
+    path: item.path,
+    icon: item.icon,
+    sortOrder: item.sortOrder,
+    children: item.children.map(mapSidebarItem),
+  }
+}
+
+function authHeader(accessToken: string) {
+  return {
+    Authorization: `Bearer ${accessToken}`,
+  }
+}
+
+async function getCurrentUser(accessToken: string): Promise<User> {
+  return apiClient
+    .get<BackendCurrentUser>('/auth/me', {
+      headers: authHeader(accessToken),
+      skipAuthRedirect: true,
+      skipForbiddenRedirect: true,
+    })
+    .then((res) => mapCurrentUser(res.data))
+}
+
+async function getSidebar(accessToken: string): Promise<SidebarItem[]> {
+  return apiClient
+    .get<BackendSidebarItem[]>('/sidebar/me', {
+      headers: authHeader(accessToken),
+      skipAuthRedirect: true,
+      skipForbiddenRedirect: true,
+    })
+    .then((res) => res.data.map(mapSidebarItem))
+}
+
+async function hydrateSession(accessToken: string) {
+  const [user, sidebar] = await Promise.all([getCurrentUser(accessToken), getSidebar(accessToken)])
+  return { user, sidebar }
 }
 
 export const authApi = {
@@ -36,15 +81,7 @@ export const authApi = {
       )
       .then((res) => res.data)
 
-    const user = await apiClient
-      .get<BackendCurrentUser>('/auth/me', {
-        headers: {
-          Authorization: `Bearer ${loginResult.accessToken}`,
-        },
-        skipAuthRedirect: true,
-        skipForbiddenRedirect: true,
-      })
-      .then((res) => mapCurrentUser(res.data))
+    const { user, sidebar } = await hydrateSession(loginResult.accessToken)
 
     return {
       user,
@@ -52,7 +89,30 @@ export const authApi = {
         accessToken: loginResult.accessToken,
         refreshToken: loginResult.refreshToken,
       },
+      sidebar,
     }
+  },
+
+  refresh: async (refreshToken?: string) => {
+    const currentRefreshToken = refreshToken ?? tokenStorage.getRefreshToken()
+    if (!currentRefreshToken) {
+      throw new Error('Refresh token is unavailable.')
+    }
+
+    const refreshResult = await apiClient
+      .post<BackendLoginResponse>(
+        '/auth/refresh',
+        { refreshToken: currentRefreshToken },
+        {
+          skipAuthRedirect: true,
+          skipForbiddenRedirect: true,
+        },
+      )
+      .then((res) => res.data)
+
+    tokenStorage.setTokens(refreshResult.accessToken, refreshResult.refreshToken)
+
+    return refreshResult
   },
 
   logout: () =>
@@ -60,12 +120,44 @@ export const authApi = {
       refreshToken: tokenStorage.getRefreshToken() ?? '',
     }),
 
-  /** Used on app boot to restore the session from a stored token. */
-  me: () =>
-    apiClient
-      .get<BackendCurrentUser>('/auth/me', {
-        skipAuthRedirect: true,
-        skipForbiddenRedirect: true,
-      })
-      .then((res) => mapCurrentUser(res.data)),
+  me: () => getCurrentUser(tokenStorage.getAccessToken() ?? ''),
+
+  sidebar: () => getSidebar(tokenStorage.getAccessToken() ?? ''),
+
+  /** Used on app boot to restore the session from stored tokens. */
+  async restoreSession(): Promise<LoginResponse> {
+    const accessToken = tokenStorage.getAccessToken()
+    if (!accessToken) {
+      throw new Error('Access token is unavailable.')
+    }
+
+    try {
+      const { user, sidebar } = await hydrateSession(accessToken)
+      return {
+        user,
+        sidebar,
+        tokens: {
+          accessToken,
+          refreshToken: tokenStorage.getRefreshToken() ?? undefined,
+        },
+      }
+    } catch (error) {
+      const apiError = error as { status?: number }
+      if (apiError.status !== 401) {
+        throw error
+      }
+
+      const refreshResult = await authApi.refresh()
+      const { user, sidebar } = await hydrateSession(refreshResult.accessToken)
+
+      return {
+        user,
+        sidebar,
+        tokens: {
+          accessToken: refreshResult.accessToken,
+          refreshToken: refreshResult.refreshToken,
+        },
+      }
+    }
+  },
 }

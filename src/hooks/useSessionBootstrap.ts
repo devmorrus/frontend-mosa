@@ -22,8 +22,8 @@ export function useSessionBootstrap() {
     }
 
     authApi
-      .me()
-      .then((user) => setSession(user, { accessToken: token }))
+      .restoreSession()
+      .then(({ user, tokens, sidebar }) => setSession(user, tokens, sidebar))
       .catch(() => clearSession())
   }, [setSession, clearSession, setInitializing])
 }

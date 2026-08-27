@@ -1,48 +1,136 @@
 import {
+  ArrowLeftRight,
   Boxes,
-  ClipboardList,
-  FlaskConical,
+  Building2,
+  ChartNoAxesColumn,
+  Factory,
   LayoutDashboard,
+  MenuSquare,
   PackageSearch,
+  ScanSearch,
+  ShieldCheck,
+  ShieldEllipsis,
   ShoppingBasket,
+  Tags,
   Truck,
+  Users,
   Warehouse,
+  Waypoints,
+  Ruler,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
-import type { Permission } from '@/types/auth'
 
-export interface NavItem {
-  label: string
+export interface PlaceholderRoute {
+  title: string
   path: string
-  icon: ComponentType<{ size?: number; className?: string }>
-  /**
-   * Permission required to see this item. `undefined` means every
-   * authenticated user can see it. The sidebar filters this list against
-   * the current user's permissions — no role/menu mapping is hardcoded
-   * per-role, so adding a new permission on the backend is enough to
-   * reveal the matching menu item.
-   */
-  permission?: Permission
+  description: string
+  permission: string
 }
 
-/**
- * Single source of truth for the sidebar. Pages under each path are added
- * in later tasking (Day 3+) — today only Dashboard is a real route, the
- * rest are wired here so the permission-based navigation shell is ready
- * before those pages exist.
- */
-export const navItems: NavItem[] = [
-  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { label: 'Supplier', path: '/suppliers', icon: Truck, permission: 'suppliers.view' },
-  { label: 'Material', path: '/materials', icon: Boxes, permission: 'materials.view' },
-  { label: 'Product', path: '/products', icon: ShoppingBasket, permission: 'products.view' },
+export interface SidebarIconMap {
+  [code: string]: ComponentType<{ size?: number; className?: string }>
+}
+
+export const placeholderRoutes: PlaceholderRoute[] = [
   {
-    label: 'Goods Receiving',
-    path: '/goods-receiving',
-    icon: PackageSearch,
-    permission: 'goodsreceiving.view',
+    title: 'Suppliers',
+    path: '/suppliers',
+    description: 'Foundation route untuk modul Supplier sudah siap dan diproteksi permission.',
+    permission: 'suppliers.view',
   },
-  { label: 'Inventory', path: '/inventory', icon: Warehouse, permission: 'inventory.view' },
-  { label: 'Recipe', path: '/recipes', icon: ClipboardList, permission: 'recipes.view' },
-  { label: 'Production', path: '/production', icon: FlaskConical, permission: 'production.view' },
+  {
+    title: 'Raw Materials',
+    path: '/raw-materials',
+    description: 'Foundation route untuk modul Raw Materials sudah siap dan diproteksi permission.',
+    permission: 'materials.view',
+  },
+  {
+    title: 'Products',
+    path: '/products',
+    description: 'Foundation route untuk modul Products sudah siap dan diproteksi permission.',
+    permission: 'products.view',
+  },
+  {
+    title: 'Units',
+    path: '/units',
+    description: 'Foundation route untuk modul Units sudah siap dan diproteksi permission.',
+    permission: 'uoms.view',
+  },
+  {
+    title: 'Warehouses',
+    path: '/warehouses',
+    description: 'Foundation route untuk modul Warehouses sudah siap dan diproteksi permission.',
+    permission: 'warehouses.view',
+  },
+  {
+    title: 'Goods Receiving',
+    path: '/goods-receiving',
+    description:
+      'Foundation route untuk modul Goods Receiving sudah siap dan diproteksi permission.',
+    permission: 'receiving.view',
+  },
+  {
+    title: 'Lots',
+    path: '/lots',
+    description: 'Foundation route untuk modul Lots sudah siap dan diproteksi permission.',
+    permission: 'lots.view',
+  },
+  {
+    title: 'Inventory',
+    path: '/inventory',
+    description: 'Foundation route untuk modul Inventory sudah siap dan diproteksi permission.',
+    permission: 'inventory.view',
+  },
+  {
+    title: 'Stock Movements',
+    path: '/stock-movements',
+    description:
+      'Foundation route untuk modul Stock Movements sudah siap dan diproteksi permission.',
+    permission: 'stock-movements.view',
+  },
+  {
+    title: 'Users',
+    path: '/users',
+    description: 'Foundation route untuk modul Users sudah siap dan diproteksi permission.',
+    permission: 'users.view',
+  },
+  {
+    title: 'Roles',
+    path: '/roles',
+    description: 'Foundation route untuk modul Roles sudah siap dan diproteksi permission.',
+    permission: 'roles.view',
+  },
+  {
+    title: 'Menus',
+    path: '/menus',
+    description: 'Foundation route untuk modul Menus sudah siap dan diproteksi permission.',
+    permission: 'menus.view',
+  },
 ]
+
+export const sidebarIconMap: SidebarIconMap = {
+  dashboard: LayoutDashboard,
+  'master-data': Boxes,
+  suppliers: Truck,
+  'raw-materials': Boxes,
+  products: ShoppingBasket,
+  units: Ruler,
+  warehouses: Building2,
+  warehouse: Warehouse,
+  'goods-receiving': PackageSearch,
+  lots: Tags,
+  inventory: Warehouse,
+  'stock-movements': ArrowLeftRight,
+  production: Factory,
+  'quality-control': ShieldCheck,
+  traceability: Waypoints,
+  reports: ChartNoAxesColumn,
+  administration: ShieldEllipsis,
+  users: Users,
+  roles: ShieldCheck,
+  menus: MenuSquare,
+}
+
+export function getSidebarIcon(code: string) {
+  return sidebarIconMap[code] ?? ScanSearch
+}

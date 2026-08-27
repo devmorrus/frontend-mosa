@@ -21,7 +21,10 @@ export const tokenStorage = {
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
     if (refreshToken) {
       localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+      return
     }
+
+    localStorage.removeItem(REFRESH_TOKEN_KEY)
   },
   clear(): void {
     localStorage.removeItem(ACCESS_TOKEN_KEY)
