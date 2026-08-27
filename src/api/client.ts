@@ -1,0 +1,91 @@
+import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
+import { env } from '@/config/env'
+import { useAuthStore } from '@/stores/authStore'
+import { useUiStore } from '@/stores/uiStore'
+import type { ApiError } from '@/types/api'
+import { tokenStorage } from '@/utils/tokenStorage'
+
+/**
+ * The one and only HTTP client for talking to the MOSA API.
+ *
+ * Every feature/page must call the backend through this instance (or a
+ * thin wrapper in `src/api/*.api.ts`) instead of using `axios`/`fetch`
+ * directly, so auth headers, base URL, and error handling stay in one
+ * place instead of scattered across components.
+ */
+export const apiClient = axios.create({
+  baseURL: env.apiBaseUrl,
+  headers: {
+    Accept: 'application/json',
+  },
+  timeout: 15000,
+})
+
+/** Requests some endpoints (e.g. login) intentionally skip auth/error side effects. */
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    skipAuthRedirect?: boolean
+    skipForbiddenRedirect?: boolean
+  }
+}
+
+// Attach Authorization header from centralized token storage.
+apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = tokenStorage.getAccessToken()
+  if (token) {
+    config.headers.set('Authorization', `Bearer ${token}`)
+  }
+  return config
+})
+
+function normalizeError(error: AxiosError): ApiError {
+  const status = error.response?.status ?? null
+  const body = error.response?.data as
+    | { message?: string; errors?: Record<string, string[]>; code?: string }
+    | undefined
+
+  if (!error.response) {
+    return {
+      status: null,
+      message: 'Tidak dapat menghubungi server. Periksa koneksi internet Anda.',
+    }
+  }
+
+  return {
+    status,
+    message: body?.message ?? 'Terjadi kesalahan pada server.',
+    errors: body?.errors,
+    code: body?.code,
+  }
+}
+
+// Centralized error handling: normalize every error, react to 401/403,
+// and surface everything else as a toast so pages don't each build their
+// own error UI.
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    const apiError = normalizeError(error)
+    const skipAuthRedirect = error.config?.skipAuthRedirect
+    const skipForbiddenRedirect = error.config?.skipForbiddenRedirect
+
+    if (apiError.status === 401 && !skipAuthRedirect) {
+      useAuthStore.getState().clearSession()
+      useUiStore.getState().pushToast('error', 'Sesi Anda berakhir. Silakan login kembali.')
+      if (window.location.pathname !== '/login') {
+        window.location.assign('/login')
+      }
+    } else if (apiError.status === 403 && !skipForbiddenRedirect) {
+      useUiStore
+        .getState()
+        .pushToast('error', 'Anda tidak memiliki izin untuk melakukan aksi ini.')
+      if (window.location.pathname !== '/403') {
+        window.location.assign('/403')
+      }
+    } else if (apiError.status === null || apiError.status >= 500) {
+      useUiStore.getState().pushToast('error', apiError.message)
+    }
+
+    return Promise.reject(apiError)
+  },
+)
