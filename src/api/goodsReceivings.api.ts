@@ -44,6 +44,9 @@ export const goodsReceivingsApi = {
   getById: (id: string) =>
     apiClient.get<GoodsReceivingDetail>(`/goods-receivings/${id}`).then((response) => response.data),
 
+  post: (id: string) =>
+    apiClient.post<GoodsReceivingDetail>(`/goods-receivings/${id}/post`).then((response) => response.data),
+
   create: (values: GoodsReceivingFormValues) => {
     const normalized = normalizeGoodsReceivingFormValues(values)
 

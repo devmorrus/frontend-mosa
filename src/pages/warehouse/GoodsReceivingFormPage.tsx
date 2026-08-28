@@ -6,6 +6,14 @@ import { suppliersApi } from '@/api/suppliers.api'
 import { warehousesApi } from '@/api/warehouses.api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { ReceivingItemFields } from '@/features/goods-receivings/components/ReceivingItemFields'
@@ -44,7 +52,15 @@ export function GoodsReceivingFormPage() {
   const [materialOverrides, setMaterialOverrides] = useState<Record<string, RawMaterialListItem>>({})
 
   const canSave = id ? can('receiving.update') : can('receiving.create')
+  const canPost = can('receiving.post')
   const isInteractionDisabled = form.isReadOnly || !canSave
+  const canShowPostAction =
+    Boolean(id) &&
+    Boolean(form.detail) &&
+    form.detail?.status === 'DRAFT' &&
+    canPost &&
+    !form.isSubmitting &&
+    !form.isPosting
 
   useEffect(() => {
     async function loadLookups() {
@@ -219,6 +235,12 @@ export function GoodsReceivingFormPage() {
         </div>
       ) : null}
 
+      {form.postError ? (
+        <div className="rounded-[28px] border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
+          {form.postError}
+        </div>
+      ) : null}
+
       {lookupError ? (
         <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
           Gagal memuat source lookup receiving: {lookupError}
@@ -227,6 +249,43 @@ export function GoodsReceivingFormPage() {
 
       <Card>
         <CardContent className="space-y-6 p-6">
+          {form.detail ? (
+            <div className="grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-600 sm:grid-cols-2 xl:grid-cols-4">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Receiving Number</p>
+                <p className="mt-1 font-medium text-ink">{form.detail.receivingNumber}</p>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Receiving Date</p>
+                <p className="mt-1 font-medium text-ink">{formatDateTimeLabel(form.detail.receivingDate)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Supplier</p>
+                <p className="mt-1 font-medium text-ink">{form.detail.supplierName}</p>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Warehouse</p>
+                <p className="mt-1 font-medium text-ink">{form.detail.warehouseName}</p>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Created By</p>
+                <p className="mt-1 font-medium text-ink">{form.detail.createdBy ?? '-'}</p>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Posted By</p>
+                <p className="mt-1 font-medium text-ink">{form.detail.postedBy ?? '-'}</p>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Posted At</p>
+                <p className="mt-1 font-medium text-ink">{formatDateTimeLabel(form.detail.postedAtUtc)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Status</p>
+                <p className="mt-1 font-medium text-ink">{form.detail.status}</p>
+              </div>
+            </div>
+          ) : null}
+
           <div className="grid gap-5 lg:grid-cols-2">
             <div>
               <label className="mb-2 block text-sm font-semibold text-ink">Supplier</label>
@@ -355,8 +414,18 @@ export function GoodsReceivingFormPage() {
             <Button asChild variant="secondary">
               <Link to="/goods-receiving">Kembali ke list</Link>
             </Button>
+            {canShowPostAction ? (
+              <Button
+                variant="secondary"
+                onClick={form.openPostConfirmation}
+                disabled={form.isPosting || form.isSubmitting}
+              >
+                {form.isPosting ? <LoaderCircle size={16} className="animate-spin" /> : null}
+                {form.isPosting ? 'Posting Receiving...' : 'Post Receiving'}
+              </Button>
+            ) : null}
             {!isInteractionDisabled ? (
-              <Button onClick={() => void handleSubmit()} disabled={form.isSubmitting || isLookupLoading}>
+              <Button onClick={() => void handleSubmit()} disabled={form.isSubmitting || form.isPosting || isLookupLoading}>
                 {form.isSubmitting ? <LoaderCircle size={16} className="animate-spin" /> : null}
                 Save Draft
               </Button>
@@ -364,6 +433,42 @@ export function GoodsReceivingFormPage() {
           </div>
         </div>
       </div>
+
+      <Dialog open={form.showPostConfirmation} onOpenChange={form.closePostConfirmation}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Post Receiving</DialogTitle>
+            <DialogDescription>
+              Posting receiving akan membuat Internal LOT dan menambahkan stock. Lanjutkan?
+            </DialogDescription>
+          </DialogHeader>
+
+          {form.detail ? (
+            <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+              <p className="font-medium text-ink">{form.detail.receivingNumber}</p>
+              <p className="mt-1">Supplier {form.detail.supplierName}</p>
+              <p>Warehouse {form.detail.warehouseName}</p>
+              <p>Status saat ini {form.detail.status}</p>
+            </div>
+          ) : null}
+
+          {form.postError ? (
+            <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {form.postError}
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => form.closePostConfirmation(false)} disabled={form.isPosting}>
+              Cancel
+            </Button>
+            <Button onClick={() => void form.submitPost()} disabled={form.isPosting}>
+              {form.isPosting ? <LoaderCircle size={16} className="animate-spin" /> : null}
+              {form.isPosting ? 'Posting Receiving...' : 'Post Receiving'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

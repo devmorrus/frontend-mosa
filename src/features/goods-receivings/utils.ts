@@ -42,6 +42,7 @@ export function mapReceivingDetailToFormValues(detail: GoodsReceivingDetail): Go
       rawMaterialId: item.rawMaterialId,
       rawMaterialCode: item.rawMaterialCode,
       rawMaterialName: item.rawMaterialName,
+      internalLot: item.internalLot ?? '',
       unitOfMeasureId: item.unitOfMeasureId,
       unitOfMeasureCode: item.unitOfMeasureCode,
       unitOfMeasureName: item.unitOfMeasureCode,

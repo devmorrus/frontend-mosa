@@ -56,6 +56,7 @@ export interface GoodsReceivingItemFormValues {
   rawMaterialId: string
   rawMaterialCode: string
   rawMaterialName: string
+  internalLot: string
   unitOfMeasureId: string
   unitOfMeasureCode: string
   unitOfMeasureName: string

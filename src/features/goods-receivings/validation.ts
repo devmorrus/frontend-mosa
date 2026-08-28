@@ -14,6 +14,7 @@ export function createEmptyReceivingItem(): GoodsReceivingItemFormValues {
     rawMaterialId: '',
     rawMaterialCode: '',
     rawMaterialName: '',
+    internalLot: '',
     unitOfMeasureId: '',
     unitOfMeasureCode: '',
     unitOfMeasureName: '',

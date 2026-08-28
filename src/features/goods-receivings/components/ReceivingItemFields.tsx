@@ -53,11 +53,12 @@ export function ReceivingItemFields({
             value={item.rawMaterialId}
             onChange={(event) => {
               const selected = materials.find((material) => material.id === event.target.value)
-              onChange((current) => ({
+            onChange((current) => ({
                 ...current,
                 rawMaterialId: selected?.id ?? '',
                 rawMaterialCode: selected?.code ?? '',
                 rawMaterialName: selected?.name ?? '',
+                internalLot: current.internalLot,
                 unitOfMeasureId: selected?.unitOfMeasureId ?? '',
                 unitOfMeasureCode: selected?.unitOfMeasureCode ?? '',
                 unitOfMeasureName: selected?.unitOfMeasureName ?? '',
@@ -151,6 +152,16 @@ export function ReceivingItemFields({
           />
         </div>
       </div>
+
+      {item.internalLot ? (
+        <div className="mt-5">
+          <label className="mb-2 block text-sm font-semibold text-ink">Internal LOT</label>
+          <Input value={item.internalLot} readOnly disabled />
+          <p className="mt-2 text-xs text-slate-500">
+            Internal LOT dibuat backend setelah receiving berhasil dipost.
+          </p>
+        </div>
+      ) : null}
 
       <div className="mt-5">
         <label className="mb-2 block text-sm font-semibold text-ink">Notes</label>

@@ -21,11 +21,19 @@ export function useGoodsReceivingForm(receivingId?: string) {
   const [formValues, setFormValues] = useState<GoodsReceivingFormValues>(emptyGoodsReceivingFormValues)
   const [formErrors, setFormErrors] = useState<MasterDataFormErrors>({})
   const [formError, setFormError] = useState<string | null>(null)
+  const [postError, setPostError] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(Boolean(receivingId))
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPosting, setIsPosting] = useState(false)
+  const [showPostConfirmation, setShowPostConfirmation] = useState(false)
   const isEditMode = Boolean(receivingId)
   const isReadOnly = detail ? detail.status !== 'DRAFT' : false
+
+  function syncDetail(nextDetail: GoodsReceivingDetail) {
+    setDetail(nextDetail)
+    setFormValues(ensureAtLeastOneItem(mapReceivingDetailToFormValues(nextDetail)))
+  }
 
   useEffect(() => {
     if (!receivingId) {
@@ -40,8 +48,7 @@ export function useGoodsReceivingForm(receivingId?: string) {
 
       try {
         const nextDetail = await goodsReceivingsApi.getById(resolvedReceivingId)
-        setDetail(nextDetail)
-        setFormValues(ensureAtLeastOneItem(mapReceivingDetailToFormValues(nextDetail)))
+        syncDetail(nextDetail)
       } catch (caughtError) {
         const apiError = caughtError as ApiError
         setLoadError(apiError.message)
@@ -91,8 +98,7 @@ export function useGoodsReceivingForm(receivingId?: string) {
 
     try {
       const nextDetail = await goodsReceivingsApi.getById(resolvedReceivingId)
-      setDetail(nextDetail)
-      setFormValues(ensureAtLeastOneItem(mapReceivingDetailToFormValues(nextDetail)))
+      syncDetail(nextDetail)
     } catch (caughtError) {
       const apiError = caughtError as ApiError
       setLoadError(apiError.message)
@@ -105,6 +111,7 @@ export function useGoodsReceivingForm(receivingId?: string) {
     const nextErrors = validateGoodsReceivingForm(formValues)
     setFormErrors(nextErrors)
     setFormError(null)
+    setPostError(null)
 
     if (Object.keys(nextErrors).length > 0) {
       return null
@@ -117,8 +124,7 @@ export function useGoodsReceivingForm(receivingId?: string) {
         ? await goodsReceivingsApi.update(receivingId, formValues)
         : await goodsReceivingsApi.create(formValues)
 
-      setDetail(result)
-      setFormValues(ensureAtLeastOneItem(mapReceivingDetailToFormValues(result)))
+      syncDetail(result)
       setFormErrors({})
       pushToast('success', receivingId ? 'Draft receiving berhasil diperbarui.' : 'Draft receiving berhasil dibuat.')
       return result
@@ -133,22 +139,91 @@ export function useGoodsReceivingForm(receivingId?: string) {
     }
   }
 
+  function openPostConfirmation() {
+    setPostError(null)
+
+    if (!receivingId || !detail) {
+      setPostError('Draft receiving belum tersedia untuk dipost.')
+      return
+    }
+
+    if (detail.status !== 'DRAFT') {
+      setPostError('Hanya receiving dengan status DRAFT yang dapat dipost.')
+      return
+    }
+
+    if (isPosting || isSubmitting) {
+      return
+    }
+
+    setShowPostConfirmation(true)
+  }
+
+  function closePostConfirmation(open: boolean) {
+    if (isPosting) return
+    setShowPostConfirmation(open)
+  }
+
+  async function submitPost() {
+    if (!receivingId || !detail) {
+      setPostError('Draft receiving belum tersedia untuk dipost.')
+      setShowPostConfirmation(false)
+      return null
+    }
+
+    if (detail.status !== 'DRAFT') {
+      setPostError('Receiving ini sudah tidak berada pada status DRAFT.')
+      setShowPostConfirmation(false)
+      return null
+    }
+
+    if (isPosting) {
+      return null
+    }
+
+    setIsPosting(true)
+    setPostError(null)
+
+    try {
+      const result = await goodsReceivingsApi.post(receivingId)
+      syncDetail(result)
+      setFormErrors({})
+      setFormError(null)
+      setShowPostConfirmation(false)
+      pushToast('success', 'Receiving berhasil dipost.')
+      return result
+    } catch (caughtError) {
+      const apiError = caughtError as ApiError
+      setPostError(apiError.message || 'Receiving gagal dipost. Tidak ada perubahan stock yang disimpan.')
+      setShowPostConfirmation(false)
+      return null
+    } finally {
+      setIsPosting(false)
+    }
+  }
+
   return {
     detail,
     formValues,
     setFormValues,
     formErrors,
     formError,
+    postError,
     loadError,
     isLoading,
     isSubmitting,
+    isPosting,
     isEditMode,
     isReadOnly,
+    showPostConfirmation,
     updateHeader,
     updateItem,
     addItem,
     removeItem,
+    openPostConfirmation,
+    closePostConfirmation,
     reload,
     submit,
+    submitPost,
   }
 }
