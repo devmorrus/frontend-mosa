@@ -40,17 +40,20 @@ function SidebarEntry({
   level = 0,
   openIds,
   onToggle,
+  siblingIds,
 }: {
   item: SidebarItem
   level?: number
   openIds: Set<string>
-  onToggle: (id: string) => void
+  onToggle: (id: string, siblingIds: string[]) => void
+  siblingIds: string[]
 }) {
   const closeMobileSidebar = useUiStore((state) => state.closeMobileSidebar)
   const iconComponent = getSidebarIcon(item.code)
   const hasChildren = item.children.length > 0
   const isClickable = Boolean(item.path)
   const isOpen = openIds.has(item.id)
+  const childIds = useMemo(() => item.children.map((child) => child.id), [item.children])
 
   const chevron = hasChildren ? (
     <button
@@ -58,7 +61,7 @@ function SidebarEntry({
       onClick={(event) => {
         event.preventDefault()
         event.stopPropagation()
-        onToggle(item.id)
+        onToggle(item.id, siblingIds)
       }}
       aria-expanded={isOpen}
       aria-controls={`sidebar-group-${item.id}`}
@@ -113,7 +116,7 @@ function SidebarEntry({
       ) : hasChildren ? (
         <button
           type="button"
-          onClick={() => onToggle(item.id)}
+          onClick={() => onToggle(item.id, siblingIds)}
           aria-expanded={isOpen}
           aria-controls={`sidebar-group-${item.id}`}
           className={cn(
@@ -178,6 +181,7 @@ function SidebarEntry({
                   level={level + 1}
                   openIds={openIds}
                   onToggle={onToggle}
+                  siblingIds={childIds}
                 />
               ))}
           </div>
@@ -221,14 +225,26 @@ function SidebarContent() {
     [sidebarItems],
   )
 
-  function toggleGroup(id: string) {
+  const rootIds = useMemo(() => sortedItems.map((item) => item.id), [sortedItems])
+
+  // Accordion behaviour: opening a group closes its sibling groups (groups
+  // that share the same parent), so e.g. opening "Warehouse" collapses
+  // "Master Data" if they sit at the same level.
+  function toggleGroup(id: string, siblingIds: string[]) {
     setOpenIds((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) {
+      const wasOpen = next.has(id)
+
+      siblingIds.forEach((siblingId) => {
+        if (siblingId !== id) next.delete(siblingId)
+      })
+
+      if (wasOpen) {
         next.delete(id)
       } else {
         next.add(id)
       }
+
       return next
     })
   }
@@ -236,7 +252,13 @@ function SidebarContent() {
   return (
     <nav className="flex h-full flex-col gap-2 overflow-y-auto px-3 py-4">
       {sortedItems.map((item) => (
-        <SidebarEntry key={item.id} item={item} openIds={openIds} onToggle={toggleGroup} />
+        <SidebarEntry
+          key={item.id}
+          item={item}
+          openIds={openIds}
+          onToggle={toggleGroup}
+          siblingIds={rootIds}
+        />
       ))}
 
       {sidebarItems.length === 0 && (
