@@ -33,13 +33,6 @@ export interface SidebarIconMap {
 
 export const placeholderRoutes: PlaceholderRoute[] = [
   {
-    title: 'Goods Receiving',
-    path: '/goods-receiving',
-    description:
-      'Foundation route untuk modul Goods Receiving sudah siap dan diproteksi permission.',
-    permission: 'receiving.view',
-  },
-  {
     title: 'Lots',
     path: '/lots',
     description: 'Foundation route untuk modul Lots sudah siap dan diproteksi permission.',

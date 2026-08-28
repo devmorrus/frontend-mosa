@@ -11,6 +11,8 @@ import { SuppliersPage } from '@/pages/master-data/SuppliersPage'
 import { UnitsPage } from '@/pages/master-data/UnitsPage'
 import { WarehousesPage } from '@/pages/master-data/WarehousesPage'
 import { ModulePlaceholderPage } from '@/pages/modules/ModulePlaceholderPage'
+import { GoodsReceivingFormPage } from '@/pages/warehouse/GoodsReceivingFormPage'
+import { GoodsReceivingsPage } from '@/pages/warehouse/GoodsReceivingsPage'
 import { placeholderRoutes } from '@/routes/navigation.config'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 
@@ -46,6 +48,15 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute requiredPermission="products.view" />}>
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/master/products" element={<ProductsPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="receiving.view" />}>
+            <Route path="/goods-receiving" element={<GoodsReceivingsPage />} />
+            <Route path="/goods-receiving/:id" element={<GoodsReceivingFormPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="receiving.create" />}>
+            <Route path="/goods-receiving/create" element={<GoodsReceivingFormPage />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="uoms.view" />}>

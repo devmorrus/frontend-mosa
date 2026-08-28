@@ -45,7 +45,7 @@ const MODULE_PREVIEWS: ModulePreview[] = [
   },
   {
     label: 'Goods Receiving',
-    permission: 'goodsreceiving.view',
+    permission: 'receiving.view',
     description: 'Alur penerimaan barang akan dibangun di atas shell dan permission yang sudah siap.',
     accent: 'from-[#e1edf1] to-[#f6f8f5]',
     icon: PackageSearch,

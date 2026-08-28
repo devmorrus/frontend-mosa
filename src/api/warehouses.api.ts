@@ -8,6 +8,11 @@ import type {
   WarehouseListItem,
 } from '@/features/warehouses/types'
 import type { ApiPaginatedResponse } from '@/types/api'
+import type { MasterDataStatusFilter } from '@/features/master-data/types'
+
+function toStatusParam(status: MasterDataStatusFilter) {
+  return status === 'ALL' ? undefined : status
+}
 
 export const warehousesApi = {
   list: (query: MasterDataQueryState) =>
@@ -16,6 +21,17 @@ export const warehousesApi = {
         params: buildMasterDataParams(query),
       })
       .then((response) => mapPaginatedResponse(response.data)),
+
+  listOptions: (status: MasterDataStatusFilter = 'ALL') =>
+    apiClient
+      .get<ApiPaginatedResponse<WarehouseListItem>>('/warehouses', {
+        params: {
+          status: toStatusParam(status),
+          page: 1,
+          pageSize: 100,
+        },
+      })
+      .then((response) => response.data.items),
 
   getById: (id: string) =>
     apiClient.get<WarehouseDetail>(`/warehouses/${id}`).then((response) => response.data),

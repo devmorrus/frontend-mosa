@@ -30,6 +30,17 @@ export const rawMaterialsApi = {
   getById: (id: string) =>
     apiClient.get<RawMaterialDetail>(`/raw-materials/${id}`).then((response) => response.data),
 
+  listActiveOptions: () =>
+    apiClient
+      .get<ApiPaginatedResponse<RawMaterialListItem>>('/raw-materials', {
+        params: {
+          status: 'ACTIVE',
+          page: 1,
+          pageSize: 100,
+        },
+      })
+      .then((response) => response.data.items),
+
   create: (values: RawMaterialFormValues) => {
     const normalized = normalizeRawMaterialFormValues(values)
 
