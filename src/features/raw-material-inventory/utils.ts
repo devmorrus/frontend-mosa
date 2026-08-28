@@ -1,4 +1,5 @@
 import type {
+  FefoRecommendedLot,
   InventoryRawMaterialListItem,
   InventoryRawMaterialLot,
   InventoryRawMaterialStatusFilter,
@@ -107,4 +108,47 @@ export function getInventoryAggregateStatusTone(status: string) {
     default:
       return 'border-slate-200 bg-slate-100 text-slate-600'
   }
+}
+
+export function resolveInventoryFefoWarehouseId(
+  item: InventoryRawMaterialListItem,
+  selectedWarehouseId: string,
+) {
+  if (selectedWarehouseId) return selectedWarehouseId
+
+  const warehouseIds = [...new Set(item.lots.map((lot) => lot.warehouseId))]
+  return warehouseIds.length === 1 ? warehouseIds[0] : null
+}
+
+export function getInventoryFefoInfoMessage(
+  item: InventoryRawMaterialListItem,
+  selectedWarehouseId: string,
+) {
+  const resolvedWarehouseId = resolveInventoryFefoWarehouseId(item, selectedWarehouseId)
+  if (resolvedWarehouseId) return null
+
+  return 'Pilih warehouse untuk melihat rekomendasi FEFO pada material multi-warehouse.'
+}
+
+export function getInventoryFefoStatusTone(lot: FefoRecommendedLot) {
+  if (lot.isExpired) {
+    return 'border-rose-200 bg-rose-50 text-rose-700'
+  }
+
+  switch (lot.status.toUpperCase()) {
+    case 'AVAILABLE':
+      return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+    case 'BLOCKED':
+      return 'border-amber-200 bg-amber-50 text-amber-700'
+    case 'CONSUMED':
+      return 'border-slate-200 bg-slate-100 text-slate-600'
+    case 'EXPIRED':
+      return 'border-rose-200 bg-rose-50 text-rose-700'
+    default:
+      return 'border-slate-200 bg-slate-50 text-slate-600'
+  }
+}
+
+export function getInventoryFefoStatusLabel(lot: FefoRecommendedLot) {
+  return lot.isExpired ? 'EXPIRED' : lot.status.toUpperCase()
 }

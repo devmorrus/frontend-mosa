@@ -1,23 +1,77 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { inventoryApi } from '@/api/inventory.api'
 import { Button } from '@/components/ui/button'
+import { RawMaterialInventoryFefoCard } from '@/features/raw-material-inventory/components/RawMaterialInventoryFefoCard'
 import type {
+  FefoRecommendation,
   InventoryRawMaterialListItem,
   InventoryRawMaterialLot,
 } from '@/features/raw-material-inventory/types'
 import {
   formatInventoryDateLabel,
   formatInventoryQuantity,
+  getInventoryFefoInfoMessage,
   getInventoryLotStatusLabel,
   getInventoryLotStatusTone,
+  resolveInventoryFefoWarehouseId,
 } from '@/features/raw-material-inventory/utils'
+import type { ApiError } from '@/types/api'
 
 interface RawMaterialInventoryLotBreakdownProps {
   item: InventoryRawMaterialListItem
+  selectedWarehouseId: string
 }
 
 export function RawMaterialInventoryLotBreakdown({
   item,
+  selectedWarehouseId,
 }: RawMaterialInventoryLotBreakdownProps) {
+  const [recommendation, setRecommendation] = useState<FefoRecommendation | null>(null)
+  const [fefoError, setFefoError] = useState<string | null>(null)
+  const [isLoadingFefo, setIsLoadingFefo] = useState(false)
+  const resolvedWarehouseId = resolveInventoryFefoWarehouseId(item, selectedWarehouseId)
+  const infoMessage = getInventoryFefoInfoMessage(item, selectedWarehouseId)
+
+  useEffect(() => {
+    if (!resolvedWarehouseId || infoMessage) {
+      return
+    }
+
+    const warehouseId = resolvedWarehouseId
+    let isCancelled = false
+
+    async function loadRecommendation() {
+      setIsLoadingFefo(true)
+      setFefoError(null)
+
+      try {
+        const result = await inventoryApi.getRecommendedLots(item.materialId, warehouseId)
+        if (!isCancelled) {
+          setRecommendation(result)
+        }
+      } catch (caughtError) {
+        if (isCancelled) return
+        const apiError = caughtError as ApiError
+        setFefoError(apiError.message)
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingFefo(false)
+        }
+      }
+    }
+
+    void loadRecommendation()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [infoMessage, item.materialId, resolvedWarehouseId])
+
+  const visibleRecommendation = !resolvedWarehouseId || infoMessage ? null : recommendation
+  const visibleError = !resolvedWarehouseId || infoMessage ? null : fefoError
+  const visibleLoading = !resolvedWarehouseId || infoMessage ? false : isLoadingFefo
+
   return (
     <div className="space-y-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -29,6 +83,14 @@ export function RawMaterialInventoryLotBreakdown({
         </div>
         <div className="text-sm text-slate-500">{item.lots.length} LOT pembentuk total</div>
       </div>
+
+      <RawMaterialInventoryFefoCard
+        recommendation={visibleRecommendation}
+        isLoading={visibleLoading}
+        error={visibleError}
+        infoMessage={infoMessage}
+        unit={item.unit}
+      />
 
       <div className="grid gap-3">
         {item.lots.map((lot) => (

@@ -17,6 +17,7 @@ import { RawMaterialInventoryPage } from '@/pages/warehouse/RawMaterialInventory
 import { RawMaterialLotDetailPage } from '@/pages/warehouse/RawMaterialLotDetailPage'
 import { RawMaterialLotsPage } from '@/pages/warehouse/RawMaterialLotsPage'
 import { RawMaterialLotScannerPage } from '@/pages/warehouse/RawMaterialLotScannerPage'
+import { StockMovementsPage } from '@/pages/warehouse/StockMovementsPage'
 import { placeholderRoutes } from '@/routes/navigation.config'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 
@@ -83,8 +84,12 @@ export function AppRoutes() {
             <Route path="/inventory" element={<RawMaterialInventoryPage />} />
           </Route>
 
+          <Route element={<ProtectedRoute requiredPermission="stock-movements.view" />}>
+            <Route path="/stock-movements" element={<StockMovementsPage />} />
+          </Route>
+
           {placeholderRoutes.map((route) => (
-            route.path === '/lots' || route.path === '/inventory' ? null : (
+            route.path === '/lots' || route.path === '/inventory' || route.path === '/stock-movements' ? null : (
               <Route
                 key={route.path}
                 element={<ProtectedRoute requiredPermission={route.permission} />}

@@ -30,6 +30,30 @@ export interface InventoryRawMaterialListItem {
   lots: InventoryRawMaterialLot[]
 }
 
+export interface FefoRecommendedLot {
+  lotId: string
+  internalLotNumber: string
+  availableQuantity: number
+  recommendedQuantity: number
+  expiryDate: string | null
+  status: string
+  isExpired: boolean
+  recommendationRank: number
+}
+
+export interface FefoRecommendation {
+  materialId: string
+  materialCode: string
+  materialName: string
+  warehouseId: string
+  warehouseCode: string
+  warehouseName: string
+  requiredQuantity: number | null
+  totalAvailableQuantity: number
+  totalRecommendedQuantity: number
+  lots: FefoRecommendedLot[]
+}
+
 export interface InventoryRawMaterialQueryState {
   search: string
   warehouseId: string

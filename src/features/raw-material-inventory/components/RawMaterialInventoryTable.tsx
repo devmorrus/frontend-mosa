@@ -15,6 +15,7 @@ interface RawMaterialInventoryTableProps {
   items: InventoryRawMaterialListItem[]
   pagination: PaginationMeta
   expandedMaterialId: string | null
+  selectedWarehouseId: string
   isRefreshing: boolean
   onToggleBreakdown: (materialId: string) => void
   onPageChange: (page: number) => void
@@ -24,6 +25,7 @@ export function RawMaterialInventoryTable({
   items,
   pagination,
   expandedMaterialId,
+  selectedWarehouseId,
   isRefreshing,
   onToggleBreakdown,
   onPageChange,
@@ -69,6 +71,7 @@ export function RawMaterialInventoryTable({
                   item={item}
                   aggregateStatus={aggregateStatus}
                   isExpanded={isExpanded}
+                  selectedWarehouseId={selectedWarehouseId}
                   onToggleBreakdown={onToggleBreakdown}
                 />
               )
@@ -86,11 +89,13 @@ function FragmentRow({
   item,
   aggregateStatus,
   isExpanded,
+  selectedWarehouseId,
   onToggleBreakdown,
 }: {
   item: InventoryRawMaterialListItem
   aggregateStatus: string
   isExpanded: boolean
+  selectedWarehouseId: string
   onToggleBreakdown: (materialId: string) => void
 }) {
   return (
@@ -121,7 +126,7 @@ function FragmentRow({
       {isExpanded ? (
         <tr className="bg-white">
           <td colSpan={8} className="px-6 pb-5">
-            <RawMaterialInventoryLotBreakdown item={item} />
+            <RawMaterialInventoryLotBreakdown item={item} selectedWarehouseId={selectedWarehouseId} />
           </td>
         </tr>
       ) : null}

@@ -1,5 +1,6 @@
 import { apiClient } from '@/api/client'
 import type {
+  FefoRecommendation,
   InventoryRawMaterialListItem,
   InventoryRawMaterialQueryState,
 } from '@/features/raw-material-inventory/types'
@@ -32,4 +33,14 @@ export const inventoryApi = {
         pagination: response.data.pagination,
       }))
   },
+
+  getRecommendedLots: (materialId: string, warehouseId: string, requiredQuantity?: number) =>
+    apiClient
+      .get<FefoRecommendation>(`/inventory/raw-materials/${materialId}/recommended-lots`, {
+        params: {
+          warehouseId,
+          requiredQuantity: requiredQuantity ?? undefined,
+        },
+      })
+      .then((response) => response.data),
 }
