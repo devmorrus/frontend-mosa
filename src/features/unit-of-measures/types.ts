@@ -1,5 +1,12 @@
 import type { MasterDataEntityBase } from '@/features/master-data/types'
 
+export interface UnitOfMeasureOption {
+  id: string
+  code: string
+  name: string
+  symbol: string | null
+}
+
 export interface UnitOfMeasureListItem extends MasterDataEntityBase {
   symbol: string | null
 }

@@ -1,12 +1,12 @@
 import type { ApiPaginatedResponse } from '@/types/api'
 import type {
+  MasterDataBaseQueryState,
   MasterDataListResult,
   MasterDataPagination,
-  MasterDataQueryState,
 } from '@/features/master-data/types'
 import { toStatusQuery } from '@/features/master-data/utils'
 
-export function buildMasterDataParams(query: MasterDataQueryState) {
+export function buildMasterDataParams(query: MasterDataBaseQueryState) {
   return {
     search: query.search || undefined,
     status: toStatusQuery(query.status),

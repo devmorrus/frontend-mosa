@@ -5,6 +5,8 @@ import { LoginPage } from '@/pages/auth/LoginPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { ForbiddenPage } from '@/pages/errors/ForbiddenPage'
 import { NotFoundPage } from '@/pages/errors/NotFoundPage'
+import { ProductsPage } from '@/pages/master-data/ProductsPage'
+import { RawMaterialsPage } from '@/pages/master-data/RawMaterialsPage'
 import { SuppliersPage } from '@/pages/master-data/SuppliersPage'
 import { UnitsPage } from '@/pages/master-data/UnitsPage'
 import { WarehousesPage } from '@/pages/master-data/WarehousesPage'
@@ -34,6 +36,16 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute requiredPermission="suppliers.view" />}>
             <Route path="/suppliers" element={<SuppliersPage />} />
             <Route path="/master/suppliers" element={<SuppliersPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="materials.view" />}>
+            <Route path="/raw-materials" element={<RawMaterialsPage />} />
+            <Route path="/master/raw-materials" element={<RawMaterialsPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="products.view" />}>
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/master/products" element={<ProductsPage />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="uoms.view" />}>

@@ -8,6 +8,7 @@ import type {
   UnitOfMeasureDetail,
   UnitOfMeasureFormValues,
   UnitOfMeasureListItem,
+  UnitOfMeasureOption,
 } from '@/features/unit-of-measures/types'
 import type { ApiPaginatedResponse } from '@/types/api'
 
@@ -18,6 +19,17 @@ export const unitOfMeasuresApi = {
         params: buildMasterDataParams(query),
       })
       .then((response) => mapPaginatedResponse(response.data)),
+
+  listActiveOptions: () =>
+    apiClient
+      .get<ApiPaginatedResponse<UnitOfMeasureOption>>('/unit-of-measures', {
+        params: {
+          status: 'ACTIVE',
+          page: 1,
+          pageSize: 100,
+        },
+      })
+      .then((response) => response.data.items),
 
   getById: (id: string) =>
     apiClient.get<UnitOfMeasureDetail>(`/unit-of-measures/${id}`).then((response) => response.data),

@@ -1,11 +1,11 @@
 import type {
+  MasterDataBaseQueryState,
   MasterDataFormErrors,
   MasterDataPagination,
-  MasterDataQueryState,
   MasterDataStatusFilter,
 } from '@/features/master-data/types'
 
-export const DEFAULT_MASTER_DATA_QUERY: MasterDataQueryState = {
+export const DEFAULT_MASTER_DATA_QUERY: MasterDataBaseQueryState = {
   search: '',
   status: 'ALL',
   page: 1,

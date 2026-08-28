@@ -2,6 +2,13 @@ import type { ApiPaginatedResponse } from '@/types/api'
 
 export type MasterDataStatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE'
 
+export interface MasterDataBaseQueryState {
+  search: string
+  status: MasterDataStatusFilter
+  page: number
+  pageSize: number
+}
+
 export interface MasterDataPagination {
   page: number
   pageSize: number
@@ -11,12 +18,7 @@ export interface MasterDataPagination {
   hasNextPage: boolean
 }
 
-export interface MasterDataQueryState {
-  search: string
-  status: MasterDataStatusFilter
-  page: number
-  pageSize: number
-}
+export interface MasterDataQueryState extends MasterDataBaseQueryState {}
 
 export interface MasterDataListResult<T> {
   items: T[]

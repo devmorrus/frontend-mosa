@@ -3,11 +3,11 @@ import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/stores/uiStore'
 import type { ApiError } from '@/types/api'
 import type {
+  MasterDataBaseQueryState,
   MasterDataEntityBase,
   MasterDataFormErrors,
   MasterDataListResult,
   MasterDataPermissions,
-  MasterDataQueryState,
 } from '@/features/master-data/types'
 import {
   DEFAULT_MASTER_DATA_QUERY,
@@ -15,8 +15,8 @@ import {
   hasFormErrors,
 } from '@/features/master-data/utils'
 
-interface MasterDataApi<ListItem, DetailItem, FormValues> {
-  list: (query: MasterDataQueryState) => Promise<MasterDataListResult<ListItem>>
+interface MasterDataApi<ListItem, DetailItem, FormValues, QueryState extends MasterDataBaseQueryState> {
+  list: (query: QueryState) => Promise<MasterDataListResult<ListItem>>
   getById: (id: string) => Promise<DetailItem>
   create: (values: FormValues) => Promise<DetailItem>
   update: (id: string, values: FormValues) => Promise<DetailItem>
@@ -27,13 +27,15 @@ interface UseMasterDataModuleOptions<
   ListItem extends MasterDataEntityBase,
   DetailItem extends MasterDataEntityBase,
   FormValues,
+  QueryState extends MasterDataBaseQueryState,
 > {
-  api: MasterDataApi<ListItem, DetailItem, FormValues>
+  api: MasterDataApi<ListItem, DetailItem, FormValues, QueryState>
   permissions: MasterDataPermissions
   emptyValues: FormValues
   toFormValues: (detail: DetailItem) => FormValues
   validate: (values: FormValues) => MasterDataFormErrors
   entityName: string
+  initialQuery?: QueryState
 }
 
 type FormMode = 'create' | 'edit'
@@ -42,6 +44,7 @@ export function useMasterDataModule<
   ListItem extends MasterDataEntityBase,
   DetailItem extends MasterDataEntityBase,
   FormValues,
+  QueryState extends MasterDataBaseQueryState = MasterDataBaseQueryState,
 >({
   api,
   permissions,
@@ -49,12 +52,14 @@ export function useMasterDataModule<
   toFormValues,
   validate,
   entityName,
-}: UseMasterDataModuleOptions<ListItem, DetailItem, FormValues>) {
+  initialQuery,
+}: UseMasterDataModuleOptions<ListItem, DetailItem, FormValues, QueryState>) {
   const { can } = useAuth()
   const pushToast = useUiStore((state) => state.pushToast)
   const [items, setItems] = useState<ListItem[]>([])
-  const [query, setQuery] = useState<MasterDataQueryState>(DEFAULT_MASTER_DATA_QUERY)
-  const [searchInput, setSearchInput] = useState(DEFAULT_MASTER_DATA_QUERY.search)
+  const baseQuery = initialQuery ?? (DEFAULT_MASTER_DATA_QUERY as QueryState)
+  const [query, setQuery] = useState<QueryState>(baseQuery)
+  const [searchInput, setSearchInput] = useState(baseQuery.search)
   const [pagination, setPagination] = useState(EMPTY_PAGINATION)
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -70,6 +75,7 @@ export function useMasterDataModule<
   const [statusTarget, setStatusTarget] = useState<ListItem | DetailItem | null>(null)
   const [isStatusSubmitting, setIsStatusSubmitting] = useState(false)
   const deferredSearch = useDeferredValue(searchInput)
+  const querySignature = JSON.stringify(query)
 
   const canCreate = can(permissions.create)
   const canUpdate = can(permissions.update)
@@ -115,13 +121,13 @@ export function useMasterDataModule<
   useEffect(() => {
     void loadData(query, { background: items.length > 0 })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query.page, query.pageSize, query.search, query.status])
+  }, [querySignature])
 
   function handlePageChange(page: number) {
     setQuery((current) => ({ ...current, page }))
   }
 
-  function handleStatusChange(status: MasterDataQueryState['status']) {
+  function handleStatusChange(status: QueryState['status']) {
     setQuery((current) => ({ ...current, status, page: 1 }))
   }
 
@@ -233,6 +239,7 @@ export function useMasterDataModule<
     query,
     searchInput,
     setSearchInput,
+    setQuery,
     pagination,
     isLoading,
     isRefreshing,
