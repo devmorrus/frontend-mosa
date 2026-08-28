@@ -13,6 +13,7 @@ import { WarehousesPage } from '@/pages/master-data/WarehousesPage'
 import { ModulePlaceholderPage } from '@/pages/modules/ModulePlaceholderPage'
 import { GoodsReceivingFormPage } from '@/pages/warehouse/GoodsReceivingFormPage'
 import { GoodsReceivingsPage } from '@/pages/warehouse/GoodsReceivingsPage'
+import { RawMaterialInventoryPage } from '@/pages/warehouse/RawMaterialInventoryPage'
 import { RawMaterialLotDetailPage } from '@/pages/warehouse/RawMaterialLotDetailPage'
 import { RawMaterialLotsPage } from '@/pages/warehouse/RawMaterialLotsPage'
 import { RawMaterialLotScannerPage } from '@/pages/warehouse/RawMaterialLotScannerPage'
@@ -78,8 +79,12 @@ export function AppRoutes() {
             <Route path="/lots/:id" element={<RawMaterialLotDetailPage />} />
           </Route>
 
+          <Route element={<ProtectedRoute requiredPermission="inventory.view" />}>
+            <Route path="/inventory" element={<RawMaterialInventoryPage />} />
+          </Route>
+
           {placeholderRoutes.map((route) => (
-            route.path === '/lots' ? null : (
+            route.path === '/lots' || route.path === '/inventory' ? null : (
               <Route
                 key={route.path}
                 element={<ProtectedRoute requiredPermission={route.permission} />}
