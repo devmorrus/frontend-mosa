@@ -13,6 +13,9 @@ import { WarehousesPage } from '@/pages/master-data/WarehousesPage'
 import { ModulePlaceholderPage } from '@/pages/modules/ModulePlaceholderPage'
 import { GoodsReceivingFormPage } from '@/pages/warehouse/GoodsReceivingFormPage'
 import { GoodsReceivingsPage } from '@/pages/warehouse/GoodsReceivingsPage'
+import { RawMaterialLotDetailPage } from '@/pages/warehouse/RawMaterialLotDetailPage'
+import { RawMaterialLotsPage } from '@/pages/warehouse/RawMaterialLotsPage'
+import { RawMaterialLotScannerPage } from '@/pages/warehouse/RawMaterialLotScannerPage'
 import { placeholderRoutes } from '@/routes/navigation.config'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 
@@ -69,16 +72,24 @@ export function AppRoutes() {
             <Route path="/master/warehouses" element={<WarehousesPage />} />
           </Route>
 
+          <Route element={<ProtectedRoute requiredPermission="lots.view" />}>
+            <Route path="/lots" element={<RawMaterialLotsPage />} />
+            <Route path="/lots/scan" element={<RawMaterialLotScannerPage />} />
+            <Route path="/lots/:id" element={<RawMaterialLotDetailPage />} />
+          </Route>
+
           {placeholderRoutes.map((route) => (
-            <Route
-              key={route.path}
-              element={<ProtectedRoute requiredPermission={route.permission} />}
-            >
+            route.path === '/lots' ? null : (
               <Route
-                path={route.path}
-                element={<ModulePlaceholderPage title={route.title} description={route.description} />}
-              />
-            </Route>
+                key={route.path}
+                element={<ProtectedRoute requiredPermission={route.permission} />}
+              >
+                <Route
+                  path={route.path}
+                  element={<ModulePlaceholderPage title={route.title} description={route.description} />}
+                />
+              </Route>
+            )
           ))}
 
           <Route path="/403" element={<ForbiddenPage />} />
