@@ -1,4 +1,10 @@
-import { RecipeLifecycleStatus, RecipeStepType, type RecipeStep } from '@/features/recipes/types'
+import {
+  RecipeLifecycleStatus,
+  RecipeStepType,
+  RecipeToleranceType,
+  type RecipeStep,
+  type RecipeStepFormValues,
+} from '@/features/recipes/types'
 
 export const RECIPE_PAGE_SIZE_OPTIONS = [10, 20, 50]
 
@@ -67,4 +73,33 @@ export function describeRecipeStep(step: RecipeStep) {
   }
 
   return step.instruction ?? '-'
+}
+
+export function moveRecipeStep(steps: RecipeStepFormValues[], index: number, direction: -1 | 1) {
+  const nextIndex = index + direction
+  if (nextIndex < 0 || nextIndex >= steps.length) {
+    return steps
+  }
+
+  const next = [...steps]
+  const [item] = next.splice(index, 1)
+  next.splice(nextIndex, 0, item)
+  return next
+}
+
+export function formatToleranceLabel(toleranceType: RecipeToleranceType | null, toleranceValue: number | null) {
+  if (toleranceType === null || toleranceValue === null) {
+    return 'No tolerance'
+  }
+
+  switch (toleranceType) {
+    case RecipeToleranceType.PlusMinus:
+      return `±${toleranceValue}`
+    case RecipeToleranceType.Min:
+      return `Min ${toleranceValue}`
+    case RecipeToleranceType.Max:
+      return `Max ${toleranceValue}`
+    default:
+      return `${toleranceValue}`
+  }
 }

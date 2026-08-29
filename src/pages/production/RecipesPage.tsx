@@ -27,6 +27,7 @@ const DEFAULT_QUERY: RecipeQueryState = {
 export function RecipesPage() {
   const { can } = useAuth()
   const canCreate = can('recipes.create')
+  const canApprove = can('recipes.approve')
   const [items, setItems] = useState<RecipeListItem[]>([])
   const [query, setQuery] = useState<RecipeQueryState>(DEFAULT_QUERY)
   const [searchInput, setSearchInput] = useState('')
@@ -138,7 +139,7 @@ export function RecipesPage() {
           />
         </div>
 
-        <div className="grid gap-3 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto]">
+        <div className="grid gap-3 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto_auto]">
           <select
             value={query.status}
             onChange={(event) => setQuery((current) => ({ ...current, status: event.target.value as RecipeQueryState['status'], page: 1 }))}
@@ -175,6 +176,14 @@ export function RecipesPage() {
               </option>
             ))}
           </select>
+
+          {canApprove ? (
+            <Button asChild variant="secondary" className="h-12 whitespace-nowrap">
+              <Link to="/production/recipes/approval-queue">Approval Queue</Link>
+            </Button>
+          ) : (
+            <div className="hidden lg:block" />
+          )}
 
           {canCreate ? (
             <Button asChild className="h-12 whitespace-nowrap">

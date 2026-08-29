@@ -151,6 +151,23 @@ export interface RecipeScalingPreview {
   materialRequirements: RecipeScaledMaterialRequirement[]
 }
 
+export interface RecipeApprovalQueueItem {
+  recipeVersionId: string
+  recipeId: string
+  recipeName: string
+  versionNumber: number
+  product: RecipeProductLookup
+  standardOutputQuantity: number
+  unitOfMeasure: RecipeUnitOfMeasure
+  status: RecipeLifecycleStatus
+  submittedBy: string | null
+  submittedAtUtc: string | null
+  createdAtUtc: string
+  createdBy: string | null
+  updatedAtUtc: string | null
+  updatedBy: string | null
+}
+
 export interface RecipeQueryState {
   search: string
   status: MasterDataStatusFilter | 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'NEEDS_REVISION' | 'HISTORICAL'
@@ -172,6 +189,11 @@ export interface RecipeListResult {
 
 export interface RecipeVersionListResult {
   items: RecipeVersionListItem[]
+  pagination: MasterDataPagination
+}
+
+export interface RecipeApprovalQueueResult {
+  items: RecipeApprovalQueueItem[]
   pagination: MasterDataPagination
 }
 
@@ -198,4 +220,10 @@ export interface RecipeCreateFormValues {
 export interface RecipeVersionCreateFormValues {
   standardOutputQuantity: string
   unitOfMeasureId: string
+}
+
+export interface RecipeApprovalQueueQueryState {
+  search: string
+  page: number
+  pageSize: number
 }

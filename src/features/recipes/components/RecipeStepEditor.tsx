@@ -1,4 +1,4 @@
-import { GripVertical, Plus, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, GripVertical, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -19,6 +19,10 @@ interface RecipeStepEditorProps {
   unitOptions: UnitOfMeasureOption[]
   onChange: (updater: (current: RecipeStepFormValues[]) => RecipeStepFormValues[]) => void
   onAdd: () => void
+  onMoveUp?: (index: number) => void
+  onMoveDown?: (index: number) => void
+  readOnly?: boolean
+  addLabel?: string
 }
 
 function buildUnitLabel(option: UnitOfMeasureOption) {
@@ -47,6 +51,10 @@ export function RecipeStepEditor({
   unitOptions,
   onChange,
   onAdd,
+  onMoveUp,
+  onMoveDown,
+  readOnly = false,
+  addLabel = 'Add Step',
 }: RecipeStepEditorProps) {
   const updateStep = (
     index: number,
@@ -80,8 +88,33 @@ export function RecipeStepEditor({
               </div>
 
               <div className="flex items-center gap-2">
+                {readOnly ? null : (
+                  <>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon"
+                      onClick={() => onMoveUp?.(index)}
+                      disabled={index === 0}
+                      aria-label={`Move step ${index + 1} up`}
+                    >
+                      <ArrowUp size={16} />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon"
+                      onClick={() => onMoveDown?.(index)}
+                      disabled={index === steps.length - 1}
+                      aria-label={`Move step ${index + 1} down`}
+                    >
+                      <ArrowDown size={16} />
+                    </Button>
+                  </>
+                )}
                 <select
                   value={step.stepType}
+                  disabled={readOnly}
                   onChange={(event) => {
                     const nextType = Number(event.target.value) as RecipeStepType
                     updateStep(index, (current) => ({
@@ -112,7 +145,7 @@ export function RecipeStepEditor({
                   variant="secondary"
                   size="icon"
                   onClick={() => removeStep(index)}
-                  disabled={steps.length === 1}
+                  disabled={readOnly || steps.length === 1}
                   aria-label={`Remove step ${index + 1}`}
                 >
                   <Trash2 size={16} />
@@ -128,6 +161,7 @@ export function RecipeStepEditor({
                       <label className="mb-2 block text-sm font-semibold text-ink">Raw Material</label>
                       <select
                         value={step.rawMaterialId}
+                        disabled={readOnly}
                         onChange={(event) => {
                           const material = rawMaterials.find((item) => item.id === event.target.value)
                           updateStep(index, (current) => ({
@@ -152,6 +186,7 @@ export function RecipeStepEditor({
                       <label className="mb-2 block text-sm font-semibold text-ink">UOM Material</label>
                       <select
                         value={step.unitOfMeasureId}
+                        disabled={readOnly}
                         onChange={(event) =>
                           updateStep(index, (current) => ({ ...current, unitOfMeasureId: event.target.value }))
                         }
@@ -178,6 +213,7 @@ export function RecipeStepEditor({
                       <label className="mb-2 block text-sm font-semibold text-ink">Target Quantity</label>
                       <Input
                         value={step.targetQuantity}
+                        disabled={readOnly}
                         onChange={(event) =>
                           updateStep(index, (current) => ({ ...current, targetQuantity: event.target.value }))
                         }
@@ -191,6 +227,7 @@ export function RecipeStepEditor({
                       <label className="mb-2 block text-sm font-semibold text-ink">Tolerance Type</label>
                       <select
                         value={step.toleranceType}
+                        disabled={readOnly}
                         onChange={(event) =>
                           updateStep(index, (current) => ({
                             ...current,
@@ -210,6 +247,7 @@ export function RecipeStepEditor({
                       <label className="mb-2 block text-sm font-semibold text-ink">Tolerance Value</label>
                       <Input
                         value={step.toleranceValue}
+                        disabled={readOnly}
                         onChange={(event) =>
                           updateStep(index, (current) => ({ ...current, toleranceValue: event.target.value }))
                         }
@@ -223,6 +261,7 @@ export function RecipeStepEditor({
                       <label className="mb-2 block text-sm font-semibold text-ink">Instruction</label>
                       <Input
                         value={step.instruction}
+                        disabled={readOnly}
                         onChange={(event) =>
                           updateStep(index, (current) => ({ ...current, instruction: event.target.value }))
                         }
@@ -237,6 +276,7 @@ export function RecipeStepEditor({
                     <label className="mb-2 block text-sm font-semibold text-ink">Instruction</label>
                     <Textarea
                       value={step.instruction}
+                      disabled={readOnly}
                       onChange={(event) =>
                         updateStep(index, (current) => ({ ...current, instruction: event.target.value }))
                       }
@@ -257,6 +297,7 @@ export function RecipeStepEditor({
                       <label className="mb-2 block text-sm font-semibold text-ink">Timer Seconds</label>
                       <Input
                         value={step.timerSeconds}
+                        disabled={readOnly}
                         onChange={(event) =>
                           updateStep(index, (current) => ({ ...current, timerSeconds: event.target.value }))
                         }
@@ -277,9 +318,9 @@ export function RecipeStepEditor({
         )
       })}
 
-      <Button type="button" variant="secondary" onClick={onAdd}>
+      <Button type="button" variant="secondary" onClick={onAdd} disabled={readOnly}>
         <Plus size={16} />
-        Add Step
+        {addLabel}
       </Button>
       <MasterDataFormFieldError message={getFieldError(errors, 'steps')} />
     </div>

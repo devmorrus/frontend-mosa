@@ -40,6 +40,7 @@ export function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { can } = useAuth()
   const canCreate = can('recipes.create')
+  const canApprove = can('recipes.approve')
   const [recipe, setRecipe] = useState<RecipeDetail | null>(null)
   const [versions, setVersions] = useState<RecipeDetail['versions']>([])
   const [pagination, setPagination] = useState({
@@ -224,12 +225,19 @@ export function RecipeDetailPage() {
                     </div>
                   </div>
 
-                  <Button asChild variant="secondary">
-                    <Link to={`/production/recipes/${recipe.id}/versions/${recipe.currentVersion.id}`}>
-                      Open Current Version
-                      <ArrowRight size={16} />
-                    </Link>
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    {canApprove ? (
+                      <Button asChild variant="outline">
+                        <Link to="/production/recipes/approval-queue">Approval Queue</Link>
+                      </Button>
+                    ) : null}
+                    <Button asChild variant="secondary">
+                      <Link to={`/production/recipes/${recipe.id}/versions/${recipe.currentVersion.id}`}>
+                        Open Current Version
+                        <ArrowRight size={16} />
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
                 <div className="mt-4 text-sm text-slate-600">
                   Standard output:{' '}

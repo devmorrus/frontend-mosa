@@ -2,6 +2,8 @@ import { apiClient } from '@/api/client'
 import { mapPaginatedResponse } from '@/api/master-data.shared'
 import {
   RecipeStepType,
+  type RecipeApprovalQueueQueryState,
+  type RecipeApprovalQueueResult,
   type RecipeCreateFormValues,
   type RecipeDetail,
   type RecipeListItem,
@@ -36,8 +38,12 @@ function toNullableInteger(value: string) {
 }
 
 function buildStepPayload(values: RecipeCreateFormValues['steps']) {
-  return values.map((step, index) => ({
-    sequence: index + 1,
+  return values.map((step, index) => buildSingleStepPayload(step, index + 1))
+}
+
+function buildSingleStepPayload(step: RecipeCreateFormValues['steps'][number], sequence: number) {
+  return {
+    sequence,
     stepType: step.stepType,
     rawMaterialId: step.stepType === RecipeStepType.Material ? toNullableGuid(step.rawMaterialId) : null,
     targetQuantity: step.stepType === RecipeStepType.Material ? toNullableDecimal(step.targetQuantity) : null,
@@ -47,9 +53,9 @@ function buildStepPayload(values: RecipeCreateFormValues['steps']) {
       step.stepType === RecipeStepType.Material && step.toleranceValue.trim()
         ? toNullableDecimal(step.toleranceValue)
         : null,
-    instruction: step.stepType === RecipeStepType.Material ? formatOptionalText(step.instruction) : formatOptionalText(step.instruction),
+    instruction: formatOptionalText(step.instruction),
     timerSeconds: step.stepType === RecipeStepType.Timer ? toNullableInteger(step.timerSeconds) : null,
-  }))
+  }
 }
 
 export const recipesApi = {
@@ -107,6 +113,69 @@ export const recipesApi = {
 
   getVersionById: (versionId: string) =>
     apiClient.get<RecipeVersionDetail>(`/recipe-versions/${versionId}`).then((response) => response.data),
+
+  getApprovalQueue: (query: RecipeApprovalQueueQueryState): Promise<RecipeApprovalQueueResult> =>
+    apiClient
+      .get<ApiPaginatedResponse<import('@/features/recipes/types').RecipeApprovalQueueItem>>('/recipe-versions/approval-queue', {
+        params: {
+          search: query.search || undefined,
+          page: query.page,
+          pageSize: query.pageSize,
+        },
+      })
+      .then((response) => mapPaginatedResponse(response.data)),
+
+  updateVersion: (versionId: string, values: RecipeVersionCreateFormValues, name?: string | null) => {
+    const normalized = normalizeRecipeVersionCreateFormValues(values)
+
+    return apiClient
+      .put<RecipeVersionDetail>(`/recipe-versions/${versionId}`, {
+        name: name?.trim() || null,
+        standardOutputQuantity: Number(normalized.standardOutputQuantity),
+        unitOfMeasureId: normalized.unitOfMeasureId,
+      })
+      .then((response) => response.data)
+  },
+
+  addStep: (versionId: string, step: RecipeCreateFormValues['steps'][number], sequence: number) =>
+    apiClient
+      .post<RecipeVersionDetail>(`/recipe-versions/${versionId}/steps`, buildSingleStepPayload(step, sequence))
+      .then((response) => response.data),
+
+  updateStep: (versionId: string, stepId: string, step: RecipeCreateFormValues['steps'][number], sequence: number) =>
+    apiClient
+      .put<RecipeVersionDetail>(`/recipe-versions/${versionId}/steps/${stepId}`, buildSingleStepPayload(step, sequence))
+      .then((response) => response.data),
+
+  deleteStep: (versionId: string, stepId: string) =>
+    apiClient.delete<void>(`/recipe-versions/${versionId}/steps/${stepId}`),
+
+  reorderSteps: (versionId: string, items: Array<{ stepId: string; sequence: number }>) =>
+    apiClient
+      .put<RecipeVersionDetail>(`/recipe-versions/${versionId}/steps/reorder`, {
+        items: items.map((item) => ({
+          stepId: item.stepId,
+          sequence: item.sequence,
+        })),
+      })
+      .then((response) => response.data),
+
+  submitVersion: (versionId: string) =>
+    apiClient.post<RecipeVersionDetail>(`/recipe-versions/${versionId}/submit`).then((response) => response.data),
+
+  approveVersion: (versionId: string, approvalNotes: string) =>
+    apiClient
+      .post<RecipeVersionDetail>(`/recipe-versions/${versionId}/approve`, {
+        approvalNotes: formatOptionalText(approvalNotes),
+      })
+      .then((response) => response.data),
+
+  rejectVersion: (versionId: string, reason: string) =>
+    apiClient
+      .post<RecipeVersionDetail>(`/recipe-versions/${versionId}/reject`, {
+        reason: reason.trim(),
+      })
+      .then((response) => response.data),
 
   previewScaling: (versionId: string, targetOutputQuantity: number) =>
     apiClient

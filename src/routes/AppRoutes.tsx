@@ -12,6 +12,7 @@ import { UnitsPage } from '@/pages/master-data/UnitsPage'
 import { WarehousesPage } from '@/pages/master-data/WarehousesPage'
 import { ModulePlaceholderPage } from '@/pages/modules/ModulePlaceholderPage'
 import { RecipeCreatePage } from '@/pages/production/RecipeCreatePage'
+import { RecipeApprovalQueuePage } from '@/pages/production/RecipeApprovalQueuePage'
 import { RecipeDetailPage } from '@/pages/production/RecipeDetailPage'
 import { RecipesPage } from '@/pages/production/RecipesPage'
 import { RecipeVersionPage } from '@/pages/production/RecipeVersionPage'
@@ -66,10 +67,21 @@ export function AppRoutes() {
               path="/production/recipes/:recipeId/versions/:versionId"
               element={<RecipeVersionPage />}
             />
+            <Route path="/recipes" element={<Navigate to="/production/recipes" replace />} />
+            <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+            <Route
+              path="/recipes/:recipeId/versions/:versionId"
+              element={<RecipeVersionPage />}
+            />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="recipes.create" />}>
             <Route path="/production/recipes/create" element={<RecipeCreatePage />} />
+            <Route path="/recipes/create" element={<Navigate to="/production/recipes/create" replace />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="recipes.approve" />}>
+            <Route path="/production/recipes/approval-queue" element={<RecipeApprovalQueuePage />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="receiving.view" />}>

@@ -1,6 +1,7 @@
 import {
   RecipeLifecycleStatus,
   RecipeStepType,
+  type RecipeStep,
   type RecipeCreateFormValues,
   type RecipeStepFormValues,
   type RecipeVersionCreateFormValues,
@@ -188,4 +189,18 @@ export function getRecipeStatusLabel(status: RecipeLifecycleStatus) {
 
 export function formatOptionalText(value: string) {
   return normalizeOptionalText(value)
+}
+
+export function mapRecipeStepToFormValues(step: RecipeStep): RecipeStepFormValues {
+  return {
+    id: step.id,
+    stepType: step.stepType,
+    rawMaterialId: step.rawMaterial?.id ?? '',
+    targetQuantity: step.targetQuantity?.toString() ?? '',
+    unitOfMeasureId: step.unitOfMeasure?.id ?? '',
+    toleranceType: step.toleranceType ?? '',
+    toleranceValue: step.toleranceValue?.toString() ?? '',
+    instruction: step.instruction ?? '',
+    timerSeconds: step.timerSeconds?.toString() ?? '',
+  }
 }
