@@ -11,6 +11,10 @@ import { SuppliersPage } from '@/pages/master-data/SuppliersPage'
 import { UnitsPage } from '@/pages/master-data/UnitsPage'
 import { WarehousesPage } from '@/pages/master-data/WarehousesPage'
 import { ModulePlaceholderPage } from '@/pages/modules/ModulePlaceholderPage'
+import { RecipeCreatePage } from '@/pages/production/RecipeCreatePage'
+import { RecipeDetailPage } from '@/pages/production/RecipeDetailPage'
+import { RecipesPage } from '@/pages/production/RecipesPage'
+import { RecipeVersionPage } from '@/pages/production/RecipeVersionPage'
 import { GoodsReceivingFormPage } from '@/pages/warehouse/GoodsReceivingFormPage'
 import { GoodsReceivingsPage } from '@/pages/warehouse/GoodsReceivingsPage'
 import { RawMaterialInventoryPage } from '@/pages/warehouse/RawMaterialInventoryPage'
@@ -53,6 +57,19 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute requiredPermission="products.view" />}>
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/master/products" element={<ProductsPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="recipes.view" />}>
+            <Route path="/production/recipes" element={<RecipesPage />} />
+            <Route path="/production/recipes/:id" element={<RecipeDetailPage />} />
+            <Route
+              path="/production/recipes/:recipeId/versions/:versionId"
+              element={<RecipeVersionPage />}
+            />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="recipes.create" />}>
+            <Route path="/production/recipes/create" element={<RecipeCreatePage />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="receiving.view" />}>

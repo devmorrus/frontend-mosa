@@ -22,6 +22,17 @@ export const productsApi = {
       })
       .then((response) => mapPaginatedResponse(response.data)),
 
+  listActiveOptions: () =>
+    apiClient
+      .get<ApiPaginatedResponse<ProductListItem>>('/products', {
+        params: {
+          status: 'ACTIVE',
+          page: 1,
+          pageSize: 100,
+        },
+      })
+      .then((response) => response.data.items),
+
   getById: (id: string) =>
     apiClient.get<ProductDetail>(`/products/${id}`).then((response) => response.data),
 
