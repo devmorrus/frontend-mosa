@@ -252,7 +252,7 @@ export function SupplierTable({
                   Status
                 </th>
                 {canUpdate && (
-                  <th className="py-3 pl-4 pr-6 text-right text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  <th className="w-20 py-3 pl-4 pr-6 text-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
                     Aksi
                   </th>
                 )}
@@ -313,7 +313,7 @@ export function SupplierTable({
 
                   {/* Action dropdown */}
                   {canUpdate && (
-                    <td className="py-4 pl-4 pr-6 text-right">
+                    <td className="w-20 py-4 pl-4 pr-6 text-center">
                       <ActionMenu
                         item={item}
                         onEdit={onEdit}
