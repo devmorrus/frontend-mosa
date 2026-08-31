@@ -51,12 +51,6 @@ export const placeholderRoutes: PlaceholderRoute[] = [
       'Foundation route untuk modul Stock Movements sudah siap dan diproteksi permission.',
     permission: 'stock-movements.view',
   },
-  {
-    title: 'Menus',
-    path: '/menus',
-    description: 'Foundation route untuk modul Menus sudah siap dan diproteksi permission.',
-    permission: 'menus.view',
-  },
 ]
 
 export const sidebarIconMap: SidebarIconMap = {

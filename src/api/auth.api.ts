@@ -124,6 +124,11 @@ export const authApi = {
 
   sidebar: () => getSidebar(tokenStorage.getAccessToken() ?? ''),
 
+  /** Refresh sidebar after menu CRUD operations. */
+  refreshSidebar: async (): Promise<SidebarItem[]> => {
+    return getSidebar(tokenStorage.getAccessToken() ?? '')
+  },
+
   /** Used on app boot to restore the session from stored tokens. */
   async restoreSession(): Promise<LoginResponse> {
     const accessToken = tokenStorage.getAccessToken()

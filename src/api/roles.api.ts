@@ -71,7 +71,7 @@ export const rolesApi = {
   listPermissions: (): Promise<PermissionItem[]> =>
     apiClient
       .get<ApiPaginatedResponse<PermissionItem>>('/Permissions', {
-        params: { page: 1, pageSize: 200 },
+        params: { page: 1, pageSize: 100 },
       })
       .then((response) => response.data.items),
 }
