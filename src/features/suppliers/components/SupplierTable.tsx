@@ -1,4 +1,4 @@
-import { MoreHorizontal, PencilLine, RotateCcw, Phone, Mail } from 'lucide-react'
+import { MoreHorizontal, PencilLine, RotateCcw, Phone, Mail, Hash } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import {
   DropdownMenu,
@@ -36,17 +36,19 @@ function getAvatarGradient(name: string): [string, string] {
 function getInitials(name: string): string {
   return name
     .split(' ')
+    .filter(Boolean)
     .slice(0, 2)
     .map((w) => w[0])
     .join('')
     .toUpperCase()
 }
 
-function SupplierAvatar({ name }: { name: string }) {
+function SupplierAvatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
   const [from, to] = getAvatarGradient(name)
+  const dims = size === 'sm' ? 'h-8 w-8 text-[10px]' : 'h-10 w-10 text-xs'
   return (
     <div
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold tracking-wide text-white shadow-sm"
+      className={`relative flex ${dims} shrink-0 items-center justify-center rounded-2xl font-bold tracking-wide text-white ring-2 ring-white shadow-[0_4px_12px_rgba(18,48,46,0.18)]`}
       style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
     >
       {getInitials(name)}
@@ -59,7 +61,7 @@ function SupplierAvatar({ name }: { name: string }) {
 function StatusBadge({ isActive }: { isActive: boolean }) {
   return (
     <span
-      className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ${
+      className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
         isActive
           ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200'
           : 'bg-slate-100 text-slate-500 ring-1 ring-inset ring-slate-200'
@@ -117,6 +119,61 @@ function ActionMenu({
   )
 }
 
+// ─── Mobile card row (used below sm breakpoint instead of the table) ─────────
+
+function SupplierCardRow({
+  item,
+  index,
+  onEdit,
+  onToggleStatus,
+  canUpdate,
+}: {
+  item: SupplierListItem
+  index: number
+  onEdit: (item: SupplierListItem) => void
+  onToggleStatus: (item: SupplierListItem) => void
+  canUpdate: boolean
+}) {
+  return (
+    <div className="relative flex gap-3 border-b border-slate-100 p-4 last:border-b-0">
+      <span className="absolute left-0 top-0 h-full w-[3px] scale-y-0 bg-signal transition-transform duration-150 group-active:scale-y-100" />
+      <SupplierAvatar name={item.name} />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-ink">{item.name}</div>
+            <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-widest text-slate-500">
+              <Hash size={9} />
+              {item.code}
+            </span>
+          </div>
+          {canUpdate && (
+            <ActionMenu item={item} onEdit={onEdit} onToggleStatus={onToggleStatus} />
+          )}
+        </div>
+
+        <div className="mt-2.5 flex flex-col gap-1">
+          <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">
+            <Phone size={11} className="shrink-0 text-slate-400" />
+            {item.phone ?? <span className="text-slate-300">—</span>}
+          </span>
+          <span className="inline-flex items-center gap-1.5 truncate text-xs text-slate-500">
+            <Mail size={11} className="shrink-0 text-slate-400" />
+            {item.email ?? <span className="text-slate-300">—</span>}
+          </span>
+        </div>
+
+        <div className="mt-2.5">
+          <StatusBadge isActive={item.isActive} />
+        </div>
+      </div>
+      <span className="absolute right-4 top-4 text-[10px] font-medium text-slate-300">
+        #{index + 1}
+      </span>
+    </div>
+  )
+}
+
 // ─── Main SupplierTable ───────────────────────────────────────────────────────
 
 export function SupplierTable({
@@ -149,14 +206,32 @@ export function SupplierTable({
             </p>
           </div>
           <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            </span>
             Live data
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
+        {/* ── Mobile: stacked cards ── */}
+        <div className="divide-y divide-slate-100 sm:hidden">
+          {items.map((item, index) => (
+            <SupplierCardRow
+              key={item.id}
+              item={item}
+              index={startIndex + index}
+              onEdit={onEdit}
+              onToggleStatus={onToggleStatus}
+              canUpdate={canUpdate}
+            />
+          ))}
+        </div>
+
+        {/* ── Desktop: table ── */}
+        <div className="hidden overflow-x-auto sm:block">
           <table className="min-w-full">
             {/* thead */}
             <thead>
@@ -189,10 +264,11 @@ export function SupplierTable({
               {items.map((item, index) => (
                 <tr
                   key={item.id}
-                  className="group transition-colors duration-150 hover:bg-slate-50/70"
+                  className="group relative transition-colors duration-150 hover:bg-slate-50/70"
                 >
-                  {/* Row number */}
-                  <td className="w-12 py-4 pl-6 pr-3">
+                  {/* Hover accent bar */}
+                  <td className="relative w-12 py-4 pl-6 pr-3">
+                    <span className="absolute inset-y-0 left-0 w-[3px] scale-y-0 rounded-r-full bg-signal transition-transform duration-150 group-hover:scale-y-100" />
                     <span className="text-xs font-medium text-slate-300">
                       {startIndex + index + 1}
                     </span>
@@ -200,7 +276,7 @@ export function SupplierTable({
 
                   {/* Code pill */}
                   <td className="px-4 py-4">
-                    <span className="inline-block rounded-lg bg-slate-100 px-2.5 py-1 font-mono text-[11px] font-semibold tracking-widest text-slate-600">
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 font-mono text-[11px] font-semibold tracking-widest text-slate-600 transition-colors group-hover:bg-slate-200/70">
                       {item.code}
                     </span>
                   </td>
@@ -209,8 +285,8 @@ export function SupplierTable({
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
                       <SupplierAvatar name={item.name} />
-                      <div>
-                        <div className="text-sm font-semibold text-ink">{item.name}</div>
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold text-ink">{item.name}</div>
                         <div className="mt-0.5 text-xs text-slate-400">Pemasok terdaftar</div>
                       </div>
                     </div>

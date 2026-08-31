@@ -1,6 +1,7 @@
 import {
   AlertCircle,
   Building2,
+  Eye,
   Hash,
   LoaderCircle,
   Mail,
@@ -156,6 +157,79 @@ function StatusToggle({
   )
 }
 
+// ─── Live preview card ────────────────────────────────────────────────────────
+
+const AVATAR_GRADIENTS: [string, string][] = [
+  ['#12302e', '#1c433f'],
+  ['#0f4c81', '#1a6fb5'],
+  ['#6b21a8', '#9333ea'],
+  ['#b45309', '#d97706'],
+  ['#0f766e', '#0d9488'],
+  ['#be123c', '#e11d48'],
+  ['#1d4ed8', '#3b82f6'],
+  ['#166534', '#16a34a'],
+]
+
+function getAvatarGradient(name: string): [string, string] {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const pair = AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length]
+  return [pair[0], pair[1]]
+}
+
+function getInitials(name: string): string {
+  const trimmed = name.trim()
+  if (!trimmed) return '—'
+  return trimmed
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+}
+
+/** Mirrors how this supplier will appear as a row in the table, updated live. */
+function SupplierPreview({ values }: { values: SupplierFormValues }) {
+  const displayName = values.name.trim() || 'Nama supplier'
+  const [from, to] = getAvatarGradient(displayName)
+
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 px-4 py-3.5">
+      <div
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-xs font-bold tracking-wide text-white ring-2 ring-white shadow-[0_4px_12px_rgba(18,48,46,0.18)]"
+        style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
+      >
+        {getInitials(displayName)}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className={`truncate text-sm font-semibold ${values.name.trim() ? 'text-ink' : 'text-slate-400'}`}>
+          {displayName}
+        </div>
+        <div className="mt-0.5 flex items-center gap-2">
+          <span className="inline-block rounded-md bg-white px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-widest text-slate-500 ring-1 ring-slate-200">
+            {values.code.trim() || 'CODE'}
+          </span>
+          <span
+            className={`inline-flex items-center gap-1 text-[11px] font-semibold ${
+              values.isActive ? 'text-emerald-600' : 'text-slate-400'
+            }`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${values.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+            {values.isActive ? 'Active' : 'Inactive'}
+          </span>
+        </div>
+      </div>
+      <span className="hidden shrink-0 items-center gap-1 text-[10px] font-semibold uppercase tracking-widest text-slate-300 sm:flex">
+        <Eye size={11} />
+        Preview
+      </span>
+    </div>
+  )
+}
+
 // ─── Main SupplierFormDialog ──────────────────────────────────────────────────
 
 export function SupplierFormDialog({
@@ -229,6 +303,9 @@ export function SupplierFormDialog({
                   <p className="text-sm text-red-700">{formError}</p>
                 </div>
               )}
+
+              {/* Live preview */}
+              <SupplierPreview values={values} />
 
               {/* ── Section: Identitas ── */}
               <SectionHeading>Identitas</SectionHeading>

@@ -1,4 +1,4 @@
-import { Plus, Search, SlidersHorizontal } from 'lucide-react'
+import { Plus, Search, SlidersHorizontal, X } from 'lucide-react'
 import {
   PAGE_SIZE_OPTIONS,
   STATUS_FILTER_OPTIONS,
@@ -26,6 +26,8 @@ export function SupplierToolbar({
   onCreate: () => void
   canCreate: boolean
 }) {
+  const isFiltered = query.status !== 'ALL' || searchValue.trim().length > 0
+
   return (
     <div className="overflow-hidden rounded-[24px] border border-white/80 bg-white/90 shadow-sm backdrop-blur-sm">
       {/* Search row */}
@@ -40,8 +42,18 @@ export function SupplierToolbar({
             value={searchValue}
             onChange={(e) => onSearchValueChange(e.target.value)}
             placeholder={searchPlaceholder}
-            className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-ink placeholder:text-slate-400 outline-none transition-all focus:border-ink focus:bg-white focus:ring-4 focus:ring-ink/8"
+            className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-11 text-sm text-ink placeholder:text-slate-400 outline-none transition-all focus:border-ink focus:bg-white focus:ring-4 focus:ring-ink/8"
           />
+          {searchValue.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onSearchValueChange('')}
+              aria-label="Hapus pencarian"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-600"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -60,7 +72,11 @@ export function SupplierToolbar({
             onChange={(e) =>
               onStatusChange(e.target.value as MasterDataBaseQueryState['status'])
             }
-            className="h-9 appearance-none rounded-xl border border-slate-200 bg-white pl-3 pr-8 text-xs font-medium text-ink outline-none transition-all hover:border-slate-300 focus:border-ink focus:ring-2 focus:ring-ink/10"
+            className={`h-9 appearance-none rounded-xl border pl-3 pr-8 text-xs font-medium outline-none transition-all hover:border-slate-300 focus:ring-2 focus:ring-ink/10 ${
+              query.status !== 'ALL'
+                ? 'border-ink/20 bg-ink/5 text-ink focus:border-ink'
+                : 'border-slate-200 bg-white text-ink focus:border-ink'
+            }`}
           >
             {STATUS_FILTER_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -90,6 +106,21 @@ export function SupplierToolbar({
             ▾
           </span>
         </div>
+
+        {/* Reset filter chip */}
+        {isFiltered && (
+          <button
+            type="button"
+            onClick={() => {
+              onStatusChange('ALL')
+              onSearchValueChange('')
+            }}
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+          >
+            <X size={12} />
+            Reset filter
+          </button>
+        )}
 
         {/* Spacer */}
         <div className="flex-1" />
