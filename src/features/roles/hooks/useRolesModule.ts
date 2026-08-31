@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/stores/uiStore'
 import type { ApiError } from '@/types/api'
@@ -8,12 +8,12 @@ import type {
   MasterDataStatusFilter,
 } from '@/features/master-data/types'
 import { EMPTY_PAGINATION, hasFormErrors } from '@/features/master-data/utils'
-import type { RoleLookupResponse, UserFormValues, UserListItem, UsersQueryState } from '@/features/users/types'
-import { emptyUserFormValues, validatePasswordForm, validateUserForm } from '@/features/users/validation'
-import type { usersApi } from '@/api/users.api'
-import { rolesApi } from '@/api/roles.api'
+import type { PermissionGroup, RoleDetail, RoleFormValues, RoleListItem, RolesQueryState } from '@/features/roles/types'
+import { emptyRoleFormValues, validateRoleForm } from '@/features/roles/validation'
+import type { rolesApi } from '@/api/roles.api'
+import type { PermissionItem } from '@/api/roles.api'
 
-const DEFAULT_QUERY: UsersQueryState = {
+const DEFAULT_QUERY: RolesQueryState = {
   search: '',
   status: 'ALL',
   page: 1,
@@ -22,17 +22,17 @@ const DEFAULT_QUERY: UsersQueryState = {
 
 type FormMode = 'create' | 'edit'
 
-interface UseUsersModuleOptions {
-  api: typeof usersApi
-  permissions: { view: string; create: string; update: string }
+interface UseRolesModuleOptions {
+  api: typeof rolesApi
+  permissions: { view: string; manage: string }
 }
 
-export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
+export function useRolesModule({ api, permissions }: UseRolesModuleOptions) {
   const { can } = useAuth()
   const pushToast = useUiStore((state) => state.pushToast)
 
-  const [items, setItems] = useState<UserListItem[]>([])
-  const [query, setQuery] = useState<UsersQueryState>(DEFAULT_QUERY)
+  const [items, setItems] = useState<RoleListItem[]>([])
+  const [query, setQuery] = useState<RolesQueryState>(DEFAULT_QUERY)
   const [searchInput, setSearchInput] = useState(DEFAULT_QUERY.search)
   const [pagination, setPagination] = useState<MasterDataPagination>(EMPTY_PAGINATION)
   const [isLoading, setIsLoading] = useState(true)
@@ -41,32 +41,46 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [formMode, setFormMode] = useState<FormMode>('create')
-  const [formValues, setFormValues] = useState<UserFormValues>(emptyUserFormValues)
+  const [formValues, setFormValues] = useState<RoleFormValues>(emptyRoleFormValues)
   const [formErrors, setFormErrors] = useState<MasterDataFormErrors>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [isFormSubmitting, setIsFormSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isDetailLoading, setIsDetailLoading] = useState(false)
+  const [editingIsSystem, setEditingIsSystem] = useState(false)
 
-  const [statusTarget, setStatusTarget] = useState<UserListItem | null>(null)
+  const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false)
+  const [permissionsTarget, setPermissionsTarget] = useState<RoleListItem | null>(null)
+  const [selectedPermissionIds, setSelectedPermissionIds] = useState<Set<string>>(new Set())
+  const [availablePermissions, setAvailablePermissions] = useState<PermissionItem[]>([])
+  const [isPermissionsSubmitting, setIsPermissionsSubmitting] = useState(false)
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<RoleListItem | null>(null)
+  const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false)
+
+  const [statusTarget, setStatusTarget] = useState<RoleListItem | null>(null)
   const [isStatusSubmitting, setIsStatusSubmitting] = useState(false)
-
-  const [isRolesDialogOpen, setIsRolesDialogOpen] = useState(false)
-  const [rolesTarget, setRolesTarget] = useState<UserListItem | null>(null)
-  const [rolesFormValues, setRolesFormValues] = useState<string[]>([])
-  const [availableRoles, setAvailableRoles] = useState<RoleLookupResponse[]>([])
-  const [isRolesSubmitting, setIsRolesSubmitting] = useState(false)
-
-  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
-  const [passwordTarget, setPasswordTarget] = useState<UserListItem | null>(null)
-  const [passwordErrors, setPasswordErrors] = useState<MasterDataFormErrors>({})
-  const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false)
 
   const deferredSearch = useDeferredValue(searchInput)
   const querySignature = JSON.stringify(query)
 
-  const canCreate = can(permissions.create)
-  const canUpdate = can(permissions.update)
+  const canManage = can(permissions.manage)
+
+  const permissionGroups = useMemo(() => {
+    const grouped = new Map<string, PermissionItem[]>()
+    for (const p of availablePermissions) {
+      const existing = grouped.get(p.module)
+      if (existing) {
+        existing.push(p)
+      } else {
+        grouped.set(p.module, [p])
+      }
+    }
+    return Array.from(grouped.entries())
+      .map(([module, perms]) => ({ module, permissions: perms }))
+      .sort((a, b) => a.module.localeCompare(b.module))
+  }, [availablePermissions])
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -121,41 +135,30 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
     setQuery((current) => ({ ...current, pageSize, page: 1 }))
   }
 
-  async function fetchAvailableRoles() {
-    try {
-      const roles = await rolesApi.listOptions()
-      setAvailableRoles(roles)
-    } catch {
-      // silent — roles will be empty, shown as loading in dialog
-    }
-  }
-
   function openCreateDialog() {
     setFormMode('create')
     setEditingId(null)
-    setFormValues(emptyUserFormValues)
+    setEditingIsSystem(false)
+    setFormValues(emptyRoleFormValues)
     setFormErrors({})
     setFormError(null)
     setIsFormOpen(true)
-    void fetchAvailableRoles()
   }
 
-  async function openEditDialog(item: UserListItem) {
+  async function openEditDialog(item: RoleListItem) {
     setFormMode('edit')
     setEditingId(item.id)
+    setEditingIsSystem(item.isSystem)
     setFormErrors({})
     setFormError(null)
     setIsFormOpen(true)
     setIsDetailLoading(true)
-    void fetchAvailableRoles()
 
     try {
       const detail = await api.getById(item.id)
       setFormValues({
-        username: detail.username,
-        fullName: detail.fullName,
-        password: '',
-        roleIds: detail.roles.map((r) => r.id),
+        name: detail.name,
+        description: detail.description ?? '',
         isActive: detail.isActive,
       })
     } catch (caughtError) {
@@ -176,7 +179,7 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
   }
 
   async function submitForm() {
-    const nextErrors = validateUserForm(formValues, formMode)
+    const nextErrors = validateRoleForm(formValues)
     setFormErrors(nextErrors)
     setFormError(null)
 
@@ -189,10 +192,10 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
     try {
       if (formMode === 'create') {
         await api.create(formValues)
-        pushToast('success', 'User berhasil ditambahkan.')
+        pushToast('success', 'Role berhasil ditambahkan.')
       } else if (editingId) {
         await api.update(editingId, formValues)
-        pushToast('success', 'User berhasil diperbarui.')
+        pushToast('success', 'Role berhasil diperbarui.')
       }
 
       setIsFormOpen(false)
@@ -206,7 +209,83 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
     }
   }
 
-  function openStatusDialog(item: UserListItem) {
+  async function openPermissionsDialog(item: RoleListItem) {
+    setPermissionsTarget(item)
+    setIsPermissionsDialogOpen(true)
+
+    try {
+      const allPerms = await api.listPermissions()
+      setAvailablePermissions(allPerms)
+
+      const detail = await api.getById(item.id)
+      setSelectedPermissionIds(new Set(detail.permissions.map((p) => p.id)))
+    } catch {
+      pushToast('error', 'Gagal memuat data permissions.')
+    }
+  }
+
+  function closePermissionsDialog(open: boolean) {
+    if (!open) {
+      setIsPermissionsDialogOpen(false)
+      setPermissionsTarget(null)
+      setSelectedPermissionIds(new Set())
+      setAvailablePermissions([])
+    }
+  }
+
+  async function submitPermissionsForm(permissionIds: string[]) {
+    if (!permissionsTarget) return
+
+    setIsPermissionsSubmitting(true)
+
+    try {
+      await api.setPermissions(permissionsTarget.id, permissionIds)
+      pushToast('success', 'Permissions role berhasil diperbarui.')
+      setIsPermissionsDialogOpen(false)
+      setPermissionsTarget(null)
+      setSelectedPermissionIds(new Set())
+      setAvailablePermissions([])
+      await loadData(query, { background: true })
+    } catch (caughtError) {
+      const apiError = caughtError as ApiError
+      pushToast('error', apiError.message)
+    } finally {
+      setIsPermissionsSubmitting(false)
+    }
+  }
+
+  function openDeleteDialog(item: RoleListItem) {
+    setDeleteTarget(item)
+    setIsDeleteDialogOpen(true)
+  }
+
+  function closeDeleteDialog(open: boolean) {
+    if (!open) {
+      setIsDeleteDialogOpen(false)
+      setDeleteTarget(null)
+    }
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return
+
+    setIsDeleteSubmitting(true)
+
+    try {
+      await api.delete(deleteTarget.id)
+      pushToast('success', 'Role berhasil dihapus.')
+      setIsDeleteDialogOpen(false)
+      setDeleteTarget(null)
+      await loadData(query, { background: true })
+    } catch (caughtError) {
+      const apiError = caughtError as ApiError
+      pushToast('error', apiError.message)
+    } finally {
+      setIsDeleteSubmitting(false)
+    }
+  }
+
+  function openStatusDialog(item: RoleListItem) {
     setStatusTarget(item)
   }
 
@@ -225,7 +304,7 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
       await api.changeStatus(statusTarget.id, !statusTarget.isActive)
       pushToast(
         'success',
-        `User berhasil diubah menjadi ${statusTarget.isActive ? 'Inactive' : 'Active'}.`,
+        `Role berhasil diubah menjadi ${statusTarget.isActive ? 'Inactive' : 'Active'}.`,
       )
       setStatusTarget(null)
       await loadData(query, { background: true })
@@ -234,90 +313,6 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
       pushToast('error', apiError.message)
     } finally {
       setIsStatusSubmitting(false)
-    }
-  }
-
-  async function openRolesDialog(item: UserListItem) {
-    setRolesTarget(item)
-    setRolesFormValues(item.roles.map((r) => r.id))
-    setIsRolesDialogOpen(true)
-
-    try {
-      const roles = await rolesApi.listOptions()
-      setAvailableRoles(roles)
-    } catch {
-      pushToast('error', 'Gagal memuat daftar role.')
-    }
-  }
-
-  function closeRolesDialog(open: boolean) {
-    if (!open) {
-      setIsRolesDialogOpen(false)
-      setRolesTarget(null)
-      setAvailableRoles([])
-    }
-  }
-
-  async function submitRolesForm(roleIds: string[]) {
-    if (!rolesTarget) return
-
-    setIsRolesSubmitting(true)
-
-    try {
-      await api.assignRoles(rolesTarget.id, roleIds)
-      pushToast('success', 'Roles user berhasil diperbarui.')
-      setIsRolesDialogOpen(false)
-      setRolesTarget(null)
-      setAvailableRoles([])
-      await loadData(query, { background: true })
-    } catch (caughtError) {
-      const apiError = caughtError as ApiError
-      pushToast('error', apiError.message)
-    } finally {
-      setIsRolesSubmitting(false)
-    }
-  }
-
-  function openPasswordDialog(item: UserListItem) {
-    setPasswordTarget(item)
-    setPasswordErrors({})
-    setIsPasswordDialogOpen(true)
-  }
-
-  function closePasswordDialog(open: boolean) {
-    if (!open) {
-      setIsPasswordDialogOpen(false)
-      setPasswordTarget(null)
-      setPasswordErrors({})
-    }
-  }
-
-  async function submitPasswordForm(newPassword: string) {
-    if (!passwordTarget) return
-
-    const nextErrors = validatePasswordForm(newPassword)
-    setPasswordErrors(nextErrors)
-
-    if (hasFormErrors(nextErrors)) {
-      return
-    }
-
-    setIsPasswordSubmitting(true)
-
-    try {
-      await api.changePassword(passwordTarget.id, newPassword)
-      pushToast('success', 'Password user berhasil diubah.')
-      setIsPasswordDialogOpen(false)
-      setPasswordTarget(null)
-      setPasswordErrors({})
-    } catch (caughtError) {
-      const apiError = caughtError as ApiError
-      setPasswordErrors(apiError.errors ?? {})
-      if (!apiError.errors) {
-        pushToast('error', apiError.message)
-      }
-    } finally {
-      setIsPasswordSubmitting(false)
     }
   }
 
@@ -335,8 +330,7 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
     handlePageChange,
     handleStatusChange,
     handlePageSizeChange,
-    canCreate,
-    canUpdate,
+    canManage,
     isFormOpen,
     formMode,
     formValues,
@@ -345,29 +339,31 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
     formError,
     isFormSubmitting,
     isDetailLoading,
+    editingIsSystem,
     openCreateDialog,
     openEditDialog,
     closeFormDialog,
     submitForm,
+    isPermissionsDialogOpen,
+    permissionsTarget,
+    selectedPermissionIds,
+    setSelectedPermissionIds,
+    availablePermissions,
+    permissionGroups,
+    isPermissionsSubmitting,
+    openPermissionsDialog,
+    closePermissionsDialog,
+    submitPermissionsForm,
+    isDeleteDialogOpen,
+    deleteTarget,
+    isDeleteSubmitting,
+    openDeleteDialog,
+    closeDeleteDialog,
+    confirmDelete,
     statusTarget,
     isStatusSubmitting,
     openStatusDialog,
     closeStatusDialog,
     confirmStatusChange,
-    isRolesDialogOpen,
-    rolesTarget,
-    rolesFormValues,
-    availableRoles,
-    isRolesSubmitting,
-    openRolesDialog,
-    closeRolesDialog,
-    submitRolesForm,
-    isPasswordDialogOpen,
-    passwordTarget,
-    passwordErrors,
-    isPasswordSubmitting,
-    openPasswordDialog,
-    closePasswordDialog,
-    submitPasswordForm,
   }
 }

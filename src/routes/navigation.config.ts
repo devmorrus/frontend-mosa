@@ -52,12 +52,6 @@ export const placeholderRoutes: PlaceholderRoute[] = [
     permission: 'stock-movements.view',
   },
   {
-    title: 'Roles',
-    path: '/roles',
-    description: 'Foundation route untuk modul Roles sudah siap dan diproteksi permission.',
-    permission: 'roles.view',
-  },
-  {
     title: 'Menus',
     path: '/menus',
     description: 'Foundation route untuk modul Menus sudah siap dan diproteksi permission.',
