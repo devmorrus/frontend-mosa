@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
+  AlertTriangle,
   ArrowLeft,
   CheckCircle2,
   ClipboardCheck,
@@ -8,10 +9,12 @@ import {
   Pencil,
   Save,
   Trash2,
+  X,
   XCircle,
 } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { productionOrdersApi } from '@/api/productionOrders.api'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -32,6 +35,7 @@ import {
   emptyProductionOrderFormValues,
   validateProductionOrderForm,
   hasFormErrors,
+  getFieldError,
   type ProductionOrderFormErrors,
   formatDateTimeLabel,
 } from '@/features/production-orders/validation'
@@ -56,10 +60,9 @@ export function ProductionOrderDetailPage() {
   const [isSaving, setIsSaving] = useState(false)
 
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
-  const [isCancelling, setIsCancelling] = useState(false)
-
   const [isCheckingMaterials, setIsCheckingMaterials] = useState(false)
   const [isReleasing, setIsReleasing] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const [products, setProducts] = useState<ProductListItem[]>([])
   const [warehouses, setWarehouses] = useState<WarehouseListItem[]>([])
@@ -71,7 +74,6 @@ export function ProductionOrderDetailPage() {
     currentVersion: { id: string; versionNumber: number; standardOutputQuantity: number; unitOfMeasure: { id: string; code: string; name: string; symbol: string | null } } | null
   }>>([])
   const [recipeVersions, setRecipeVersions] = useState<RecipeVersionOption[]>([])
-  const [isLoadingRecipes, setIsLoadingRecipes] = useState(false)
   const [isLoadingVersions, setIsLoadingVersions] = useState(false)
 
   const isDraft = order?.status === ProductionOrderStatus.Draft
@@ -81,12 +83,17 @@ export function ProductionOrderDetailPage() {
   const isCancelled = order?.status === ProductionOrderStatus.Cancelled
   const canEdit = (isDraft || isMaterialShortage) && can('production-orders.update')
   const canCancel = (isDraft || isMaterialShortage || isReady) && can('production-orders.cancel')
+  const canCheckMaterials = (isDraft || isMaterialShortage) && can('production-orders.release')
   const canRelease = isReady && can('production-orders.release')
+
+  const standardOutput = order?.recipeVersion.standardOutputQuantity ?? 0
+  const scalingFactor = standardOutput > 0 && order ? order.targetOutput / standardOutput : 0
 
   async function loadOrder() {
     if (!id) return
     setIsLoading(true)
     setError(null)
+    setActionError(null)
     try {
       const result = await productionOrdersApi.getById(id)
       setOrder(result)
@@ -219,7 +226,6 @@ export function ProductionOrderDetailPage() {
 
   async function handleCancelOrder(reason: string) {
     if (!id) return
-    setIsCancelling(true)
     try {
       const result = await productionOrdersApi.cancel(id, reason)
       setOrder(result)
@@ -227,20 +233,19 @@ export function ProductionOrderDetailPage() {
     } catch (caughtError) {
       const apiError = caughtError as ApiError
       throw apiError
-    } finally {
-      setIsCancelling(false)
     }
   }
 
   async function handleCheckMaterials() {
     if (!id) return
     setIsCheckingMaterials(true)
+    setActionError(null)
     try {
       await productionOrdersApi.checkMaterials(id)
       await loadOrder()
     } catch (caughtError) {
       const apiError = caughtError as ApiError
-      setError(apiError.message)
+      setActionError(`Check Materials gagal: ${apiError.message}`)
     } finally {
       setIsCheckingMaterials(false)
     }
@@ -249,12 +254,13 @@ export function ProductionOrderDetailPage() {
   async function handleRelease() {
     if (!id) return
     setIsReleasing(true)
+    setActionError(null)
     try {
       await productionOrdersApi.release(id)
       await loadOrder()
     } catch (caughtError) {
       const apiError = caughtError as ApiError
-      setError(apiError.message)
+      setActionError(`Release gagal: ${apiError.message}`)
     } finally {
       setIsReleasing(false)
     }
@@ -277,6 +283,8 @@ export function ProductionOrderDetailPage() {
   }
 
   if (!order) return null
+
+  const hasAnyShortage = order.materialRequirements.some((req) => !req.isSufficient)
 
   return (
     <div className="space-y-6">
@@ -317,34 +325,34 @@ export function ProductionOrderDetailPage() {
                 Cancel
               </Button>
             ) : null}
+            {canCheckMaterials && !isEditing ? (
+              <Button
+                variant="secondary"
+                onClick={() => void handleCheckMaterials()}
+                disabled={isCheckingMaterials || isReleasing}
+                className="border-paper/20 bg-paper/10 text-paper hover:bg-paper/20"
+              >
+                {isCheckingMaterials ? (
+                  <LoaderCircle size={14} className="mr-2 animate-spin" />
+                ) : (
+                  <ClipboardCheck size={14} className="mr-2" />
+                )}
+                Check Materials
+              </Button>
+            ) : null}
             {canRelease && !isEditing ? (
-              <>
-                <Button
-                  variant="secondary"
-                  onClick={() => void handleCheckMaterials()}
-                  disabled={isCheckingMaterials}
-                  className="border-paper/20 bg-paper/10 text-paper hover:bg-paper/20"
-                >
-                  {isCheckingMaterials ? (
-                    <LoaderCircle size={14} className="mr-2 animate-spin" />
-                  ) : (
-                    <ClipboardCheck size={14} className="mr-2" />
-                  )}
-                  Check Materials
-                </Button>
-                <Button
-                  onClick={() => void handleRelease()}
-                  disabled={isReleasing}
-                  className="bg-emerald-600 text-white hover:bg-emerald-700"
-                >
-                  {isReleasing ? (
-                    <LoaderCircle size={14} className="mr-2 animate-spin" />
-                  ) : (
-                    <CheckCircle2 size={14} className="mr-2" />
-                  )}
-                  Release
-                </Button>
-              </>
+              <Button
+                onClick={() => void handleRelease()}
+                disabled={isReleasing || isCheckingMaterials}
+                className="bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                {isReleasing ? (
+                  <LoaderCircle size={14} className="mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle2 size={14} className="mr-2" />
+                )}
+                Release
+              </Button>
             ) : null}
           </div>
         </div>
@@ -353,6 +361,15 @@ export function ProductionOrderDetailPage() {
       {error ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {error}
+        </div>
+      ) : null}
+
+      {actionError ? (
+        <div className="flex items-center justify-between rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError(null)} className="ml-3 shrink-0 text-rose-500 hover:text-rose-700">
+            <X size={14} />
+          </button>
         </div>
       ) : null}
 
@@ -386,7 +403,7 @@ export function ProductionOrderDetailPage() {
                       </option>
                     ))}
                   </select>
-                  <MasterDataFormFieldError field="productId" errors={editErrors} />
+                  <MasterDataFormFieldError message={getFieldError(editErrors, 'productId') ?? null} />
                 </div>
 
                 <div className="space-y-2">
@@ -412,7 +429,7 @@ export function ProductionOrderDetailPage() {
                         )),
                     )}
                   </select>
-                  <MasterDataFormFieldError field="recipeVersionId" errors={editErrors} />
+                  <MasterDataFormFieldError message={getFieldError(editErrors, 'recipeVersionId') ?? null} />
                 </div>
 
                 <div className="space-y-2">
@@ -428,7 +445,7 @@ export function ProductionOrderDetailPage() {
                     step="any"
                     className="h-12 rounded-2xl"
                   />
-                  <MasterDataFormFieldError field="targetOutput" errors={editErrors} />
+                  <MasterDataFormFieldError message={getFieldError(editErrors, 'targetOutput') ?? null} />
                 </div>
 
                 <div className="space-y-2">
@@ -444,7 +461,7 @@ export function ProductionOrderDetailPage() {
                     disabled
                     className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-500 outline-none"
                   />
-                  <MasterDataFormFieldError field="unitOfMeasureId" errors={editErrors} />
+                  <MasterDataFormFieldError message={getFieldError(editErrors, 'unitOfMeasureId') ?? null} />
                 </div>
 
                 <div className="space-y-2">
@@ -463,7 +480,7 @@ export function ProductionOrderDetailPage() {
                       </option>
                     ))}
                   </select>
-                  <MasterDataFormFieldError field="warehouseId" errors={editErrors} />
+                  <MasterDataFormFieldError message={getFieldError(editErrors, 'warehouseId') ?? null} />
                 </div>
 
                 <div className="space-y-2">
@@ -553,6 +570,24 @@ export function ProductionOrderDetailPage() {
               </CardContent>
             </Card>
 
+            <Card className="rounded-[28px] border-white/70 bg-white/85 shadow-sm">
+              <CardHeader>
+                <CardTitle>Recipe Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <DetailItem label="Recipe Version" value={`${order.recipeVersion.recipeName} V${order.recipeVersion.versionNumber}`} />
+                  <DetailItem label="Standard Output" value={`${standardOutput} ${order.unitOfMeasure.code}`} />
+                  <DetailItem label="Target Output" value={`${order.targetOutput} ${order.unitOfMeasure.code}`} />
+                  <DetailItem label="Scaling Factor">
+                    <Badge variant="default" className="border-sky-300 bg-sky-100 text-sky-800">
+                      {scalingFactor > 0 ? `${scalingFactor}x` : '-'}
+                    </Badge>
+                  </DetailItem>
+                </div>
+              </CardContent>
+            </Card>
+
             {order.materialRequirements.length > 0 ? (
               <Card className="rounded-[28px] border-white/70 bg-white/85 shadow-sm">
                 <CardHeader>
@@ -563,7 +598,7 @@ export function ProductionOrderDetailPage() {
                     <table className="min-w-full border-separate border-spacing-0">
                       <thead>
                         <tr className="bg-slate-50/80 text-left">
-                          {['Material', 'Required', 'Available', 'Shortage', 'Status'].map(
+                          {['Material', 'Recipe Qty', 'Required', 'Available', 'Shortage', 'Status'].map(
                             (header) => (
                               <th
                                 key={header}
@@ -582,6 +617,9 @@ export function ProductionOrderDetailPage() {
                             <tr key={req.id} className="border-b border-slate-200/70 bg-white">
                               <td className="px-6 py-4 text-sm font-medium text-ink">
                                 {req.rawMaterialCode} - {req.rawMaterialName}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-slate-500">
+                                {req.recipeTargetQuantity} {req.unitOfMeasure.code}
                               </td>
                               <td className="px-6 py-4 text-sm text-slate-600">
                                 {req.scaledRequiredQuantity} {req.unitOfMeasure.code}
@@ -620,6 +658,14 @@ export function ProductionOrderDetailPage() {
                 </CardContent>
               </Card>
             ) : null}
+
+            {isMaterialShortage && order.materialRequirements.length > 0 && hasAnyShortage ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                <AlertTriangle size={14} className="mr-2 inline" />
+                Material belum mencukupi. Production Order belum dapat di-release.
+                Lakukan restock material yang mengalami shortage, lalu klik <strong>Check Materials</strong> untuk memverifikasi ulang.
+              </div>
+            ) : null}
           </div>
 
           <div className="space-y-6">
@@ -633,7 +679,7 @@ export function ProductionOrderDetailPage() {
                     Material Requirements
                   </div>
                   <div className="mt-1 text-2xl font-semibold text-ink">
-                    {order.materialRequirementsCount}
+                    {order.materialRequirements.length}
                   </div>
                 </div>
                 <div className="rounded-2xl bg-slate-50 p-4">

@@ -8,7 +8,7 @@ import type {
   MasterDataStatusFilter,
 } from '@/features/master-data/types'
 import { EMPTY_PAGINATION, hasFormErrors } from '@/features/master-data/utils'
-import type { PermissionGroup, RoleDetail, RoleFormValues, RoleListItem, RolesQueryState } from '@/features/roles/types'
+import type { RoleFormValues, RoleListItem, RolesQueryState } from '@/features/roles/types'
 import { emptyRoleFormValues, validateRoleForm } from '@/features/roles/validation'
 import type { rolesApi } from '@/api/roles.api'
 import type { PermissionItem } from '@/api/roles.api'

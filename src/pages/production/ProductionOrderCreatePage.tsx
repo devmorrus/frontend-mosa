@@ -84,7 +84,7 @@ export function ProductionOrderCreatePage() {
       try {
         const recipeList = await productionOrdersApi.listRecipesByProduct(values.productId)
         const approvedRecipes = recipeList.filter(
-          (r) => (r.status === 3 || r.status === 'Approved') && r.currentVersion !== null,
+          (r) => r.status === 3 && r.currentVersion !== null,
         )
         setRecipes(approvedRecipes)
 
@@ -256,7 +256,7 @@ export function ProductionOrderCreatePage() {
                     </option>
                   ))}
                 </select>
-                <MasterDataFormFieldError field="productId" errors={errors} />
+                <MasterDataFormFieldError message={getFieldError(errors, 'productId') ?? null} />
               </div>
 
               <div className="space-y-2">
@@ -297,7 +297,7 @@ export function ProductionOrderCreatePage() {
                       )),
                   )}
                 </select>
-                <MasterDataFormFieldError field="recipeVersionId" errors={errors} />
+                <MasterDataFormFieldError message={getFieldError(errors, 'recipeVersionId') ?? null} />
                 {noApprovedRecipe && values.productId && !isLoadingRecipes ? (
                   <p className="text-xs text-amber-600">
                     Product ini belum memiliki approved recipe. Silakan buat dan approve recipe terlebih dahulu.
@@ -318,7 +318,7 @@ export function ProductionOrderCreatePage() {
                   step="any"
                   className="h-12 rounded-2xl"
                 />
-                <MasterDataFormFieldError field="targetOutput" errors={errors} />
+                <MasterDataFormFieldError message={getFieldError(errors, 'targetOutput') ?? null} />
               </div>
 
               <div className="space-y-2">
@@ -335,7 +335,7 @@ export function ProductionOrderCreatePage() {
                   placeholder="Otomatis dari recipe"
                   className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-500 outline-none"
                 />
-                <MasterDataFormFieldError field="unitOfMeasureId" errors={errors} />
+                <MasterDataFormFieldError message={getFieldError(errors, 'unitOfMeasureId') ?? null} />
               </div>
 
               <div className="space-y-2">
@@ -354,7 +354,7 @@ export function ProductionOrderCreatePage() {
                     </option>
                   ))}
                 </select>
-                <MasterDataFormFieldError field="warehouseId" errors={errors} />
+                <MasterDataFormFieldError message={getFieldError(errors, 'warehouseId') ?? null} />
               </div>
 
               <div className="space-y-2">

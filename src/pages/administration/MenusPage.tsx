@@ -1,4 +1,4 @@
-import { FolderTree, LoaderCircle, Plus, Shrink, Expand } from 'lucide-react'
+import { FolderTree } from 'lucide-react'
 import { menusApi } from '@/api/menus.api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -8,6 +8,7 @@ import { MenuTree } from '@/features/menus/components/MenuTree'
 import { MenuFormDialog } from '@/features/menus/components/MenuFormDialog'
 import { MenuDeleteDialog } from '@/features/menus/components/MenuDeleteDialog'
 import { MenuToolbar } from '@/features/menus/components/MenuToolbar'
+import type { MenuTreeNode } from '@/features/menus/types'
 
 export function MenusPage() {
   const menusModule = useMenusModule({
@@ -20,7 +21,7 @@ export function MenusPage() {
     },
   })
 
-  function countNodes(nodes: ReturnType<typeof menusModule.menuTree>): number {
+  function countNodes(nodes: MenuTreeNode[]): number {
     let count = 0
     for (const node of nodes) {
       count++
@@ -29,7 +30,7 @@ export function MenusPage() {
     return count
   }
 
-  function countActive(nodes: ReturnType<typeof menusModule.menuTree>): number {
+  function countActive(nodes: MenuTreeNode[]): number {
     let count = 0
     for (const node of nodes) {
       if (node.isActive) count++
@@ -38,7 +39,7 @@ export function MenusPage() {
     return count
   }
 
-  function countInactive(nodes: ReturnType<typeof menusModule.menuTree>): number {
+  function countInactive(nodes: MenuTreeNode[]): number {
     let count = 0
     for (const node of nodes) {
       if (!node.isActive) count++

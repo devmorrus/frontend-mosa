@@ -1,4 +1,4 @@
-import type { MasterDataPagination, MasterDataStatusFilter } from '@/features/master-data/types'
+import type { MasterDataStatusFilter } from '@/features/master-data/types'
 import type { PermissionItem } from '@/api/roles.api'
 
 export interface RoleListItem {

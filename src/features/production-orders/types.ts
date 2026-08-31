@@ -38,6 +38,7 @@ export interface ProductionOrderRecipeVersionLookup {
   recipeId: string
   recipeName: string
   versionNumber: number
+  standardOutputQuantity: number
   unitOfMeasure: {
     id: string
     code: string

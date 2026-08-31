@@ -3,7 +3,6 @@ import {
   ChevronRight,
   Eye,
   Globe,
-  Key,
   Link,
   LoaderCircle,
   Menu,

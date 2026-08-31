@@ -38,8 +38,8 @@ export function useMenusModule({ api, permissions }: UseMenusModuleOptions) {
   const [treeError, setTreeError] = useState<string | null>(null)
   const [includeInactive, setIncludeInactive] = useState(true)
 
-  const [pagination, setPagination] = useState<MasterDataPagination>(EMPTY_PAGINATION)
-  const [isLoading, setIsLoading] = useState(false)
+  const [pagination, _setPagination] = useState<MasterDataPagination>(EMPTY_PAGINATION)
+  const [isLoading, _setIsLoading] = useState(false)
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [formMode, setFormMode] = useState<FormMode>('create')

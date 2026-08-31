@@ -21,7 +21,7 @@ function WarningItem({ icon, text }: { icon: React.ReactNode; text: string }) {
 export function MenuDeleteDialog({
   open,
   menu,
-  error,
+  error: _error,
   submitting,
   onOpenChange,
   onConfirm,

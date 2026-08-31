@@ -2,7 +2,6 @@ import { useDeferredValue, useEffect, useState } from 'react'
 import { Factory } from 'lucide-react'
 import { productionOrdersApi } from '@/api/productionOrders.api'
 import { Card, CardContent } from '@/components/ui/card'
-import { MasterDataPagination } from '@/features/master-data/components/MasterDataPagination'
 import {
   MasterDataEmptyState,
   MasterDataErrorState,

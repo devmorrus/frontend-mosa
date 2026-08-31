@@ -44,7 +44,7 @@ export function RolePermissionsDialog({
     })
   }
 
-  function toggleModule(module: string, modulePermissionIds: string[]) {
+  function toggleModule(_module: string, modulePermissionIds: string[]) {
     setSelectedIds((prev) => {
       const next = new Set(prev)
       const allSelected = modulePermissionIds.every((id) => next.has(id))

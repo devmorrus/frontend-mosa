@@ -1,4 +1,4 @@
-import type { MasterDataPagination } from '@/features/master-data/types'
+// MasterDataPagination removed - not used
 
 export interface MenuListItem {
   id: string

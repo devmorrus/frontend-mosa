@@ -1,6 +1,6 @@
 import { apiClient } from '@/api/client'
-import { buildMasterDataParams, mapPaginatedResponse } from '@/api/master-data.shared'
-import type { MasterDataListResult, MasterDataStatusFilter } from '@/features/master-data/types'
+import { mapPaginatedResponse } from '@/api/master-data.shared'
+import type { MasterDataListResult } from '@/features/master-data/types'
 import { toStatusQuery } from '@/features/master-data/utils'
 import type {
   UserDetail,

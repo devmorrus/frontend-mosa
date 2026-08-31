@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { getFieldError, type ProductionOrderFormErrors } from '@/features/production-orders/validation'
+import { type ProductionOrderFormErrors } from '@/features/production-orders/validation'
 
 interface ProductionOrderCancelDialogProps {
   open: boolean
@@ -115,7 +115,8 @@ export function ProductionOrderCancelDialog({
             Batal
           </Button>
           <Button
-            variant="destructive"
+            variant="secondary"
+            className="bg-rose-600 text-white hover:bg-rose-700"
             onClick={() => void handleConfirm()}
             disabled={isSubmitting}
           >

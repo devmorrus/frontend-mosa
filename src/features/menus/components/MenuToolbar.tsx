@@ -1,4 +1,4 @@
-import { FolderTree, Plus, Eye, EyeOff, Expand, Shrink } from 'lucide-react'
+import { Plus, Eye, EyeOff, Expand, Shrink } from 'lucide-react'
 
 export function MenuToolbar({
   onExpandAll,

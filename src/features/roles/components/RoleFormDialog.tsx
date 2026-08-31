@@ -1,7 +1,6 @@
 import {
   AlertCircle,
   Eye,
-  FileText,
   LoaderCircle,
   PencilLine,
   Save,
