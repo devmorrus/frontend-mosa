@@ -104,7 +104,7 @@ function FragmentRow({
         <td className="px-6 py-4 text-sm font-semibold text-ink">{item.materialCode}</td>
         <td className="px-6 py-4 text-sm text-slate-600">{item.materialName}</td>
         <td className="px-6 py-4 text-sm text-slate-600">{getAggregateWarehouseLabel(item)}</td>
-        <td className="px-6 py-4 text-sm text-slate-600">
+        <td data-tour="inventory-total-qty" className="px-6 py-4 text-sm font-semibold text-ink">
           {formatInventoryQuantity(item.availableQuantity, item.unit)}
         </td>
         <td className="px-6 py-4 text-sm text-slate-600">{item.lots.length}</td>
@@ -117,7 +117,7 @@ function FragmentRow({
           </span>
         </td>
         <td className="px-6 py-4 text-right">
-          <Button variant="secondary" size="sm" onClick={() => onToggleBreakdown(item.materialId)}>
+          <Button data-tour="inventory-lot-breakdown" variant="secondary" size="sm" onClick={() => onToggleBreakdown(item.materialId)}>
             {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             {isExpanded ? 'Hide Breakdown' : 'View Breakdown'}
           </Button>
@@ -126,7 +126,9 @@ function FragmentRow({
       {isExpanded ? (
         <tr className="bg-white">
           <td colSpan={8} className="px-6 pb-5">
-            <RawMaterialInventoryLotBreakdown item={item} selectedWarehouseId={selectedWarehouseId} />
+            <div data-tour="inventory-fefo-recommendation">
+              <RawMaterialInventoryLotBreakdown item={item} selectedWarehouseId={selectedWarehouseId} />
+            </div>
           </td>
         </tr>
       ) : null}

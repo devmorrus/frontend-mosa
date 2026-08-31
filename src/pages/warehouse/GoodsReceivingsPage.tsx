@@ -238,8 +238,8 @@ export function GoodsReceivingsPage() {
             className="h-12 rounded-2xl"
           />
           {can('receiving.create') ? (
-            <Button asChild className="h-12 whitespace-nowrap">
-              <Link to="/goods-receiving/create">Create Receiving</Link>
+            <Button asChild className="h-12 whitespace-nowrap" data-tour="receiving-add-btn">
+              <Link to="/goods-receiving/create" data-tour="receiving-add-btn">Create Receiving</Link>
             </Button>
           ) : (
             <div className="hidden xl:block" />

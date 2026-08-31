@@ -327,6 +327,7 @@ export function ProductionOrderDetailPage() {
             ) : null}
             {canCheckMaterials && !isEditing ? (
               <Button
+                data-tour="po-check-material-btn"
                 variant="secondary"
                 onClick={() => void handleCheckMaterials()}
                 disabled={isCheckingMaterials || isReleasing}
@@ -342,6 +343,7 @@ export function ProductionOrderDetailPage() {
             ) : null}
             {canRelease && !isEditing ? (
               <Button
+                data-tour="po-release-btn"
                 onClick={() => void handleRelease()}
                 disabled={isReleasing || isCheckingMaterials}
                 className="bg-emerald-600 text-white hover:bg-emerald-700"
@@ -537,7 +539,9 @@ export function ProductionOrderDetailPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <DetailItem label="PO Number" value={order.productionOrderNumber} />
                   <DetailItem label="Status">
-                    <ProductionOrderStatusBadge status={order.status} />
+                    <div data-tour="po-status-badge">
+                      <ProductionOrderStatusBadge status={order.status} />
+                    </div>
                   </DetailItem>
                   <DetailItem label="Product" value={`${order.product.code} - ${order.product.name}`} />
                   <DetailItem label="Recipe" value={`${order.recipeVersion.recipeName} v${order.recipeVersion.versionNumber}`} />
@@ -589,7 +593,7 @@ export function ProductionOrderDetailPage() {
             </Card>
 
             {order.materialRequirements.length > 0 ? (
-              <Card className="rounded-[28px] border-white/70 bg-white/85 shadow-sm">
+              <Card data-tour="po-material-requirements" className="rounded-[28px] border-white/70 bg-white/85 shadow-sm">
                 <CardHeader>
                   <CardTitle>Material Requirements</CardTitle>
                 </CardHeader>

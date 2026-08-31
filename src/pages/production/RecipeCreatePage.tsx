@@ -150,6 +150,7 @@ export function RecipeCreatePage() {
             <div>
               <label className="mb-2 block text-sm font-semibold text-ink">Product</label>
               <select
+                data-tour="recipe-product-select"
                 value={formValues.productId}
                 onChange={(event) => {
                   const nextProduct = products.find((item) => item.id === event.target.value)
@@ -184,6 +185,7 @@ export function RecipeCreatePage() {
             <div>
               <label className="mb-2 block text-sm font-semibold text-ink">Standard Output Quantity</label>
               <Input
+                data-tour="recipe-std-output"
                 value={formValues.standardOutputQuantity}
                 onChange={(event) =>
                   setFormValues((current) => ({ ...current, standardOutputQuantity: event.target.value }))
@@ -257,7 +259,7 @@ export function RecipeCreatePage() {
               <Button asChild type="button" variant="secondary">
                 <Link to="/production/recipes">Cancel</Link>
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button data-tour="recipe-submit-approval-btn" type="submit" disabled={isSubmitting}>
                 {isSubmitting ? <LoaderCircle size={16} className="animate-spin" /> : <Save size={16} />}
                 Save Recipe
               </Button>

@@ -316,6 +316,7 @@ export function SupplierFormDialog({
                   <FieldLabel required>Code</FieldLabel>
                   <IconInput icon={<Hash size={15} />}>
                     <Input
+                      data-tour="supplier-code-input"
                       value={values.code}
                       onChange={(e) =>
                         onValuesChange((prev) => ({ ...prev, code: e.target.value }))
@@ -345,6 +346,7 @@ export function SupplierFormDialog({
                 <FieldLabel required>Nama Supplier</FieldLabel>
                 <IconInput icon={<Building2 size={15} />}>
                   <Input
+                    data-tour="supplier-name-input"
                     value={values.name}
                     onChange={(e) =>
                       onValuesChange((prev) => ({ ...prev, name: e.target.value }))
@@ -430,6 +432,7 @@ export function SupplierFormDialog({
         <div className="px-7 py-4">
           <button
             type="button"
+            data-tour="supplier-save-btn"
             onClick={onSubmit}
             disabled={submitting || isDetailLoading}
             className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-semibold text-paper shadow-md transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 ${

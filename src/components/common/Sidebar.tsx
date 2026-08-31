@@ -1,5 +1,5 @@
 import { createElement, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { ChevronRight, PanelLeftClose } from 'lucide-react'
+import { BookOpen, ChevronRight, PanelLeftClose } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { getSidebarIcon } from '@/routes/navigation.config'
@@ -80,6 +80,7 @@ function SidebarEntry({
       {isClickable ? (
         <NavLink
           to={item.path!}
+          data-tour={getDataTourAttr(item)}
           onClick={closeMobileSidebar}
           className={({ isActive }) =>
             cn(
@@ -191,15 +192,22 @@ function SidebarEntry({
   )
 }
 
+function getDataTourAttr(item: SidebarItem): string | undefined {
+  if (item.path === '/suppliers' || item.code === 'suppliers') return 'master-suppliers-menu'
+  if (item.path === '/goods-receiving' || item.code === 'receiving') return 'receiving-menu'
+  if (item.path === '/inventory' || item.code === 'inventory') return 'inventory-menu'
+  if (item.path === '/production/recipes' || item.code === 'recipes') return 'recipe-menu'
+  if (item.path === '/production/orders' || item.code === 'orders') return 'po-menu'
+  return undefined
+}
+
 // ─── SidebarContent ───────────────────────────────────────────────────────────
 
 function SidebarContent() {
   const { sidebarItems } = useAuth()
   const location = useLocation()
+  const closeMobileSidebar = useUiStore((state) => state.closeMobileSidebar)
 
-  // Groups are open by default whenever the active route lives inside them,
-  // so a deep link or a page refresh never leaves the active item hidden
-  // inside a collapsed group.
   const [openIds, setOpenIds] = useState<Set<string>>(() =>
     new Set(collectActiveAncestorIds(sidebarItems, location.pathname)),
   )
@@ -227,9 +235,6 @@ function SidebarContent() {
 
   const rootIds = useMemo(() => sortedItems.map((item) => item.id), [sortedItems])
 
-  // Accordion behaviour: opening a group closes its sibling groups (groups
-  // that share the same parent), so e.g. opening "Warehouse" collapses
-  // "Master Data" if they sit at the same level.
   function toggleGroup(id: string, siblingIds: string[]) {
     setOpenIds((prev) => {
       const next = new Set(prev)
@@ -250,7 +255,30 @@ function SidebarContent() {
   }
 
   return (
-    <nav className="flex h-full flex-col gap-2 overflow-y-auto px-3 py-4">
+    <nav data-tour="module-nav" className="flex h-full flex-col gap-2 overflow-y-auto px-3 py-4">
+      {/* Help & Tutorial Dedicated Link */}
+      <NavLink
+        to="/help/tutorials"
+        data-tour="help-menu"
+        onClick={closeMobileSidebar}
+        className={({ isActive }) =>
+          cn(
+            'group relative flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200',
+            isActive
+              ? 'bg-signal/20 text-signal shadow-[inset_0_0_0_1px_rgba(232,163,61,0.2)]'
+              : 'text-paper/80 hover:bg-paper/8 hover:text-paper',
+          )
+        }
+      >
+        <BookOpen size={18} className="shrink-0 text-signal" />
+        <span className="flex-1">Tutorial & Panduan</span>
+        <Badge variant="subtle" className="bg-signal/20 text-signal text-[10px]">
+          Tour
+        </Badge>
+      </NavLink>
+
+      <Separator className="my-1 bg-paper/8" />
+
       {sortedItems.map((item) => (
         <SidebarEntry
           key={item.id}
@@ -321,7 +349,7 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="hidden w-72 shrink-0 border-r border-paper/8 md:block">
+      <aside data-tour="sidebar" className="hidden w-72 shrink-0 border-r border-paper/8 md:block">
         <SidebarShell>
           <SidebarContent />
         </SidebarShell>

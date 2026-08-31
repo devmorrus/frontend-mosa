@@ -170,7 +170,7 @@ export function RawMaterialLotDetailPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)]">
-        <Card className="rounded-[28px] border border-white/70 bg-white shadow-sm">
+        <Card data-tour="lot-detail-card" className="rounded-[28px] border border-white/70 bg-white shadow-sm">
           <CardContent className="space-y-6 p-6">
             <div className="grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-600 sm:grid-cols-2 xl:grid-cols-3">
               <DetailField label="Internal LOT" value={detail.internalLotNumber} />
@@ -211,7 +211,7 @@ export function RawMaterialLotDetailPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button onClick={() => void handlePrint()}>Print Label</Button>
+              <Button data-tour="lot-print-label-btn" onClick={() => void handlePrint()}>Print Label</Button>
               <Button variant="secondary" onClick={() => void handlePrint()}>
                 Reprint Existing Label
               </Button>
@@ -231,14 +231,16 @@ export function RawMaterialLotDetailPage() {
           </CardContent>
         </Card>
 
-        <RawMaterialLotQrCard
-          qr={qr}
-          label={label}
-          isLoading={isQrLoading}
-          printError={printError}
-          onPrint={() => void handlePrint()}
-          onReprint={() => void handlePrint()}
-        />
+        <div data-tour="lot-qr-code">
+          <RawMaterialLotQrCard
+            qr={qr}
+            label={label}
+            isLoading={isQrLoading}
+            printError={printError}
+            onPrint={() => void handlePrint()}
+            onReprint={() => void handlePrint()}
+          />
+        </div>
       </div>
     </div>
   )

@@ -247,7 +247,7 @@ export function RecipeApprovalQueuePage() {
                               Review
                             </Link>
                           </Button>
-                          <Button size="sm" onClick={() => setApproveTarget(item)}>
+                          <Button data-tour="recipe-approve-btn" size="sm" onClick={() => setApproveTarget(item)}>
                             <CheckCircle2 size={15} />
                             Approve
                           </Button>

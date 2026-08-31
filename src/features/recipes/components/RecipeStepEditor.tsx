@@ -75,7 +75,7 @@ export function RecipeStepEditor({
         return (
           <div key={step.id} className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4 sm:p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3" data-tour="recipe-step-sequence">
                 <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-400">
                   <GripVertical size={16} />
                 </div>
@@ -113,6 +113,7 @@ export function RecipeStepEditor({
                   </>
                 )}
                 <select
+                  data-tour="recipe-step-type-select"
                   value={step.stepType}
                   disabled={readOnly}
                   onChange={(event) => {
@@ -153,7 +154,7 @@ export function RecipeStepEditor({
               </div>
             </div>
 
-            <div className="mt-4 grid gap-4">
+            <div className="mt-4 grid gap-4" data-tour="recipe-material-step-fields">
               {step.stepType === RecipeStepType.Material ? (
                 <>
                   <div className="grid gap-4 lg:grid-cols-2">
@@ -318,7 +319,7 @@ export function RecipeStepEditor({
         )
       })}
 
-      <Button type="button" variant="secondary" onClick={onAdd} disabled={readOnly}>
+      <Button data-tour="recipe-add-step-btn" type="button" variant="secondary" onClick={onAdd} disabled={readOnly}>
         <Plus size={16} />
         {addLabel}
       </Button>

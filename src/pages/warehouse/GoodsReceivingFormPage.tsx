@@ -250,7 +250,7 @@ export function GoodsReceivingFormPage() {
       <Card>
         <CardContent className="space-y-6 p-6">
           {form.detail ? (
-            <div className="grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-600 sm:grid-cols-2 xl:grid-cols-4">
+            <div data-tour="receiving-summary" className="grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-600 sm:grid-cols-2 xl:grid-cols-4">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Receiving Number</p>
                 <p className="mt-1 font-medium text-ink">{form.detail.receivingNumber}</p>
@@ -281,7 +281,7 @@ export function GoodsReceivingFormPage() {
               </div>
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Status</p>
-                <p className="mt-1 font-medium text-ink">{form.detail.status}</p>
+                <p data-tour="receiving-internal-lot-badge" className="mt-1 font-medium text-ink">{form.detail.status}</p>
               </div>
             </div>
           ) : null}
@@ -290,6 +290,7 @@ export function GoodsReceivingFormPage() {
             <div>
               <label className="mb-2 block text-sm font-semibold text-ink">Supplier</label>
               <select
+                data-tour="receiving-supplier-select"
                 value={form.formValues.supplierId}
                 onChange={(event) => form.updateHeader('supplierId', event.target.value)}
                 disabled={isInteractionDisabled || isLookupLoading}
@@ -309,6 +310,7 @@ export function GoodsReceivingFormPage() {
             <div>
               <label className="mb-2 block text-sm font-semibold text-ink">Warehouse</label>
               <select
+                data-tour="receiving-warehouse-select"
                 value={form.formValues.warehouseId}
                 onChange={(event) => form.updateHeader('warehouseId', event.target.value)}
                 disabled={isInteractionDisabled || isLookupLoading}
@@ -330,6 +332,7 @@ export function GoodsReceivingFormPage() {
             <div>
               <label className="mb-2 block text-sm font-semibold text-ink">Receiving Date</label>
               <Input
+                data-tour="receiving-date-input"
                 type="date"
                 value={form.formValues.receivingDate}
                 onChange={(event) => form.updateHeader('receivingDate', event.target.value)}
@@ -369,7 +372,7 @@ export function GoodsReceivingFormPage() {
             <p className="text-sm text-slate-500">Minimal satu item diperlukan untuk menyimpan draft receiving.</p>
           </div>
           {!isInteractionDisabled ? (
-            <Button onClick={form.addItem} variant="secondary" disabled={isLookupLoading}>
+            <Button data-tour="receiving-add-item-btn" onClick={form.addItem} variant="secondary" disabled={isLookupLoading}>
               <Plus size={16} />
               Add Item
             </Button>
@@ -382,19 +385,21 @@ export function GoodsReceivingFormPage() {
           </div>
         ) : null}
 
-        {form.formValues.items.map((item, index) => (
-          <ReceivingItemFields
-            key={item.clientId}
-            index={index}
-            item={item}
-            materials={materialOptions}
-            errors={form.formErrors}
-            disabled={isInteractionDisabled || isLookupLoading}
-            canRemove={!isInteractionDisabled && form.formValues.items.length > 1}
-            onRemove={() => form.removeItem(index)}
-            onChange={(updater) => form.updateItem(index, updater)}
-          />
-        ))}
+        <div data-tour="receiving-item-row" className="space-y-4">
+          {form.formValues.items.map((item, index) => (
+            <ReceivingItemFields
+              key={item.clientId}
+              index={index}
+              item={item}
+              materials={materialOptions}
+              errors={form.formErrors}
+              disabled={isInteractionDisabled || isLookupLoading}
+              canRemove={!isInteractionDisabled && form.formValues.items.length > 1}
+              onRemove={() => form.removeItem(index)}
+              onChange={(updater) => form.updateItem(index, updater)}
+            />
+          ))}
+        </div>
       </section>
 
       <div className="sticky bottom-0 z-10 rounded-[28px] border border-slate-200/80 bg-white/92 p-4 shadow-[0_-8px_32px_rgba(15,23,42,0.08)] backdrop-blur">
@@ -416,6 +421,7 @@ export function GoodsReceivingFormPage() {
             </Button>
             {canShowPostAction ? (
               <Button
+                data-tour="receiving-post-btn"
                 variant="secondary"
                 onClick={form.openPostConfirmation}
                 disabled={form.isPosting || form.isSubmitting}
@@ -425,7 +431,7 @@ export function GoodsReceivingFormPage() {
               </Button>
             ) : null}
             {!isInteractionDisabled ? (
-              <Button onClick={() => void handleSubmit()} disabled={form.isSubmitting || form.isPosting || isLookupLoading}>
+              <Button data-tour="receiving-save-draft-btn" onClick={() => void handleSubmit()} disabled={form.isSubmitting || form.isPosting || isLookupLoading}>
                 {form.isSubmitting ? <LoaderCircle size={16} className="animate-spin" /> : null}
                 Save Draft
               </Button>

@@ -186,8 +186,8 @@ export function RecipesPage() {
           )}
 
           {canCreate ? (
-            <Button asChild className="h-12 whitespace-nowrap">
-              <Link to="/production/recipes/create">
+            <Button asChild className="h-12 whitespace-nowrap" data-tour="recipe-create-btn">
+              <Link to="/production/recipes/create" data-tour="recipe-create-btn">
                 <Plus size={16} />
                 Create Recipe
               </Link>

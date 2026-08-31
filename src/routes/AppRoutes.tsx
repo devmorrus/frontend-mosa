@@ -32,6 +32,7 @@ import { RawMaterialLotScannerPage } from '@/pages/warehouse/RawMaterialLotScann
 import { StockMovementsPage } from '@/pages/warehouse/StockMovementsPage'
 import { placeholderRoutes } from '@/routes/navigation.config'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
+import { TutorialLauncherPage } from '@/pages/help/TutorialLauncherPage'
 
 /**
  * Central route tree. Feature modules (Supplier, Material, Product, ...)
@@ -51,6 +52,8 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/help/tutorials" element={<TutorialLauncherPage />} />
+          <Route path="/help" element={<Navigate to="/help/tutorials" replace />} />
 
           <Route element={<ProtectedRoute requiredPermission="suppliers.view" />}>
             <Route path="/suppliers" element={<SuppliersPage />} />

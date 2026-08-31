@@ -67,6 +67,7 @@ export function RawMaterialInventoryFilterBar({
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <select
+          data-tour="inventory-warehouse-filter"
           value={query.warehouseId}
           onChange={(event) => onQueryChange({ warehouseId: event.target.value, page: 1 })}
           className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"

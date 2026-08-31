@@ -72,8 +72,8 @@ export function ProductionOrderToolbar({
 
       <div className="flex justify-end">
         {canCreate ? (
-          <Button asChild className="h-12 whitespace-nowrap">
-            <Link to="/production/orders/create">
+          <Button asChild className="h-12 whitespace-nowrap" data-tour="po-create-btn">
+            <Link to="/production/orders/create" data-tour="po-create-btn">
               <Plus size={16} className="mr-2" />
               Buat Production Order
             </Link>

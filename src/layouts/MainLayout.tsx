@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from '@/components/common/Sidebar'
 import { Topbar } from '@/components/common/Topbar'
+import { TutorialController } from '@/components/tutorial/TutorialController'
 
 /**
  * Shell every authenticated page renders inside:
@@ -21,6 +22,7 @@ export function MainLayout() {
           <Outlet />
         </main>
       </div>
+      <TutorialController />
     </div>
   )
 }

@@ -47,6 +47,7 @@ export function RawMaterialLotsTable({
               {['Internal LOT', 'Material', 'Supplier LOT', 'Warehouse', 'Current Qty', 'Expiry', 'Status', 'Action'].map((header) => (
                 <th
                   key={header}
+                  data-tour={header === 'Internal LOT' ? 'lot-internal-lot-col' : undefined}
                   className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"
                 >
                   {header}
@@ -55,8 +56,12 @@ export function RawMaterialLotsTable({
             </tr>
           </thead>
           <tbody>
-            {items.map((item) => (
-              <tr key={item.id} className="border-b border-slate-200/70 bg-white align-top">
+            {items.map((item, idx) => (
+              <tr
+                key={item.id}
+                data-tour={idx === 0 ? 'lot-item-row' : undefined}
+                className="border-b border-slate-200/70 bg-white align-top"
+              >
                 <td className="px-6 py-4 text-sm">
                   <div className="font-semibold text-ink">{item.internalLotNumber}</div>
                   <div className="mt-1 text-xs text-slate-500">QR {item.qrToken}</div>

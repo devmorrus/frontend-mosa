@@ -236,12 +236,13 @@ export function ProductionOrderCreatePage() {
               </div>
             ) : null}
 
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div data-tour="po-scaling-info" className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">
                   Product <span className="text-rose-500">*</span>
                 </label>
                 <select
+                  data-tour="po-product-select"
                   value={values.productId}
                   onChange={(event) => {
                     updateField('productId', event.target.value)
@@ -264,6 +265,7 @@ export function ProductionOrderCreatePage() {
                   Approved Recipe <span className="text-rose-500">*</span>
                 </label>
                 <select
+                  data-tour="po-recipe-select"
                   value={
                     recipeVersions.length === 1 && values.recipeVersionId
                       ? values.recipeVersionId
@@ -310,6 +312,7 @@ export function ProductionOrderCreatePage() {
                   Target Output <span className="text-rose-500">*</span>
                 </label>
                 <Input
+                  data-tour="po-target-output"
                   type="number"
                   value={values.targetOutput}
                   onChange={(event) => updateField('targetOutput', event.target.value)}
@@ -343,6 +346,7 @@ export function ProductionOrderCreatePage() {
                   Warehouse <span className="text-rose-500">*</span>
                 </label>
                 <select
+                  data-tour="po-warehouse-select"
                   value={values.warehouseId}
                   onChange={(event) => updateField('warehouseId', event.target.value)}
                   className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
@@ -398,6 +402,7 @@ export function ProductionOrderCreatePage() {
                 Batal
               </Button>
               <Button
+                data-tour="po-save-draft-btn"
                 type="button"
                 onClick={() => void handleSubmit()}
                 disabled={isSubmitting || noApprovedRecipe}
