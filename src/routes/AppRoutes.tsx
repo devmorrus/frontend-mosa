@@ -8,6 +8,7 @@ import { NotFoundPage } from '@/pages/errors/NotFoundPage'
 import { ProductsPage } from '@/pages/master-data/ProductsPage'
 import { RawMaterialsPage } from '@/pages/master-data/RawMaterialsPage'
 import { SuppliersPage } from '@/pages/master-data/SuppliersPage'
+import { UsersPage } from '@/pages/administration/UsersPage'
 import { UnitsPage } from '@/pages/master-data/UnitsPage'
 import { WarehousesPage } from '@/pages/master-data/WarehousesPage'
 import { ModulePlaceholderPage } from '@/pages/modules/ModulePlaceholderPage'
@@ -103,6 +104,11 @@ export function AppRoutes() {
             <Route path="/master/warehouses" element={<WarehousesPage />} />
           </Route>
 
+          <Route element={<ProtectedRoute requiredPermission="users.view" />}>
+            <Route path="/users" element={<UsersPage />} />
+            <Route path="/administration/users" element={<UsersPage />} />
+          </Route>
+
           <Route element={<ProtectedRoute requiredPermission="lots.view" />}>
             <Route path="/lots" element={<RawMaterialLotsPage />} />
             <Route path="/lots/scan" element={<RawMaterialLotScannerPage />} />
@@ -118,7 +124,7 @@ export function AppRoutes() {
           </Route>
 
           {placeholderRoutes.map((route) => (
-            route.path === '/lots' || route.path === '/inventory' || route.path === '/stock-movements' ? null : (
+            route.path === '/lots' || route.path === '/inventory' || route.path === '/stock-movements' || route.path === '/users' ? null : (
               <Route
                 key={route.path}
                 element={<ProtectedRoute requiredPermission={route.permission} />}
