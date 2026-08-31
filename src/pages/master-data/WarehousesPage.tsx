@@ -2,17 +2,16 @@ import { LoaderCircle, Warehouse } from 'lucide-react'
 import { warehousesApi } from '@/api/warehouses.api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { MasterDataBooleanSelect } from '@/features/master-data/components/MasterDataBooleanSelect'
-import { MasterDataFormDialog } from '@/features/master-data/components/MasterDataFormDialog'
-import { MasterDataFormFieldError } from '@/features/master-data/components/MasterDataFormFieldError'
-import { MasterDataStatusBadge } from '@/features/master-data/components/MasterDataStatusBadge'
 import { MasterDataStatusDialog } from '@/features/master-data/components/MasterDataStatusDialog'
-import { MasterDataTable } from '@/features/master-data/components/MasterDataTable'
-import { MasterDataEmptyState, MasterDataErrorState, MasterDataLoadingState } from '@/features/master-data/components/MasterDataStates'
-import { MasterDataToolbar } from '@/features/master-data/components/MasterDataToolbar'
+import {
+  MasterDataEmptyState,
+  MasterDataErrorState,
+  MasterDataLoadingState,
+} from '@/features/master-data/components/MasterDataStates'
 import { useMasterDataModule } from '@/features/master-data/hooks/useMasterDataModule'
-import type { ColumnDefinition } from '@/features/master-data/types'
+import { WarehouseFormDialog } from '@/features/warehouses/components/WarehouseFormDialog'
+import { WarehouseTable } from '@/features/warehouses/components/WarehouseTable'
+import { WarehouseToolbar } from '@/features/warehouses/components/WarehouseToolbar'
 import type {
   WarehouseDetail,
   WarehouseFormValues,
@@ -22,26 +21,6 @@ import {
   emptyWarehouseFormValues,
   validateWarehouseForm,
 } from '@/features/warehouses/validation'
-import { getFieldError } from '@/features/master-data/utils'
-
-const columns: ColumnDefinition<WarehouseListItem>[] = [
-  {
-    key: 'code',
-    header: 'Code',
-    render: (item) => <span className="font-mono text-xs font-semibold tracking-[0.16em] text-slate-500">{item.code}</span>,
-  },
-  {
-    key: 'name',
-    header: 'Warehouse',
-    render: (item) => <span className="font-semibold text-ink">{item.name}</span>,
-  },
-  {
-    key: 'status',
-    header: 'Status',
-    className: 'w-[140px]',
-    render: (item) => <MasterDataStatusBadge isActive={item.isActive} />,
-  },
-]
 
 function toFormValues(detail: WarehouseDetail): WarehouseFormValues {
   return {
@@ -71,7 +50,7 @@ export function WarehousesPage() {
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8 sm:py-8">
+      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(12,28,26,0.16)] sm:px-8 sm:py-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(232,163,61,0.22),transparent_55%)]" />
         <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
@@ -88,26 +67,59 @@ export function WarehousesPage() {
             </p>
           </div>
 
-          <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-            <CardContent className="p-5">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">Total warehouse</div>
-              <div className="mt-2 font-display text-3xl font-semibold text-paper">
-                {warehouseModule.pagination.totalItems}
-              </div>
-              <p className="mt-1 text-sm text-paper/60">Siap dipakai sebagai fondasi modul gudang.</p>
-            </CardContent>
-          </Card>
+          <div className="flex flex-wrap gap-3">
+            <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
+              <CardContent className="p-5">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">
+                  Total Warehouse
+                </div>
+                <div className="mt-2 font-display text-3xl font-semibold text-paper">
+                  {warehouseModule.pagination.totalItems}
+                </div>
+                <p className="mt-1 text-sm text-paper/60">Semua warehouse tercatat</p>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
+              <CardContent className="p-5">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">Active</div>
+                <div className="mt-2 font-display text-3xl font-semibold text-emerald-400">
+                  {warehouseModule.items.filter((item) => item.isActive).length}
+                </div>
+                <p className="mt-1 text-sm text-paper/60">Siap dipakai operasional</p>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
+              <CardContent className="p-5">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">
+                  Inactive
+                </div>
+                <div className="mt-2 font-display text-3xl font-semibold text-paper/45">
+                  {warehouseModule.items.filter((item) => !item.isActive).length}
+                </div>
+                <p className="mt-1 text-sm text-paper/60">Perlu direview kembali</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
 
-      <MasterDataToolbar
+      <WarehouseToolbar
         query={warehouseModule.query}
         searchValue={warehouseModule.searchInput}
-        searchPlaceholder="Cari kode atau nama warehouse"
         onSearchValueChange={warehouseModule.setSearchInput}
         onStatusChange={warehouseModule.handleStatusChange}
         onPageSizeChange={warehouseModule.handlePageSizeChange}
-        createLabel="Add Warehouse"
+        onResetFilters={() => {
+          warehouseModule.setSearchInput('')
+          warehouseModule.setQuery((current) => ({
+            ...current,
+            search: '',
+            status: 'ALL',
+            page: 1,
+          }))
+        }}
         onCreate={warehouseModule.openCreateDialog}
         canCreate={warehouseModule.canCreate}
       />
@@ -122,88 +134,36 @@ export function WarehousesPage() {
           action={warehouseModule.canCreate ? <Button onClick={warehouseModule.openCreateDialog}>Tambah warehouse pertama</Button> : null}
         />
       ) : (
-        <div className="space-y-3">
+        <div className="relative space-y-3">
           {warehouseModule.isRefreshing && (
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-500">
-              <LoaderCircle size={14} className="animate-spin" />
+            <div className="absolute -top-2 right-0 z-10 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm">
+              <LoaderCircle size={13} className="animate-spin text-slate-400" />
               Menyegarkan data...
             </div>
           )}
-          <MasterDataTable
-            title="Warehouse List"
-            itemLabel="warehouse"
+          <WarehouseTable
             items={warehouseModule.items}
-            columns={columns}
             pagination={warehouseModule.pagination}
             onPageChange={warehouseModule.handlePageChange}
             onEdit={warehouseModule.openEditDialog}
             onToggleStatus={warehouseModule.openStatusDialog}
             canUpdate={warehouseModule.canUpdate}
-            getRowKey={(item) => item.id}
           />
         </div>
       )}
 
-      <MasterDataFormDialog
+      <WarehouseFormDialog
         open={warehouseModule.isFormOpen}
-        title={warehouseModule.formMode === 'create' ? 'Tambah Warehouse' : 'Edit Warehouse'}
-        description="Warehouse aktif akan tersedia untuk modul operasional yang membutuhkan lokasi."
+        mode={warehouseModule.formMode}
+        values={warehouseModule.formValues}
+        errors={warehouseModule.formErrors}
+        formError={warehouseModule.formError}
+        isDetailLoading={warehouseModule.isDetailLoading}
+        submitting={warehouseModule.isFormSubmitting}
+        onValuesChange={warehouseModule.setFormValues}
         onOpenChange={warehouseModule.closeFormDialog}
         onSubmit={warehouseModule.submitForm}
-        submitting={warehouseModule.isFormSubmitting}
-        submitLabel={warehouseModule.formMode === 'create' ? 'Simpan Warehouse' : 'Perbarui Warehouse'}
-      >
-        {warehouseModule.isDetailLoading ? (
-          <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
-            <LoaderCircle size={16} className="animate-spin" />
-            Memuat detail warehouse...
-          </div>
-        ) : (
-          <div className="space-y-5">
-            {warehouseModule.formError && (
-              <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {warehouseModule.formError}
-              </div>
-            )}
-
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-ink">Code</label>
-                <Input
-                  value={warehouseModule.formValues.code}
-                  onChange={(event) =>
-                    warehouseModule.setFormValues((current) => ({ ...current, code: event.target.value }))
-                  }
-                  placeholder="WH-001"
-                />
-                <MasterDataFormFieldError message={getFieldError(warehouseModule.formErrors, 'code')} />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-ink">Status</label>
-                <MasterDataBooleanSelect
-                  value={warehouseModule.formValues.isActive}
-                  onChange={(value) =>
-                    warehouseModule.setFormValues((current) => ({ ...current, isActive: value }))
-                  }
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-ink">Name</label>
-              <Input
-                value={warehouseModule.formValues.name}
-                onChange={(event) =>
-                  warehouseModule.setFormValues((current) => ({ ...current, name: event.target.value }))
-                }
-                placeholder="Gudang Bahan Baku Utama"
-              />
-              <MasterDataFormFieldError message={getFieldError(warehouseModule.formErrors, 'name')} />
-            </div>
-          </div>
-        )}
-      </MasterDataFormDialog>
+      />
 
       <MasterDataStatusDialog
         open={Boolean(warehouseModule.statusTarget)}
