@@ -20,6 +20,9 @@ import { RecipeApprovalQueuePage } from '@/pages/production/RecipeApprovalQueueP
 import { RecipeDetailPage } from '@/pages/production/RecipeDetailPage'
 import { RecipesPage } from '@/pages/production/RecipesPage'
 import { RecipeVersionPage } from '@/pages/production/RecipeVersionPage'
+import { ProductionOrdersPage } from '@/pages/production/ProductionOrdersPage'
+import { ProductionOrderCreatePage } from '@/pages/production/ProductionOrderCreatePage'
+import { ProductionOrderDetailPage } from '@/pages/production/ProductionOrderDetailPage'
 import { GoodsReceivingFormPage } from '@/pages/warehouse/GoodsReceivingFormPage'
 import { GoodsReceivingsPage } from '@/pages/warehouse/GoodsReceivingsPage'
 import { RawMaterialInventoryPage } from '@/pages/warehouse/RawMaterialInventoryPage'
@@ -86,6 +89,15 @@ export function AppRoutes() {
 
           <Route element={<ProtectedRoute requiredPermission="recipes.approve" />}>
             <Route path="/production/recipes/approval-queue" element={<RecipeApprovalQueuePage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="production-orders.view" />}>
+            <Route path="/production/orders" element={<ProductionOrdersPage />} />
+            <Route path="/production/orders/:id" element={<ProductionOrderDetailPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="production-orders.create" />}>
+            <Route path="/production/orders/create" element={<ProductionOrderCreatePage />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="receiving.view" />}>
