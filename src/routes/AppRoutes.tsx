@@ -13,6 +13,7 @@ import { UsersPage } from '@/pages/administration/UsersPage'
 import { RolesPage } from '@/pages/administration/RolesPage'
 import { UnitsPage } from '@/pages/master-data/UnitsPage'
 import { WarehousesPage } from '@/pages/master-data/WarehousesPage'
+import { MenuPlaceholderPage } from '@/pages/modules/MenuPlaceholderPage'
 import { ModulePlaceholderPage } from '@/pages/modules/ModulePlaceholderPage'
 import { RecipeCreatePage } from '@/pages/production/RecipeCreatePage'
 import { RecipeApprovalQueuePage } from '@/pages/production/RecipeApprovalQueuePage'
@@ -150,6 +151,9 @@ export function AppRoutes() {
           ))}
 
           <Route path="/403" element={<ForbiddenPage />} />
+
+          {/* Catch-all for dynamic sidebar menus without registered routes */}
+          <Route path="*" element={<MenuPlaceholderPage />} />
         </Route>
       </Route>
 
