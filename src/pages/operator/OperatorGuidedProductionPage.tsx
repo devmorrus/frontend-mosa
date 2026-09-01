@@ -12,6 +12,7 @@ import {
 } from '@/features/master-data/components/MasterDataStates'
 import { ProductionOrderStatus } from '@/features/production-orders/types'
 import { ProductionStepExecutionStatus, type OperatorProductionDetail } from '@/features/operator-production/types'
+import { MaterialConsumptionPanel } from '@/features/operator-production/deviation/MaterialConsumptionPanel'
 import { RecipeStepType, RecipeToleranceType } from '@/features/recipes/types'
 import type { ApiError } from '@/types/api'
 
@@ -89,6 +90,12 @@ export function OperatorGuidedProductionPage() {
     return () => window.clearInterval(interval)
   }, [detail?.currentStep?.timerEndsAtUtc])
 
+  useEffect(() => {
+    if (!detail?.currentDeviation || detail.currentDeviation.status !== 1) return
+    const interval = window.setInterval(() => void loadDetail(true), 10_000)
+    return () => window.clearInterval(interval)
+  }, [detail?.currentDeviation?.id, detail?.currentDeviation?.status])
+
   async function runAction(action: () => Promise<unknown>) {
     setIsSubmitting(true)
     setActionError(null)
@@ -132,6 +139,8 @@ export function OperatorGuidedProductionPage() {
       onStart={() => void runAction(() => productionOrdersApi.startStep(detail.id, step.id))}
       onStartTimer={() => void runAction(() => productionOrdersApi.startTimer(detail.id, step.id))}
       onComplete={() => void runAction(() => productionOrdersApi.completeStep(detail.id, step.id, step.stepType === RecipeStepType.Check ? { confirmed: true, notes } : {}))}
+      onValidateLot={(value) => productionOrdersApi.validateMaterialLot(detail.id, step.id, /^[0-9a-f-]{36}$/i.test(value.trim()) ? { rawMaterialLotId: value.trim() } : { qrToken: value.trim() })}
+      onConsume={(lots, reason) => void runAction(() => reason ? productionOrdersApi.createDeviationRequest(detail.id, step.id, { lots: lots.map((lot) => ({ rawMaterialLotId: lot.lotId, actualQuantity: Number(lot.actualQuantity.replace(',', '.')) })), reason }, crypto.randomUUID()) : productionOrdersApi.consumeMaterial(detail.id, step.id, { lots: lots.map((lot) => ({ rawMaterialLotId: lot.lotId, actualQuantity: Number(lot.actualQuantity.replace(',', '.')) })) }, crypto.randomUUID()))}
     /> : null}
   </div>
 }
@@ -148,6 +157,8 @@ function CurrentStepCard(props: {
   onStart: () => void
   onStartTimer: () => void
   onComplete: () => void
+  onValidateLot: (value: string) => ReturnType<typeof productionOrdersApi.validateMaterialLot>
+  onConsume: (lots: import('@/features/operator-production/types').ValidatedMaterialLot[], reason: string | null) => void
 }) {
   const step = props.detail.currentStep!
   const waitingApproval = step.status === ProductionStepExecutionStatus.WaitingApproval
@@ -164,11 +175,17 @@ function CurrentStepCard(props: {
     {isMaterial ? <div className="mt-6 grid gap-3 sm:grid-cols-2"><div className="rounded-2xl border border-ink/8 p-4"><span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Target material</span><p className="mt-2 font-display text-2xl font-semibold text-ink">{step.targetQuantity ?? '-'} {uom}</p></div>{toleranceLabel(step.toleranceType, step.toleranceValue, uom) ? <div className="rounded-2xl border border-ink/8 p-4"><span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tolerance</span><p className="mt-2 font-semibold text-ink">{toleranceLabel(step.toleranceType, step.toleranceValue, uom)}</p></div> : null}</div> : null}
     {isTimer ? <div className="mt-6 rounded-2xl bg-ink p-6 text-paper"><div className="flex items-center gap-2 text-sm text-paper/65"><Clock3 size={18} /> Timer produksi</div><p className="mt-3 font-display text-5xl font-semibold tracking-tight">{inProgress ? formatDuration(props.remaining) : formatDuration(step.timerSeconds ?? 0)}</p><p className="mt-3 text-sm text-paper/60">{inProgress ? props.remaining === 0 ? 'Timer selesai. Anda dapat menyelesaikan langkah ini.' : 'Countdown mengikuti waktu akhir dari server.' : 'Mulai timer untuk merekam waktu di server.'}</p></div> : null}
     {isCheck && inProgress && !waitingApproval ? <div className="mt-6 space-y-4 rounded-2xl border border-ink/8 p-5"><label className="flex min-h-12 cursor-pointer items-center gap-3 text-sm font-semibold text-ink"><input type="checkbox" className="h-5 w-5 accent-ink" checked={props.confirmed} onChange={(event) => props.onConfirmedChange(event.target.checked)} /> Saya telah melakukan pemeriksaan ini.</label><Textarea maxLength={1000} value={props.notes} onChange={(event) => props.onNotesChange(event.target.value)} placeholder="Catatan operator (opsional)" /><p className="text-right text-xs text-slate-400">{props.notes.length}/1000</p></div> : null}
-    {waitingApproval ? <div className="mt-6 flex gap-3 rounded-2xl border border-signal/25 bg-signal/10 p-5 text-sm leading-6 text-ink"><AlertTriangle className="mt-0.5 shrink-0 text-signal" size={20} /> Konsumsi material menunggu persetujuan supervisor. Stok dan langkah berikutnya tetap terkunci.</div> : null}
-    {isMaterial && inProgress && !waitingApproval ? <div className="mt-6 rounded-2xl bg-sand/45 p-5 text-sm leading-6 text-slate-700">Langkah material sedang berjalan. Silakan lakukan konsumsi material sesuai target yang tercantum di atas.</div> : null}
+    {waitingApproval ? <DeviationWaitingPanel deviation={props.detail.currentDeviation} uom={uom} /> : null}
+    {isMaterial && inProgress && !waitingApproval && props.detail.currentDeviation?.status === 3 ? <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm leading-6 text-red-900"><p className="font-semibold">Deviation ditolak, koreksi material diperlukan</p><p className="mt-1">{props.detail.currentDeviation.reviewNotes ?? 'Perbaiki Actual Quantity atau LOT, kemudian ajukan kembali.'}</p><p className="mt-1 text-red-700">Reviewer: {props.detail.currentDeviation.reviewedBy ?? '-'}</p></div> : null}
+    {isMaterial && inProgress && !waitingApproval ? <MaterialConsumptionPanel step={step} uom={uom} disabled={props.isSubmitting} onValidateLot={props.onValidateLot} onSubmit={props.onConsume} /> : null}
     {props.actionError ? <p className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{props.actionError}</p> : null}
     {!waitingApproval && !(isMaterial && inProgress) ? <div className="sticky bottom-3 z-10 mt-7 border-t border-ink/8 bg-white/95 pt-5 backdrop-blur sm:static sm:bg-transparent"><StepAction stepStatus={step.status} isTimer={isTimer} isCheck={isCheck} canCompleteTimer={canCompleteTimer} confirmed={props.confirmed} isSubmitting={props.isSubmitting} onStart={props.onStart} onStartTimer={props.onStartTimer} onComplete={props.onComplete} /></div> : null}
   </CardContent></Card>
+}
+
+function DeviationWaitingPanel({ deviation, uom }: { deviation: OperatorProductionDetail['currentDeviation']; uom: string }) {
+  if (!deviation) return <div className="mt-6 flex gap-3 rounded-2xl border border-signal/25 bg-signal/10 p-5 text-sm leading-6 text-ink"><AlertTriangle className="mt-0.5 shrink-0 text-signal" size={20} /> Konsumsi material menunggu persetujuan supervisor. Stok dan langkah berikutnya tetap terkunci.</div>
+  return <div className="mt-6 rounded-2xl border border-signal/25 bg-signal/10 p-5 text-sm leading-6 text-ink"><div className="flex gap-3"><AlertTriangle className="mt-0.5 shrink-0 text-signal" size={20} /><div><p className="font-semibold">Menunggu persetujuan supervisor</p><p>Stok dan langkah berikutnya tetap terkunci. Status diperbarui otomatis setiap 10 detik.</p></div></div><div className="mt-4 grid gap-2 rounded-xl bg-white/60 p-3 sm:grid-cols-2"><span>Target: <b>{deviation.targetQuantity} {uom}</b></span><span>Actual: <b>{deviation.actualQuantity} {uom}</b></span><span>Variance: <b>{deviation.varianceQuantity} {uom}</b></span><span>Range: <b>{deviation.lowerLimit ?? '-'} - {deviation.upperLimit ?? '-'} {uom}</b></span></div><p className="mt-3"><b>Alasan:</b> {deviation.reason}</p><p className="mt-1 text-slate-600">Diajukan oleh {deviation.requestedBy} pada {new Date(deviation.requestedAtUtc).toLocaleString('id-ID')}.</p></div>
 }
 
 function StepAction(props: { stepStatus: ProductionStepExecutionStatus; isTimer: boolean; isCheck: boolean; canCompleteTimer: boolean; confirmed: boolean; isSubmitting: boolean; onStart: () => void; onStartTimer: () => void; onComplete: () => void }) {

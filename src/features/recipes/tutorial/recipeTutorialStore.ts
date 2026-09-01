@@ -4,6 +4,7 @@ import type { MaterialSimulationSeed, MaterialSimulationState } from '@/features
 
 export type RecipeTutorialStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'
 export type TutorialTimerState = { remainingSeconds: number; status: 'IDLE' | 'RUNNING' | 'PAUSED' }
+export type TutorialDeviationSimulation = { status: 'IDLE' | 'REQUESTED' | 'APPROVED' | 'REJECTED'; reason: string; updatedAt: string; reviewNotes: string | null }
 
 export interface RecipeTutorialProgress {
   recipeVersionId: string
@@ -13,6 +14,7 @@ export interface RecipeTutorialProgress {
   completedStepIds: string[]
   timers: Record<string, TutorialTimerState>
   materialSimulations: Record<string, MaterialSimulationState>
+  deviationSimulations: Record<string, TutorialDeviationSimulation>
   status: RecipeTutorialStatus
   updatedAt: string
 }
@@ -26,7 +28,7 @@ function readProgress(userId: string, recipeVersionId: string, targetOutput: num
     const value = localStorage.getItem(storageKey(userId, recipeVersionId, targetOutput))
     if (!value) return null
     const progress = JSON.parse(value) as RecipeTutorialProgress
-    return { ...progress, materialSimulations: progress.materialSimulations ?? {} }
+    return { ...progress, materialSimulations: progress.materialSimulations ?? {}, deviationSimulations: progress.deviationSimulations ?? {} }
   } catch { return null }
 }
 
@@ -46,6 +48,7 @@ interface RecipeTutorialStore {
   updateMaterialActual: (userId: string, stepId: string, lotId: string, actualQuantity: string) => void
   removeMaterialLot: (userId: string, stepId: string, lotId: string) => void
   setMaterialLotPage: (userId: string, stepId: string, page: number) => void
+  setDeviationSimulation: (userId: string, stepId: string, value: TutorialDeviationSimulation) => void
   restart: (userId: string) => void
   close: () => void
 }
@@ -62,7 +65,7 @@ export const useRecipeTutorialStore = create<RecipeTutorialStore>((set, get) => 
   start: (userId, recipeVersionId, targetOutput) => {
     const existing = readProgress(userId, recipeVersionId, targetOutput)
     if (existing?.status === 'IN_PROGRESS') return set({ progress: existing })
-    persist(set, userId, { recipeVersionId, targetOutput, currentUnlockedStep: 0, viewedStep: 0, completedStepIds: [], timers: {}, materialSimulations: {}, status: 'IN_PROGRESS', updatedAt: new Date().toISOString() })
+    persist(set, userId, { recipeVersionId, targetOutput, currentUnlockedStep: 0, viewedStep: 0, completedStepIds: [], timers: {}, materialSimulations: {}, deviationSimulations: {}, status: 'IN_PROGRESS', updatedAt: new Date().toISOString() })
   },
   view: (userId, index) => {
     const progress = get().progress
@@ -117,10 +120,15 @@ export const useRecipeTutorialStore = create<RecipeTutorialStore>((set, get) => 
     const totalPages = Math.max(1, Math.ceil(state.lots.length / state.pageSize))
     persist(set, userId, { ...progress, materialSimulations: { ...progress.materialSimulations, [stepId]: { ...state, page: Math.min(Math.max(page, 1), totalPages) } } })
   },
+  setDeviationSimulation: (userId, stepId, value) => {
+    const progress = get().progress
+    if (!progress) return
+    persist(set, userId, { ...progress, deviationSimulations: { ...progress.deviationSimulations, [stepId]: value } })
+  },
   restart: (userId) => {
     const progress = get().progress
     if (!progress) return
-    persist(set, userId, { ...progress, currentUnlockedStep: 0, viewedStep: 0, completedStepIds: [], timers: {}, materialSimulations: {}, status: 'IN_PROGRESS' })
+    persist(set, userId, { ...progress, currentUnlockedStep: 0, viewedStep: 0, completedStepIds: [], timers: {}, materialSimulations: {}, deviationSimulations: {}, status: 'IN_PROGRESS' })
   },
   close: () => set({ progress: null }),
 }))

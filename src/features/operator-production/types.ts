@@ -64,6 +64,33 @@ export interface OperatorProductionDetail {
   status: ProductionOrderStatus
   progress: OperatorProductionProgress
   currentStep: OperatorProductionCurrentStep | null
+  currentDeviation: OperatorProductionDeviation | null
+}
+
+export interface OperatorProductionDeviationLot { rawMaterialLotId: string; lotNumber: string; actualQuantity: number }
+export interface OperatorProductionDeviation {
+  id: string
+  status: 1 | 2 | 3 | 4
+  targetQuantity: number
+  actualQuantity: number
+  varianceQuantity: number
+  lowerLimit: number | null
+  upperLimit: number | null
+  reason: string
+  requestedBy: string
+  requestedAtUtc: string
+  reviewedBy: string | null
+  reviewedAtUtc: string | null
+  reviewNotes: string | null
+  lots: OperatorProductionDeviationLot[]
+}
+
+export interface ValidatedMaterialLot {
+  lotId: string
+  lotNumber: string
+  materialName: string
+  availableQuantity: number
+  actualQuantity: string
 }
 
 export interface ConsumeMaterialLotResponse {

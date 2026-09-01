@@ -53,7 +53,7 @@ function StepContent({ step, onComplete }: { step: GuidedRecipeTutorialStep; onC
 
   const timerReady = !isTimer || timer.remainingSeconds === 0
   const checkReady = !isCheck || (step.checkItems.length > 0 && checked.length === step.checkItems.length)
-  const materialReady = !isMaterial || validateMaterialSimulation(progress?.materialSimulations[step.recipeStepId], step.targetQuantity, step.toleranceType, step.toleranceValue).isReady
+  const materialReady = !isMaterial || validateMaterialSimulation(progress?.materialSimulations[step.recipeStepId], step.targetQuantity, step.toleranceType, step.toleranceValue).isReady || progress?.deviationSimulations[step.recipeStepId]?.status === 'APPROVED'
 
   return <Card className="overflow-hidden">
     <CardHeader className="bg-sand/35">

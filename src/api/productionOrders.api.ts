@@ -19,6 +19,7 @@ import type {
   ConsumeMaterialResponse,
   OperatorProductionDetail,
   OperatorProductionQueueItem,
+  ValidatedMaterialLot,
 } from '@/features/operator-production/types'
 
 function toStatusParam(status: ProductionOrderQueryState['status']) {
@@ -173,6 +174,21 @@ export const productionOrdersApi = {
         { headers: { 'Idempotency-Key': idempotencyKey } },
       )
       .then((response) => response.data),
+
+  createDeviationRequest: (
+    orderId: string,
+    stepId: string,
+    payload: { lots: Array<{ rawMaterialLotId: string; actualQuantity: number }>; reason: string },
+    idempotencyKey: string,
+  ) => apiClient.post(`/production-orders/${orderId}/steps/${stepId}/deviations`, { ...payload, reason: payload.reason.trim() }, { headers: { 'Idempotency-Key': idempotencyKey } }).then((response) => response.data),
+
+  validateMaterialLot: (orderId: string, stepId: string, payload: { qrToken?: string; rawMaterialLotId?: string }): Promise<ValidatedMaterialLot> =>
+    apiClient.post<{ isValid: boolean; validationMessage: string; lotId: string | null; internalLotNumber: string | null; rawMaterialName: string | null; availableQuantity: number | null }>(`/production-orders/${orderId}/steps/${stepId}/validate-lot`, payload)
+      .then((response) => {
+        const result = response.data
+        if (!result.isValid || !result.lotId || !result.internalLotNumber || result.availableQuantity === null) throw new Error(result.validationMessage)
+        return { lotId: result.lotId, lotNumber: result.internalLotNumber, materialName: result.rawMaterialName ?? '', availableQuantity: result.availableQuantity, actualQuantity: '' }
+      }),
 
   listActiveProducts: (): Promise<ProductListItem[]> =>
     apiClient
