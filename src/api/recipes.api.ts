@@ -10,6 +10,7 @@ import {
   type RecipeListResult,
   type RecipeQueryState,
   type RecipeScalingPreview,
+  type GuidedRecipePreview,
   type RecipeVersionCreateFormValues,
   type RecipeVersionDetail,
   type RecipeVersionListItem,
@@ -55,6 +56,7 @@ function buildSingleStepPayload(step: RecipeCreateFormValues['steps'][number], s
         : null,
     instruction: formatOptionalText(step.instruction),
     timerSeconds: step.stepType === RecipeStepType.Timer ? toNullableInteger(step.timerSeconds) : null,
+    checkItems: step.stepType === RecipeStepType.Check ? step.checkItems.map((item) => item.trim()).filter(Boolean) : [],
   }
 }
 
@@ -140,6 +142,11 @@ export const recipesApi = {
   addStep: (versionId: string, step: RecipeCreateFormValues['steps'][number], sequence: number) =>
     apiClient
       .post<RecipeVersionDetail>(`/recipe-versions/${versionId}/steps`, buildSingleStepPayload(step, sequence))
+      .then((response) => response.data),
+
+  getGuidedPreview: (versionId: string, params: { targetOutput?: number; page: number; pageSize: number }) =>
+    apiClient
+      .get<GuidedRecipePreview>(`/recipe-versions/${versionId}/guided-preview`, { params })
       .then((response) => response.data),
 
   updateStep: (versionId: string, stepId: string, step: RecipeCreateFormValues['steps'][number], sequence: number) =>

@@ -19,6 +19,7 @@ export const emptyRecipeStepFormValues = (): RecipeStepFormValues => ({
   toleranceValue: '',
   instruction: '',
   timerSeconds: '',
+  checkItems: [],
 })
 
 export const emptyRecipeCreateFormValues: RecipeCreateFormValues = {
@@ -43,6 +44,7 @@ export function normalizeRecipeStepFormValues(step: RecipeStepFormValues) {
     toleranceValue: step.toleranceValue.trim(),
     instruction: step.instruction.trim(),
     timerSeconds: step.timerSeconds.trim(),
+    checkItems: step.checkItems.map((item) => item.trim()),
   }
 }
 
@@ -103,6 +105,14 @@ export function validateRecipeStep(step: RecipeStepFormValues, index: number): M
     if (!normalized.instruction) {
       errors[`${prefix}.instruction`] = ['Instruction wajib diisi.']
     }
+  }
+
+  if (step.stepType === RecipeStepType.Check) {
+    const items = normalized.checkItems.filter(Boolean)
+    if (items.length === 0) errors[`${prefix}.checkItems`] = ['Minimal satu checklist wajib diisi.']
+    else if (items.length > 20) errors[`${prefix}.checkItems`] = ['Checklist maksimal 20 item.']
+    else if (items.some((item) => item.length > 200)) errors[`${prefix}.checkItems`] = ['Checklist maksimal 200 karakter.']
+    else if (new Set(items.map((item) => item.toLowerCase())).size !== items.length) errors[`${prefix}.checkItems`] = ['Checklist tidak boleh duplikat.']
   }
 
   if (step.stepType === RecipeStepType.Timer) {
@@ -202,5 +212,6 @@ export function mapRecipeStepToFormValues(step: RecipeStep): RecipeStepFormValue
     toleranceValue: step.toleranceValue?.toString() ?? '',
     instruction: step.instruction ?? '',
     timerSeconds: step.timerSeconds?.toString() ?? '',
+    checkItems: step.checkItems.map((item) => item.label),
   }
 }

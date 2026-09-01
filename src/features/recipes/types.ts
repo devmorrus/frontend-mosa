@@ -64,6 +64,13 @@ export interface RecipeStep {
   toleranceValue: number | null
   instruction: string | null
   timerSeconds: number | null
+  checkItems: RecipeCheckItem[]
+}
+
+export interface RecipeCheckItem {
+  id: string
+  sequence: number
+  label: string
 }
 
 export interface RecipeVersionListItem {
@@ -207,6 +214,39 @@ export interface RecipeStepFormValues {
   toleranceValue: string
   instruction: string
   timerSeconds: string
+  checkItems: string[]
+}
+
+export interface GuidedRecipeTutorialStep {
+  recipeStepId: string
+  sequence: number
+  stepName: string
+  stepType: RecipeStepType
+  instruction: string | null
+  rawMaterial: RecipeRawMaterialLookup | null
+  originalTargetQuantity: number | null
+  targetQuantity: number | null
+  unitOfMeasure: RecipeUnitOfMeasure | null
+  toleranceType: RecipeToleranceType | null
+  toleranceValue: number | null
+  timerDurationSeconds: number | null
+  checkInstruction: string | null
+  checkItems: RecipeCheckItem[]
+}
+
+export interface GuidedRecipePreview {
+  recipeVersionId: string
+  recipeId: string
+  recipeName: string
+  versionNumber: number
+  product: RecipeProductLookup
+  standardOutputQuantity: number
+  outputUnitOfMeasure: RecipeUnitOfMeasure
+  previewTargetOutput: number
+  scalingFactor: number
+  totalSteps: number
+  steps: GuidedRecipeTutorialStep[]
+  pagination: MasterDataPagination
 }
 
 export interface RecipeCreateFormValues {

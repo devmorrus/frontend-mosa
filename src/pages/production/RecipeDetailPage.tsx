@@ -237,6 +237,15 @@ export function RecipeDetailPage() {
                         <ArrowRight size={16} />
                       </Link>
                     </Button>
+                    {recipe.currentVersion.status === RecipeLifecycleStatus.Approved && recipe.currentVersion.steps.length > 0 ? (
+                      <Button asChild>
+                        <Link to={`/production/recipes/${recipe.id}/versions/${recipe.currentVersion.id}/tutorial`}>
+                          Mulai Tutorial Resep
+                        </Link>
+                      </Button>
+                    ) : (
+                      <span className="self-center text-xs text-slate-500">Tutorial tersedia untuk version approved dengan step.</span>
+                    )}
                   </div>
                 </div>
                 <div className="mt-4 text-sm text-slate-600">

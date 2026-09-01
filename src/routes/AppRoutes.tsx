@@ -20,6 +20,7 @@ import { RecipeApprovalQueuePage } from '@/pages/production/RecipeApprovalQueueP
 import { RecipeDetailPage } from '@/pages/production/RecipeDetailPage'
 import { RecipesPage } from '@/pages/production/RecipesPage'
 import { RecipeVersionPage } from '@/pages/production/RecipeVersionPage'
+import { RecipeTutorialPage } from '@/pages/production/RecipeTutorialPage'
 import { ProductionOrdersPage } from '@/pages/production/ProductionOrdersPage'
 import { ProductionOrderCreatePage } from '@/pages/production/ProductionOrderCreatePage'
 import { ProductionOrderDetailPage } from '@/pages/production/ProductionOrderDetailPage'
@@ -79,6 +80,7 @@ export function AppRoutes() {
               path="/production/recipes/:recipeId/versions/:versionId"
               element={<RecipeVersionPage />}
             />
+            <Route path="/production/recipes/:recipeId/versions/:versionId/tutorial" element={<RecipeTutorialPage />} />
             <Route path="/recipes" element={<Navigate to="/production/recipes" replace />} />
             <Route path="/recipes/:id" element={<RecipeDetailPage />} />
             <Route

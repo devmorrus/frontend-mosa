@@ -127,6 +127,7 @@ export function RecipeStepEditor({
                       toleranceType: nextType === RecipeStepType.Material ? current.toleranceType : '',
                       toleranceValue: nextType === RecipeStepType.Material ? current.toleranceValue : '',
                       timerSeconds: nextType === RecipeStepType.Timer ? current.timerSeconds : '',
+                      checkItems: nextType === RecipeStepType.Check ? current.checkItems : [],
                       instruction:
                         nextType === RecipeStepType.Material
                           ? current.instruction
@@ -308,9 +309,21 @@ export function RecipeStepEditor({
                       <MasterDataFormFieldError message={getFieldError(errors, `steps.${index}.timerSeconds`)} />
                     </div>
                   ) : (
-                    <div className="rounded-[24px] border border-dashed border-slate-200 bg-white/70 p-4 text-sm leading-6 text-slate-500">
-                      Step tipe ini tidak membutuhkan quantity material.
-                    </div>
+                    step.stepType === RecipeStepType.Check ? (
+                      <div className="rounded-[24px] border border-dashed border-slate-200 bg-white/70 p-4">
+                        <div className="mb-3 text-sm font-semibold text-ink">Checklist pemeriksaan</div>
+                        <div className="space-y-2">
+                          {step.checkItems.map((item, itemIndex) => (
+                            <div key={`${step.id}-${itemIndex}`} className="flex gap-2">
+                              <Input value={item} disabled={readOnly} placeholder="Contoh: Warna campuran merata" onChange={(event) => updateStep(index, (current) => ({ ...current, checkItems: current.checkItems.map((value, valueIndex) => valueIndex === itemIndex ? event.target.value : value) }))} />
+                              <Button type="button" variant="secondary" size="icon" disabled={readOnly} onClick={() => updateStep(index, (current) => ({ ...current, checkItems: current.checkItems.filter((_, valueIndex) => valueIndex !== itemIndex) }))}><Trash2 size={16} /></Button>
+                            </div>
+                          ))}
+                        </div>
+                        <Button type="button" variant="secondary" size="sm" disabled={readOnly || step.checkItems.length >= 20} className="mt-3" onClick={() => updateStep(index, (current) => ({ ...current, checkItems: [...current.checkItems, ''] }))}><Plus size={15} />Tambah checklist</Button>
+                        <MasterDataFormFieldError message={getFieldError(errors, `steps.${index}.checkItems`)} />
+                      </div>
+                    ) : <div className="rounded-[24px] border border-dashed border-slate-200 bg-white/70 p-4 text-sm leading-6 text-slate-500">Step tipe ini tidak membutuhkan quantity material.</div>
                   )}
                 </div>
               )}
