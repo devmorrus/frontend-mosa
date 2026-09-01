@@ -529,51 +529,92 @@ export function ProductionOrderDetailPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="rounded-[28px] border-white/70 bg-white/85 shadow-sm">
-              <CardHeader>
-                <CardTitle>Detail Production Order</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <DetailItem label="PO Number" value={order.productionOrderNumber} />
-                  <DetailItem label="Status">
-                    <div data-tour="po-status-badge">
-                      <ProductionOrderStatusBadge status={order.status} />
+        <>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="rounded-[28px] border-white/70 bg-white/85 shadow-sm">
+                <CardHeader>
+                  <CardTitle>Detail Production Order</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <DetailItem label="PO Number" value={order.productionOrderNumber} />
+                    <DetailItem label="Status">
+                      <div data-tour="po-status-badge">
+                        <ProductionOrderStatusBadge status={order.status} />
+                      </div>
+                    </DetailItem>
+                    <DetailItem label="Product" value={`${order.product.code} - ${order.product.name}`} />
+                    <DetailItem label="Recipe" value={`${order.recipeVersion.recipeName} v${order.recipeVersion.versionNumber}`} />
+                    <DetailItem label="Target Output" value={`${order.targetOutput} ${order.unitOfMeasure.code}`} />
+                    <DetailItem label="Warehouse" value={`${order.warehouse.code} - ${order.warehouse.name}`} />
+                    <DetailItem label="Scheduled Date" value={order.scheduledDate ? new Date(order.scheduledDate).toLocaleDateString('id-ID') : '-'} />
+                    <DetailItem label="Operator" value={order.assignedOperator?.fullName ?? '-'} />
+                    <DetailItem label="Created By" value={order.createdBy ?? '-'} />
+                    <DetailItem label="Created At" value={formatDateTimeLabel(order.createdAtUtc)} />
+                  </div>
+
+                  {isReleased ? (
+                    <div className="border-t border-slate-100 pt-4">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <DetailItem label="Released By" value={order.releasedBy ?? '-'} />
+                        <DetailItem label="Released At" value={formatDateTimeLabel(order.releasedAtUtc)} />
+                      </div>
                     </div>
-                  </DetailItem>
-                  <DetailItem label="Product" value={`${order.product.code} - ${order.product.name}`} />
-                  <DetailItem label="Recipe" value={`${order.recipeVersion.recipeName} v${order.recipeVersion.versionNumber}`} />
-                  <DetailItem label="Target Output" value={`${order.targetOutput} ${order.unitOfMeasure.code}`} />
-                  <DetailItem label="Warehouse" value={`${order.warehouse.code} - ${order.warehouse.name}`} />
-                  <DetailItem label="Scheduled Date" value={order.scheduledDate ? new Date(order.scheduledDate).toLocaleDateString('id-ID') : '-'} />
-                  <DetailItem label="Operator" value={order.assignedOperator?.fullName ?? '-'} />
-                  <DetailItem label="Created By" value={order.createdBy ?? '-'} />
-                  <DetailItem label="Created At" value={formatDateTimeLabel(order.createdAtUtc)} />
+                  ) : null}
+
+                  {isCancelled ? (
+                    <div className="border-t border-slate-100 pt-4">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <DetailItem label="Cancelled By" value={order.cancelledBy ?? '-'} />
+                        <DetailItem label="Cancelled At" value={formatDateTimeLabel(order.cancelledAtUtc)} />
+                        <DetailItem label="Reason" value={order.cancellationReason ?? '-'} />
+                      </div>
+                    </div>
+                  ) : null}
+                </CardContent>
+              </Card>
+
+              {isMaterialShortage && order.materialRequirements.length > 0 && hasAnyShortage ? (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                  <AlertTriangle size={14} className="mr-2 inline" />
+                  Material belum mencukupi. Production Order belum dapat di-release.
+                  Lakukan restock material yang mengalami shortage, lalu klik <strong>Check Materials</strong> untuk memverifikasi ulang.
                 </div>
+              ) : null}
+            </div>
 
-                {isReleased ? (
-                  <div className="border-t border-slate-100 pt-4">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <DetailItem label="Released By" value={order.releasedBy ?? '-'} />
-                      <DetailItem label="Released At" value={formatDateTimeLabel(order.releasedAtUtc)} />
+            <div className="space-y-6">
+              <Card className="rounded-[28px] border-white/70 bg-white/85 shadow-sm">
+                <CardHeader>
+                  <CardTitle>Quick Info</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="rounded-2xl bg-slate-50 p-4">
+                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                      Material Requirements
+                    </div>
+                    <div className="mt-1 text-2xl font-semibold text-ink">
+                      {order.materialRequirements.length}
                     </div>
                   </div>
-                ) : null}
-
-                {isCancelled ? (
-                  <div className="border-t border-slate-100 pt-4">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <DetailItem label="Cancelled By" value={order.cancelledBy ?? '-'} />
-                      <DetailItem label="Cancelled At" value={formatDateTimeLabel(order.cancelledAtUtc)} />
-                      <DetailItem label="Reason" value={order.cancellationReason ?? '-'} />
+                  <div className="rounded-2xl bg-slate-50 p-4">
+                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                      Last Updated
                     </div>
+                    <div className="mt-1 text-sm text-ink">
+                      {formatDateTimeLabel(order.updatedAtUtc)}
+                    </div>
+                    {order.updatedBy ? (
+                      <div className="text-xs text-slate-500">by {order.updatedBy}</div>
+                    ) : null}
                   </div>
-                ) : null}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
+          <div className="space-y-6">
             <Card className="rounded-[28px] border-white/70 bg-white/85 shadow-sm">
               <CardHeader>
                 <CardTitle>Recipe Information</CardTitle>
@@ -662,45 +703,8 @@ export function ProductionOrderDetailPage() {
                 </CardContent>
               </Card>
             ) : null}
-
-            {isMaterialShortage && order.materialRequirements.length > 0 && hasAnyShortage ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-                <AlertTriangle size={14} className="mr-2 inline" />
-                Material belum mencukupi. Production Order belum dapat di-release.
-                Lakukan restock material yang mengalami shortage, lalu klik <strong>Check Materials</strong> untuk memverifikasi ulang.
-              </div>
-            ) : null}
           </div>
-
-          <div className="space-y-6">
-            <Card className="rounded-[28px] border-white/70 bg-white/85 shadow-sm">
-              <CardHeader>
-                <CardTitle>Quick Info</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                    Material Requirements
-                  </div>
-                  <div className="mt-1 text-2xl font-semibold text-ink">
-                    {order.materialRequirements.length}
-                  </div>
-                </div>
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                    Last Updated
-                  </div>
-                  <div className="mt-1 text-sm text-ink">
-                    {formatDateTimeLabel(order.updatedAtUtc)}
-                  </div>
-                  {order.updatedBy ? (
-                    <div className="text-xs text-slate-500">by {order.updatedBy}</div>
-                  ) : null}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        </>
       )}
 
       <ProductionOrderCancelDialog
