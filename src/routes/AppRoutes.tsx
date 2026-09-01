@@ -33,6 +33,8 @@ import { StockMovementsPage } from '@/pages/warehouse/StockMovementsPage'
 import { placeholderRoutes } from '@/routes/navigation.config'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 import { TutorialLauncherPage } from '@/pages/help/TutorialLauncherPage'
+import { OperatorProductionQueuePage } from '@/pages/operator/OperatorProductionQueuePage'
+import { OperatorGuidedProductionPage } from '@/pages/operator/OperatorGuidedProductionPage'
 
 /**
  * Central route tree. Feature modules (Supplier, Material, Product, ...)
@@ -101,6 +103,11 @@ export function AppRoutes() {
 
           <Route element={<ProtectedRoute requiredPermission="production-orders.create" />}>
             <Route path="/production/orders/create" element={<ProductionOrderCreatePage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="production-orders.execute" />}>
+            <Route path="/operator/production" element={<OperatorProductionQueuePage />} />
+            <Route path="/operator/production/:id" element={<OperatorGuidedProductionPage />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="receiving.view" />}>

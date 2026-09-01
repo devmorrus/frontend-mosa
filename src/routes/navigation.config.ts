@@ -68,6 +68,7 @@ export const sidebarIconMap: SidebarIconMap = {
   'stock-movements': ArrowLeftRight,
   production: Factory,
   'production-orders': Factory,
+  'operator-production': Factory,
   'quality-control': ShieldCheck,
   traceability: Waypoints,
   reports: ChartNoAxesColumn,

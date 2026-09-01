@@ -15,6 +15,11 @@ import type { MasterDataPagination } from '@/features/master-data/types'
 import type { ProductListItem } from '@/features/products/types'
 import type { WarehouseListItem } from '@/features/warehouses/types'
 import type { UserListItem } from '@/features/users/types'
+import type {
+  ConsumeMaterialResponse,
+  OperatorProductionDetail,
+  OperatorProductionQueueItem,
+} from '@/features/operator-production/types'
 
 function toStatusParam(status: ProductionOrderQueryState['status']) {
   return status === 'ALL' ? undefined : status
@@ -119,6 +124,54 @@ export const productionOrdersApi = {
   release: (id: string): Promise<ProductionOrderDetail> =>
     apiClient
       .post<ProductionOrderDetail>(`/production-orders/${id}/release`)
+      .then((response) => response.data),
+
+  getMyQueue: (
+    page: number,
+    pageSize: number,
+  ): Promise<{ items: OperatorProductionQueueItem[]; pagination: MasterDataPagination }> =>
+    apiClient
+      .get<ApiPaginatedResponse<OperatorProductionQueueItem>>('/production-orders/my-queue', {
+        params: { page, pageSize },
+      })
+      .then((response) => mapPaginatedResponse(response.data)),
+
+  getMyQueueDetail: (id: string): Promise<OperatorProductionDetail> =>
+    apiClient
+      .get<OperatorProductionDetail>(`/production-orders/my-queue/${id}`)
+      .then((response) => response.data),
+
+  startProduction: (id: string): Promise<ProductionOrderDetail> =>
+    apiClient
+      .post<ProductionOrderDetail>(`/production-orders/${id}/start`)
+      .then((response) => response.data),
+
+  startStep: (orderId: string, stepId: string) =>
+    apiClient.post(`/production-orders/${orderId}/steps/${stepId}/start`),
+
+  startTimer: (orderId: string, stepId: string) =>
+    apiClient.post(`/production-orders/${orderId}/steps/${stepId}/timer/start`),
+
+  completeStep: (
+    orderId: string,
+    stepId: string,
+    payload: { confirmed?: boolean; notes?: string },
+  ) => apiClient.post(`/production-orders/${orderId}/steps/${stepId}/complete`, payload),
+
+  consumeMaterial: (
+    orderId: string,
+    stepId: string,
+    payload: {
+      lots: Array<{ rawMaterialLotId: string; actualQuantity: number }>
+    },
+    idempotencyKey: string,
+  ): Promise<ConsumeMaterialResponse> =>
+    apiClient
+      .post<ConsumeMaterialResponse>(
+        `/production-orders/${orderId}/steps/${stepId}/consume`,
+        payload,
+        { headers: { 'Idempotency-Key': idempotencyKey } },
+      )
       .then((response) => response.data),
 
   listActiveProducts: (): Promise<ProductListItem[]> =>
