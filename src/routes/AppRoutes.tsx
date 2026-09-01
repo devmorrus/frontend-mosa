@@ -21,6 +21,8 @@ import { RecipeDetailPage } from '@/pages/production/RecipeDetailPage'
 import { RecipesPage } from '@/pages/production/RecipesPage'
 import { RecipeVersionPage } from '@/pages/production/RecipeVersionPage'
 import { RecipeTutorialPage } from '@/pages/production/RecipeTutorialPage'
+import { ProductionDeviationQueuePage } from '@/pages/production/ProductionDeviationQueuePage'
+import { ProductionDeviationReviewPage } from '@/pages/production/ProductionDeviationReviewPage'
 import { ProductionOrdersPage } from '@/pages/production/ProductionOrdersPage'
 import { ProductionOrderCreatePage } from '@/pages/production/ProductionOrderCreatePage'
 import { ProductionOrderDetailPage } from '@/pages/production/ProductionOrderDetailPage'
@@ -110,6 +112,11 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute requiredPermission="production-orders.execute" />}>
             <Route path="/operator/production" element={<OperatorProductionQueuePage />} />
             <Route path="/operator/production/:id" element={<OperatorGuidedProductionPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="production-deviations.view" />}>
+            <Route path="/production/deviations" element={<ProductionDeviationQueuePage />} />
+            <Route path="/production/deviations/:id" element={<ProductionDeviationReviewPage />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="receiving.view" />}>
