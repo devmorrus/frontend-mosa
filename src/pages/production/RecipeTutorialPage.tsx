@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { MaterialTutorialSimulation } from '@/features/recipes/tutorial/material-simulation/MaterialTutorialSimulation'
+import { validateMaterialSimulation } from '@/features/recipes/tutorial/material-simulation/validation'
 import { RecipeStepType, type GuidedRecipePreview, type GuidedRecipeTutorialStep } from '@/features/recipes/types'
 import { useRecipeTutorialStore } from '@/features/recipes/tutorial/recipeTutorialStore'
 import { useAuth } from '@/hooks/useAuth'
@@ -34,6 +36,7 @@ function StepContent({ step, onComplete }: { step: GuidedRecipeTutorialStep; onC
   const timer = progress?.timers[step.recipeStepId] ?? { remainingSeconds: step.timerDurationSeconds ?? 0, status: 'IDLE' as const }
   const isTimer = step.stepType === RecipeStepType.Timer
   const isCheck = step.stepType === RecipeStepType.Check
+  const isMaterial = step.stepType === RecipeStepType.Material
 
   useEffect(() => {
     setChecked([])
@@ -48,9 +51,9 @@ function StepContent({ step, onComplete }: { step: GuidedRecipeTutorialStep; onC
     return () => window.clearInterval(interval)
   }, [isTimer, setTimer, step.recipeStepId, timer.remainingSeconds, timer.status, userId])
 
-  const uom = step.unitOfMeasure?.symbol ?? step.unitOfMeasure?.code ?? ''
   const timerReady = !isTimer || timer.remainingSeconds === 0
   const checkReady = !isCheck || (step.checkItems.length > 0 && checked.length === step.checkItems.length)
+  const materialReady = !isMaterial || validateMaterialSimulation(progress?.materialSimulations[step.recipeStepId], step.targetQuantity, step.toleranceType, step.toleranceValue).isReady
 
   return <Card className="overflow-hidden">
     <CardHeader className="bg-sand/35">
@@ -59,10 +62,10 @@ function StepContent({ step, onComplete }: { step: GuidedRecipeTutorialStep; onC
       {step.instruction ? <CardDescription>{step.instruction}</CardDescription> : null}
     </CardHeader>
     <CardContent className="space-y-5 pt-6">
-      {step.stepType === RecipeStepType.Material ? <div className="grid gap-3 sm:grid-cols-2"><div className="rounded-2xl border border-ink/10 p-4"><div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Material</div><div className="mt-2 text-xl font-semibold text-ink">{step.rawMaterial?.name ?? '-'}</div></div><div className="rounded-2xl border border-ink/10 p-4"><div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Jumlah</div><div className="mt-2 text-2xl font-semibold text-ink">{step.targetQuantity ?? '-'} {uom}</div>{step.toleranceValue !== null ? <div className="mt-1 text-sm text-slate-500">Tolerance: {step.toleranceValue} {uom}</div> : null}</div></div> : null}
+      {isMaterial ? <MaterialTutorialSimulation step={step} userId={userId} /> : null}
       {isTimer ? <div className="rounded-3xl bg-ink p-6 text-paper"><div className="flex items-center gap-2 text-sm text-paper/70"><Clock3 size={17} />Tutorial timer</div><div className="mt-3 font-display text-6xl font-semibold tabular-nums">{duration(timer.remainingSeconds)}</div><div className="mt-5 flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => setTimer(userId, step.recipeStepId, { remainingSeconds: timer.status === 'RUNNING' ? timer.remainingSeconds : (timer.remainingSeconds || step.timerDurationSeconds || 0), status: timer.status === 'RUNNING' ? 'PAUSED' : 'RUNNING' })}>{timer.status === 'RUNNING' ? <Pause size={16} /> : <Play size={16} />}{timer.status === 'RUNNING' ? 'Pause' : timer.remainingSeconds === 0 ? 'Mulai ulang' : 'Mulai / Lanjutkan'}</Button><Button type="button" variant="outline" onClick={() => setTimer(userId, step.recipeStepId, { remainingSeconds: step.timerDurationSeconds ?? 0, status: 'IDLE' })}><RotateCcw size={16} />Restart</Button><Button type="button" variant="outline" onClick={() => { setTimer(userId, step.recipeStepId, { remainingSeconds: 0, status: 'PAUSED' }); onComplete() }}>Lewati tutorial</Button></div></div> : null}
       {isCheck ? <div className="space-y-3 rounded-2xl border border-ink/10 p-4">{step.checkItems.map((item) => <label key={item.id} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-2 text-sm font-medium text-ink hover:bg-sand/35"><input type="checkbox" className="h-5 w-5 accent-ink" checked={checked.includes(item.id)} onChange={() => setChecked((current) => current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current, item.id])} />{item.label}</label>)}</div> : null}
-      <Button type="button" size="lg" className="w-full sm:w-auto" disabled={!timerReady || !checkReady} onClick={onComplete}><CheckCircle2 size={18} />Selesai, Lanjut</Button>
+      <Button type="button" size="lg" className="w-full sm:w-auto" disabled={!timerReady || !checkReady || !materialReady} onClick={onComplete}><CheckCircle2 size={18} />Selesai, Lanjut</Button>
     </CardContent>
   </Card>
 }
