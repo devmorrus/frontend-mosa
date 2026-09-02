@@ -220,6 +220,19 @@ export function useMenusModule({ api, permissions }: UseMenusModuleOptions) {
     }
   }
 
+  function mapDeleteError(apiError: ApiError): string {
+    // Backend sekarang mengirim detail role/child spesifik, pakai langsung
+    if (apiError.code === 'menu_has_permissions' || apiError.code === 'menu_has_children') {
+      return apiError.message
+    }
+    switch (apiError.code) {
+      case 'system_menu_delete_blocked':
+        return 'Menu sistem tidak dapat dihapus. Menu ini diperlukan untuk operasi inti aplikasi.'
+      default:
+        return apiError.message
+    }
+  }
+
   async function confirmDelete() {
     if (!deleteTarget) return
 
@@ -235,7 +248,7 @@ export function useMenusModule({ api, permissions }: UseMenusModuleOptions) {
       await refreshSidebar()
     } catch (caughtError) {
       const apiError = caughtError as ApiError
-      setDeleteError(apiError.message)
+      setDeleteError(mapDeleteError(apiError))
     } finally {
       setIsDeleteSubmitting(false)
     }

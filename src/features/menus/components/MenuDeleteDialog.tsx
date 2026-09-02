@@ -1,4 +1,5 @@
-import { AlertTriangle, LoaderCircle, ShieldCheck, Trash2 } from 'lucide-react'
+import { AlertTriangle, ExternalLink, LoaderCircle, ShieldCheck, Trash2 } from 'lucide-react'
+import { Link } from 'react-router'
 import {
   Dialog,
   DialogContent,
@@ -21,7 +22,7 @@ function WarningItem({ icon, text }: { icon: React.ReactNode; text: string }) {
 export function MenuDeleteDialog({
   open,
   menu,
-  error: _error,
+  error,
   submitting,
   onOpenChange,
   onConfirm,
@@ -73,10 +74,50 @@ export function MenuDeleteDialog({
                 text={`Menu masih memiliki ${menu.children.length} sub-menu. Hapus atau pindahkan sub-menu terlebih dahulu.`}
               />
             )}
-            {!menu.isSystem && menu.children.length === 0 && (
+            {!menu.isSystem && menu.children.length === 0 && !error && (
               <p className="text-[13px] text-slate-500">
                 Apakah Anda yakin ingin menghapus menu ini? Tindakan ini tidak dapat dibatalkan.
               </p>
+            )}
+            {error && (
+              <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3">
+                <span className="mt-0.5 shrink-0 text-red-600">
+                  <AlertTriangle size={16} />
+                </span>
+                <div className="space-y-2">
+                  <p className="text-[13px] font-medium leading-snug text-red-800">Gagal menghapus menu</p>
+                  <p className="text-[13px] leading-relaxed text-red-700">{error}</p>
+                  {(() => {
+                    const quoted = [...error.matchAll(/"([^"]+)"/g)].map((m) => m[1])
+                    const names = quoted.filter((n) => !n.includes('.') && n !== menu.code && n !== menu.name)
+                    if (names.length === 0) return null
+                    return (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {names.map((name) => (
+                          <span
+                            key={name}
+                            className="inline-flex items-center rounded-full bg-white px-2.5 py-1 text-xs font-medium text-red-800 ring-1 ring-red-200"
+                          >
+                            {name}
+                          </span>
+                        ))}
+                      </div>
+                    )
+                  })()}
+                  {error.includes('Role') && (
+                    <Link
+                      to="/roles"
+                      onClick={() => onOpenChange(false)}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-red-700 underline-offset-2 hover:underline"
+                    >
+                      Buka halaman Roles <ExternalLink size={12} />
+                    </Link>
+                  )}
+                  {error.includes('sub-menu') && (
+                    <p className="text-xs text-red-600/80">Tip: Hapus sub-menu di tree di atas sebelum menghapus induk.</p>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </div>
