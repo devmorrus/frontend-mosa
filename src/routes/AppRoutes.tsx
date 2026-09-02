@@ -39,6 +39,8 @@ import { TutorialLauncherPage } from '@/pages/help/TutorialLauncherPage'
 import { OperatorProductionQueuePage } from '@/pages/operator/OperatorProductionQueuePage'
 import { OperatorGuidedProductionPage } from '@/pages/operator/OperatorGuidedProductionPage'
 import { FinishedGoodsLotDetailPage } from '@/pages/production/FinishedGoodsLotDetailPage'
+import { QualityControlQueuePage } from '@/pages/production/QualityControlQueuePage'
+import { QualityControlInspectionPage } from '@/pages/production/QualityControlInspectionPage'
 
 /**
  * Central route tree. Feature modules (Supplier, Material, Product, ...)
@@ -117,6 +119,11 @@ export function AppRoutes() {
 
           <Route element={<ProtectedRoute requiredPermission="finished-goods-lots.view" />}>
             <Route path="/production/finished-goods-lots/:id" element={<FinishedGoodsLotDetailPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="qc.view" />}>
+            <Route path="/quality-control" element={<QualityControlQueuePage />} />
+            <Route path="/quality-control/:finishedGoodsLotId" element={<QualityControlInspectionPage />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="production-deviations.view" />}>
