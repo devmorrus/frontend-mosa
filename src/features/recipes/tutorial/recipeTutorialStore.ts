@@ -2,9 +2,10 @@ import { create } from 'zustand'
 import { MATERIAL_SIMULATION_PAGE_SIZE, MAX_SIMULATED_LOTS } from '@/features/recipes/tutorial/material-simulation/validation'
 import type { MaterialSimulationSeed, MaterialSimulationState } from '@/features/recipes/tutorial/material-simulation/types'
 
-export type RecipeTutorialStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'
+export type RecipeTutorialStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'FINALIZING' | 'COMPLETED'
 export type TutorialTimerState = { remainingSeconds: number; status: 'IDLE' | 'RUNNING' | 'PAUSED' }
 export type TutorialDeviationSimulation = { status: 'IDLE' | 'REQUESTED' | 'APPROVED' | 'REJECTED'; reason: string; updatedAt: string; reviewNotes: string | null }
+export type TutorialFinalSimulation = { actualOutput: string; finishedGoodsLotNumber: string | null; qcResult: 'WAITING_QC' | 'PASS' | 'HOLD' | 'REJECT' | null; completedAt: string | null }
 
 export interface RecipeTutorialProgress {
   recipeVersionId: string
@@ -15,6 +16,7 @@ export interface RecipeTutorialProgress {
   timers: Record<string, TutorialTimerState>
   materialSimulations: Record<string, MaterialSimulationState>
   deviationSimulations: Record<string, TutorialDeviationSimulation>
+  finalSimulation: TutorialFinalSimulation
   status: RecipeTutorialStatus
   updatedAt: string
 }
@@ -28,7 +30,7 @@ function readProgress(userId: string, recipeVersionId: string, targetOutput: num
     const value = localStorage.getItem(storageKey(userId, recipeVersionId, targetOutput))
     if (!value) return null
     const progress = JSON.parse(value) as RecipeTutorialProgress
-    return { ...progress, materialSimulations: progress.materialSimulations ?? {}, deviationSimulations: progress.deviationSimulations ?? {} }
+    return { ...progress, materialSimulations: progress.materialSimulations ?? {}, deviationSimulations: progress.deviationSimulations ?? {}, finalSimulation: progress.finalSimulation ?? { actualOutput: '', finishedGoodsLotNumber: null, qcResult: null, completedAt: null } }
   } catch { return null }
 }
 
@@ -49,6 +51,8 @@ interface RecipeTutorialStore {
   removeMaterialLot: (userId: string, stepId: string, lotId: string) => void
   setMaterialLotPage: (userId: string, stepId: string, page: number) => void
   setDeviationSimulation: (userId: string, stepId: string, value: TutorialDeviationSimulation) => void
+  setFinalSimulation: (userId: string, value: Partial<TutorialFinalSimulation>) => void
+  finishTutorial: (userId: string) => void
   restart: (userId: string) => void
   close: () => void
 }
@@ -65,7 +69,7 @@ export const useRecipeTutorialStore = create<RecipeTutorialStore>((set, get) => 
   start: (userId, recipeVersionId, targetOutput) => {
     const existing = readProgress(userId, recipeVersionId, targetOutput)
     if (existing?.status === 'IN_PROGRESS') return set({ progress: existing })
-    persist(set, userId, { recipeVersionId, targetOutput, currentUnlockedStep: 0, viewedStep: 0, completedStepIds: [], timers: {}, materialSimulations: {}, deviationSimulations: {}, status: 'IN_PROGRESS', updatedAt: new Date().toISOString() })
+    persist(set, userId, { recipeVersionId, targetOutput, currentUnlockedStep: 0, viewedStep: 0, completedStepIds: [], timers: {}, materialSimulations: {}, deviationSimulations: {}, finalSimulation: { actualOutput: '', finishedGoodsLotNumber: null, qcResult: null, completedAt: null }, status: 'IN_PROGRESS', updatedAt: new Date().toISOString() })
   },
   view: (userId, index) => {
     const progress = get().progress
@@ -77,7 +81,7 @@ export const useRecipeTutorialStore = create<RecipeTutorialStore>((set, get) => 
     if (!progress || progress.status !== 'IN_PROGRESS') return
     const completed = [...new Set([...progress.completedStepIds, stepId])]
     const isFinal = progress.currentUnlockedStep >= totalSteps - 1
-    persist(set, userId, { ...progress, completedStepIds: completed, currentUnlockedStep: isFinal ? progress.currentUnlockedStep : progress.currentUnlockedStep + 1, viewedStep: isFinal ? progress.currentUnlockedStep : progress.currentUnlockedStep + 1, status: isFinal ? 'COMPLETED' : 'IN_PROGRESS' })
+    persist(set, userId, { ...progress, completedStepIds: completed, currentUnlockedStep: isFinal ? progress.currentUnlockedStep : progress.currentUnlockedStep + 1, viewedStep: isFinal ? progress.currentUnlockedStep : progress.currentUnlockedStep + 1, status: isFinal ? 'FINALIZING' : 'IN_PROGRESS' })
   },
   setTimer: (userId, stepId, timer) => {
     const progress = get().progress
@@ -125,10 +129,20 @@ export const useRecipeTutorialStore = create<RecipeTutorialStore>((set, get) => 
     if (!progress) return
     persist(set, userId, { ...progress, deviationSimulations: { ...progress.deviationSimulations, [stepId]: value } })
   },
+  setFinalSimulation: (userId, value) => {
+    const progress = get().progress
+    if (!progress) return
+    persist(set, userId, { ...progress, finalSimulation: { ...progress.finalSimulation, ...value } })
+  },
+  finishTutorial: (userId) => {
+    const progress = get().progress
+    if (!progress || progress.status !== 'FINALIZING' || !progress.finalSimulation.qcResult || progress.finalSimulation.qcResult === 'WAITING_QC') return
+    persist(set, userId, { ...progress, finalSimulation: { ...progress.finalSimulation, completedAt: new Date().toISOString() }, status: 'COMPLETED' })
+  },
   restart: (userId) => {
     const progress = get().progress
     if (!progress) return
-    persist(set, userId, { ...progress, currentUnlockedStep: 0, viewedStep: 0, completedStepIds: [], timers: {}, materialSimulations: {}, deviationSimulations: {}, status: 'IN_PROGRESS' })
+    persist(set, userId, { ...progress, currentUnlockedStep: 0, viewedStep: 0, completedStepIds: [], timers: {}, materialSimulations: {}, deviationSimulations: {}, finalSimulation: { actualOutput: '', finishedGoodsLotNumber: null, qcResult: null, completedAt: null }, status: 'IN_PROGRESS' })
   },
   close: () => set({ progress: null }),
 }))
