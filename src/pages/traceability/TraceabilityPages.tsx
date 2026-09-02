@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { AlertTriangle, Boxes, CheckCircle2, ChevronRight, CircleAlert, ClipboardList, Factory, PackageCheck, QrCode, ScanLine, Search, ShieldCheck, Truck, X } from 'lucide-react'
 import QrScanner from 'qr-scanner'
 import qrScannerWorkerPath from 'qr-scanner/qr-scanner-worker.min?url'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { traceabilityApi } from '@/api/traceability.api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -59,6 +59,7 @@ function qrToken(value: string) {
 }
 
 export function TraceabilitySearchPage() {
+  const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const scannerRef = useRef<QrScanner | null>(null)
   const [searchType, setSearchType] = useState<SearchType>('finished-goods')
@@ -80,7 +81,10 @@ export function TraceabilitySearchPage() {
     try {
       if (isQr) setResult(await traceabilityApi.getFinishedGoodsByQrToken(normalized))
       else if (type === 'finished-goods') setResult(await traceabilityApi.getFinishedGoodsByLotNumber(normalized))
-      else setForwardResult(await traceabilityApi.getRawMaterialByLotNumber(normalized))
+      else {
+        const forward = await traceabilityApi.getRawMaterialByLotNumber(normalized)
+        navigate(`/traceability/raw-material/${forward.rawMaterialLot.rawMaterialLotId}`)
+      }
       stopCamera()
     } catch (caught) {
       const apiError = caught as ApiError

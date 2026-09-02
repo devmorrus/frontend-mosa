@@ -1,5 +1,6 @@
 import { apiClient } from '@/api/client'
-import type { BatchGenealogy, ForwardTraceability } from '@/features/traceability/types'
+import type { ApiPaginatedResponse } from '@/types/api'
+import type { AffectedBatchItem, AffectedBatchSummary, BatchGenealogy, ForwardTraceability } from '@/features/traceability/types'
 
 export const traceabilityApi = {
   getFinishedGoodsById: (id: string) =>
@@ -18,5 +19,18 @@ export const traceabilityApi = {
   getRawMaterialByLotNumber: (lotNumber: string) =>
     apiClient
       .get<ForwardTraceability>(`/traceability/forward/by-lot-number/${encodeURIComponent(lotNumber.trim())}`)
+      .then((response) => response.data),
+
+  getAffectedBatchSummary: (rawMaterialLotId: string) =>
+    apiClient
+      .get<AffectedBatchSummary>(`/traceability/raw-material/${rawMaterialLotId}/affected-batches`)
+      .then((response) => response.data),
+
+  getAffectedBatchPage: (rawMaterialLotId: string, page: number, pageSize = 20) =>
+    apiClient
+      .get<ApiPaginatedResponse<AffectedBatchItem>>(
+        `/traceability/raw-material/${rawMaterialLotId}/affected-batches/paged`,
+        { params: { page, pageSize } },
+      )
       .then((response) => response.data),
 }

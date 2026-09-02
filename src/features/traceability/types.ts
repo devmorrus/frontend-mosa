@@ -121,6 +121,8 @@ export interface ForwardTraceability {
     warehouseCode: string
     warehouseName: string
     currentQuantity: number
+    unitOfMeasureCode: string
+    unitOfMeasureSymbol: string | null
     lotStatus: string | number
   }
   usages: Array<{
@@ -132,14 +134,45 @@ export interface ForwardTraceability {
     recipeName: string
     productionDate: string
     actualQuantityUsed: number
+    actualMaterialUnitOfMeasureCode: string
+    actualMaterialUnitOfMeasureSymbol: string | null
     stepSequence: number
     stepName: string
     operator: string | null
     finishedGoodsLot: TraceabilityLotReference
     finishedGoodsActualOutput: number
+    finishedGoodsUnitOfMeasureCode: string
+    finishedGoodsUnitOfMeasureSymbol: string | null
     fgQcStatus: string | number
     fgInventoryStatus: string | number
   }>
   totalUsages: number
   totalQuantityUsed: number
+}
+
+export interface AffectedBatchItem {
+  finishedGoodsLotId: string
+  finishedGoodsLotNumber: string
+  productId: string
+  productCode: string
+  productName: string
+  productionOrderId: string
+  productionOrderNumber: string
+  productionDate: string
+  actualMaterialUsed: number
+  actualMaterialUnitOfMeasureCode: string
+  actualMaterialUnitOfMeasureSymbol: string | null
+  finishedGoodsActualOutput: number
+  finishedGoodsUnitOfMeasureCode: string
+  finishedGoodsUnitOfMeasureSymbol: string | null
+  qcStatus: string | number
+  inventoryStatus: string | number
+}
+
+export interface AffectedBatchSummary {
+  rawMaterialLot: ForwardTraceability['rawMaterialLot']
+  totalProductionsAffected: number
+  totalFGLotsAffected: number
+  totalActualMaterialUsed: number
+  batches: AffectedBatchItem[]
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { ArrowLeft, QrCode, ScanLine } from 'lucide-react'
+import { ArrowLeft, QrCode, ScanLine, Waypoints } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { rawMaterialLotsApi } from '@/api/rawMaterialLots.api'
 import { Button } from '@/components/ui/button'
@@ -221,6 +221,12 @@ export function RawMaterialLotDetailPage() {
                   Open Scan Test
                 </Link>
               </Button>
+              {can('traceability.view') ? <Button asChild variant="secondary">
+                <Link to={`/traceability/raw-material/${detail.id}`}>
+                  <Waypoints size={16} />
+                  Lihat Traceability
+                </Link>
+              </Button> : null}
             </div>
 
             {qrError ? (
