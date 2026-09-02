@@ -65,7 +65,23 @@ export interface OperatorProductionDetail {
   progress: OperatorProductionProgress
   currentStep: OperatorProductionCurrentStep | null
   currentDeviation: OperatorProductionDeviation | null
+  materialConsumptionSummary: { postedLineCount: number; totalActualQuantity: number }
+  deviationSummary: { totalCount: number; pendingCount: number; approvedCount: number; rejectedCount: number }
 }
+
+export interface ProductionCompletionResult {
+  productionOrderId: string
+  productionOrderNumber: string
+  productionOrderStatus: ProductionOrderStatus
+  targetOutput: number
+  actualOutput: number
+  yieldValue: number
+  completedBy: string
+  completedAtUtc: string
+  finishedGoodsLot: { id: string; finishedGoodsLotNumber: string; productName: string; actualOutput: number; yieldValue: number; productionDate: string; qcStatus: string; inventoryStatus: string; qrToken: string; unitOfMeasure: { code: string; symbol: string | null } }
+}
+
+export interface FinishedGoodsLotLabel { productName: string; finishedGoodsLotNumber: string; productionDate: string; actualOutput: number; unitOfMeasureSymbol: string; expiryDate: string | null; qcStatus: string; qrToken: string; qrImageBase64: string; productionOrderNumber: string; warehouseCode: string }
 
 export interface OperatorProductionDeviationLot { rawMaterialLotId: string; lotNumber: string; actualQuantity: number }
 export interface OperatorProductionDeviation {

@@ -38,6 +38,7 @@ import { ProtectedRoute } from '@/routes/ProtectedRoute'
 import { TutorialLauncherPage } from '@/pages/help/TutorialLauncherPage'
 import { OperatorProductionQueuePage } from '@/pages/operator/OperatorProductionQueuePage'
 import { OperatorGuidedProductionPage } from '@/pages/operator/OperatorGuidedProductionPage'
+import { FinishedGoodsLotDetailPage } from '@/pages/production/FinishedGoodsLotDetailPage'
 
 /**
  * Central route tree. Feature modules (Supplier, Material, Product, ...)
@@ -112,6 +113,10 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute requiredPermission="production-orders.execute" />}>
             <Route path="/operator/production" element={<OperatorProductionQueuePage />} />
             <Route path="/operator/production/:id" element={<OperatorGuidedProductionPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="finished-goods-lots.view" />}>
+            <Route path="/production/finished-goods-lots/:id" element={<FinishedGoodsLotDetailPage />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="production-deviations.view" />}>

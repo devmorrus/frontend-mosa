@@ -19,6 +19,8 @@ import type {
   ConsumeMaterialResponse,
   OperatorProductionDetail,
   OperatorProductionQueueItem,
+  ProductionCompletionResult,
+  FinishedGoodsLotLabel,
   ValidatedMaterialLot,
 } from '@/features/operator-production/types'
 
@@ -158,6 +160,15 @@ export const productionOrdersApi = {
     stepId: string,
     payload: { confirmed?: boolean; notes?: string },
   ) => apiClient.post(`/production-orders/${orderId}/steps/${stepId}/complete`, payload),
+
+  completeProduction: (orderId: string, payload: { actualOutput: number; productionNotes?: string }): Promise<ProductionCompletionResult> =>
+    apiClient.post<ProductionCompletionResult>(`/production-orders/${orderId}/complete`, payload).then((response) => response.data),
+
+  getFinishedGoodsLabel: (id: string): Promise<FinishedGoodsLotLabel> =>
+    apiClient.get<FinishedGoodsLotLabel>(`/finished-goods-lots/${id}/label`).then((response) => response.data),
+
+  getFinishedGoodsLot: (id: string): Promise<ProductionCompletionResult['finishedGoodsLot'] & { targetOutput: number; expiryDate: string | null }> =>
+    apiClient.get(`/finished-goods-lots/${id}`).then((response) => response.data),
 
   consumeMaterial: (
     orderId: string,

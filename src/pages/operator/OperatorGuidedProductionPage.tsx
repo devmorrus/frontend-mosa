@@ -13,6 +13,7 @@ import {
 import { ProductionOrderStatus } from '@/features/production-orders/types'
 import { ProductionStepExecutionStatus, type OperatorProductionDetail } from '@/features/operator-production/types'
 import { MaterialConsumptionPanel } from '@/features/operator-production/deviation/MaterialConsumptionPanel'
+import { ProductionCompletionCard } from '@/features/operator-production/completion/ProductionCompletionCard'
 import { RecipeStepType, RecipeToleranceType } from '@/features/recipes/types'
 import type { ApiError } from '@/types/api'
 
@@ -109,6 +110,31 @@ export function OperatorGuidedProductionPage() {
     }
   }
 
+  async function completeProduction(actualOutput: number) {
+    if (!detail) throw new Error('Production order tidak ditemukan.')
+    setIsSubmitting(true)
+    setActionError(null)
+    try {
+      return await productionOrdersApi.completeProduction(detail.id, { actualOutput })
+    } catch (caughtError) {
+      const message = (caughtError as ApiError).message
+      setActionError(message)
+      throw caughtError
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  async function printFinishedGoodsLabel(fgLotId: string) {
+    try {
+      const label = await productionOrdersApi.getFinishedGoodsLabel(fgLotId)
+      const printWindow = window.open('', '_blank', 'noopener,noreferrer')
+      if (!printWindow) throw new Error('Popup print diblokir browser.')
+      printWindow.document.write(`<html><head><title>${label.finishedGoodsLotNumber}</title></head><body style="font-family:Arial;padding:24px"><h1>${label.productName}</h1><p><b>FG LOT:</b> ${label.finishedGoodsLotNumber}</p><p>Actual: ${label.actualOutput} ${label.unitOfMeasureSymbol}</p><p>QC: ${label.qcStatus}</p><img width="220" src="data:image/png;base64,${label.qrImageBase64}" /></body></html>`)
+      printWindow.document.close(); printWindow.focus(); printWindow.print()
+    } catch (caughtError) { setActionError((caughtError as ApiError).message) }
+  }
+
   if (isLoading) return <MasterDataLoadingState description="Memuat langkah produksi saat ini." />
   if (error || !detail) return <MasterDataErrorState description={error ?? 'Production order tidak ditemukan.'} onRetry={() => void loadDetail()} />
 
@@ -142,6 +168,7 @@ export function OperatorGuidedProductionPage() {
       onValidateLot={(value) => productionOrdersApi.validateMaterialLot(detail.id, step.id, /^[0-9a-f-]{36}$/i.test(value.trim()) ? { rawMaterialLotId: value.trim() } : { qrToken: value.trim() })}
       onConsume={(lots, reason) => void runAction(() => reason ? productionOrdersApi.createDeviationRequest(detail.id, step.id, { lots: lots.map((lot) => ({ rawMaterialLotId: lot.lotId, actualQuantity: Number(lot.actualQuantity.replace(',', '.')) })), reason }, crypto.randomUUID()) : productionOrdersApi.consumeMaterial(detail.id, step.id, { lots: lots.map((lot) => ({ rawMaterialLotId: lot.lotId, actualQuantity: Number(lot.actualQuantity.replace(',', '.')) })) }, crypto.randomUUID()))}
     /> : null}
+    {!step && detail.status === ProductionOrderStatus.InProgress && detail.progress.totalSteps > 0 && detail.progress.completedSteps === detail.progress.totalSteps ? <ProductionCompletionCard detail={detail} isSubmitting={isSubmitting} error={actionError} onComplete={completeProduction} onLoadLabel={productionOrdersApi.getFinishedGoodsLabel} onViewFg={(fgLotId) => navigate(`/production/finished-goods-lots/${fgLotId}`)} onPrint={(fgLotId) => void printFinishedGoodsLabel(fgLotId)} onBack={() => navigate('/operator/production')} /> : null}
   </div>
 }
 
