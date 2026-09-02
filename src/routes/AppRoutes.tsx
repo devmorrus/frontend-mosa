@@ -41,6 +41,7 @@ import { OperatorGuidedProductionPage } from '@/pages/operator/OperatorGuidedPro
 import { FinishedGoodsLotDetailPage } from '@/pages/production/FinishedGoodsLotDetailPage'
 import { QualityControlQueuePage } from '@/pages/production/QualityControlQueuePage'
 import { QualityControlInspectionPage } from '@/pages/production/QualityControlInspectionPage'
+import { FinishedGoodsTraceabilityPage, TraceabilitySearchPage } from '@/pages/traceability/TraceabilityPages'
 
 /**
  * Central route tree. Feature modules (Supplier, Material, Product, ...)
@@ -119,6 +120,11 @@ export function AppRoutes() {
 
           <Route element={<ProtectedRoute requiredPermission="finished-goods-lots.view" />}>
             <Route path="/production/finished-goods-lots/:id" element={<FinishedGoodsLotDetailPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="traceability.view" />}>
+            <Route path="/traceability" element={<TraceabilitySearchPage />} />
+            <Route path="/traceability/finished-goods/:id" element={<FinishedGoodsTraceabilityPage />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="qc.view" />}>

@@ -71,6 +71,7 @@ export const sidebarIconMap: SidebarIconMap = {
   'operator-production': Factory,
   'quality-control': ShieldCheck,
   traceability: Waypoints,
+  'traceability-search': Waypoints,
   reports: ChartNoAxesColumn,
   administration: ShieldEllipsis,
   users: Users,
