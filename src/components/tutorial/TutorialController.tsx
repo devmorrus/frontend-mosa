@@ -73,11 +73,19 @@ export function TutorialController() {
       targetEl.addEventListener('click', handleUserInteraction)
       targetEl.addEventListener('change', handleUserInteraction)
       targetEl.addEventListener('input', handleUserInteraction)
+      targetEl.addEventListener('submit', handleUserInteraction)
+
+      // Search steps render their result asynchronously, so re-check after the DOM changes.
+      const observer = new MutationObserver(handleUserInteraction)
+      const contentRoot = document.querySelector('main')
+      if (contentRoot) observer.observe(contentRoot, { childList: true, subtree: true })
 
       return () => {
         targetEl.removeEventListener('click', handleUserInteraction)
         targetEl.removeEventListener('change', handleUserInteraction)
         targetEl.removeEventListener('input', handleUserInteraction)
+        targetEl.removeEventListener('submit', handleUserInteraction)
+        observer.disconnect()
       }
     }
   }, [currentStep, setStepValid, location.pathname])

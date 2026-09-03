@@ -41,7 +41,11 @@ export function TutorialTooltip({
 
   useEffect(() => {
     const updateTooltipPosition = () => {
-      const el = document.querySelector<HTMLElement>(targetSelector)
+      let el = document.querySelector<HTMLElement>(targetSelector)
+      const targetBounds = el?.getBoundingClientRect()
+      if ((!el || !targetBounds || targetBounds.width === 0 || targetBounds.height === 0) && targetSelector.includes('traceability-menu')) {
+        el = document.querySelector<HTMLElement>('[data-tour="traceability-search"]')
+      }
       if (!el) {
         // Center-bottom fallback if element not found or mobile screen
         setStyle({

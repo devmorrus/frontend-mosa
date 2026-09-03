@@ -20,6 +20,8 @@ function getPageTutorialId(pathname: string): string {
   if (pathname.startsWith('/inventory') || pathname.startsWith('/stock-movements')) return 'inventory'
   if (pathname.startsWith('/production/recipes')) return 'recipe-builder'
   if (pathname.startsWith('/production/orders')) return 'production-order'
+  if (pathname.startsWith('/traceability/raw-material')) return 'traceability-forward'
+  if (pathname.startsWith('/traceability')) return 'traceability-backward'
   return 'app-intro'
 }
 

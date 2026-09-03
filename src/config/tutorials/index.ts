@@ -6,6 +6,7 @@ import { lotAndQrTutorial } from './lotAndQr.config'
 import { inventoryTutorial } from './inventory.config'
 import { recipeBuilderTutorial } from './recipeBuilder.config'
 import { productionOrderTutorial } from './productionOrder.config'
+import { backwardTraceabilityTutorial, forwardTraceabilityTutorial } from './traceability.config'
 
 export const allTutorials: TutorialDefinition[] = [
   appIntroTutorial,
@@ -15,6 +16,8 @@ export const allTutorials: TutorialDefinition[] = [
   inventoryTutorial,
   recipeBuilderTutorial,
   productionOrderTutorial,
+  backwardTraceabilityTutorial,
+  forwardTraceabilityTutorial,
 ]
 
 export const tutorialRegistry: Record<string, TutorialDefinition> = {
@@ -25,6 +28,8 @@ export const tutorialRegistry: Record<string, TutorialDefinition> = {
   'inventory': inventoryTutorial,
   'recipe-builder': recipeBuilderTutorial,
   'production-order': productionOrderTutorial,
+  'traceability-backward': backwardTraceabilityTutorial,
+  'traceability-forward': forwardTraceabilityTutorial,
 }
 
 export function getAvailableTutorials(
@@ -37,10 +42,8 @@ export function getAvailableTutorials(
       return true
     }
 
-    // Check permissions (user must have at least one required permission)
-    const hasPermission = tutorial.requiredPermissions.some((perm) =>
-      userPermissions.includes(perm),
-    )
+    // A permission-protected tutorial remains hidden unless the user has one required permission.
+    const hasPermission = tutorial.requiredPermissions.some((perm) => userPermissions.includes(perm))
 
     // Check roles if defined
     const hasRole =
@@ -48,6 +51,6 @@ export function getAvailableTutorials(
       tutorial.allowedRoles.length === 0 ||
       tutorial.allowedRoles.some((role) => userRoles.includes(role))
 
-    return hasPermission || hasRole
+    return hasPermission && hasRole
   })
 }

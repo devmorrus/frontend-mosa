@@ -26,7 +26,8 @@ export function TutorialSpotlight({
 
     const updatePosition = () => {
       let el = document.querySelector<HTMLElement>(targetSelector)
-      if (!el && targetFallback) {
+      const targetBounds = el?.getBoundingClientRect()
+      if ((!el || !targetBounds || targetBounds.width === 0 || targetBounds.height === 0) && targetFallback) {
         el = document.querySelector<HTMLElement>(targetFallback)
       }
 
