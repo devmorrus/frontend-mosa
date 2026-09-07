@@ -32,7 +32,13 @@ import { RawMaterialInventoryPage } from '@/pages/warehouse/RawMaterialInventory
 import { RawMaterialLotDetailPage } from '@/pages/warehouse/RawMaterialLotDetailPage'
 import { RawMaterialLotsPage } from '@/pages/warehouse/RawMaterialLotsPage'
 import { RawMaterialLotScannerPage } from '@/pages/warehouse/RawMaterialLotScannerPage'
+import { StockAdjustmentCreatePage } from '@/pages/warehouse/StockAdjustmentCreatePage'
+import { StockAdjustmentDetailPage } from '@/pages/warehouse/StockAdjustmentDetailPage'
+import { StockAdjustmentsPage } from '@/pages/warehouse/StockAdjustmentsPage'
 import { StockMovementsPage } from '@/pages/warehouse/StockMovementsPage'
+import { StockOpnameCreatePage } from '@/pages/warehouse/StockOpnameCreatePage'
+import { StockOpnameDetailPage } from '@/pages/warehouse/StockOpnameDetailPage'
+import { StockOpnamesPage } from '@/pages/warehouse/StockOpnamesPage'
 import { placeholderRoutes } from '@/routes/navigation.config'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 import { TutorialLauncherPage } from '@/pages/help/TutorialLauncherPage'
@@ -185,6 +191,32 @@ export function AppRoutes() {
 
           <Route element={<ProtectedRoute requiredPermission="stock-movements.view" />}>
             <Route path="/stock-movements" element={<StockMovementsPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="stock-opname.view" />}>
+            <Route path="/warehouse/stock-opname" element={<StockOpnamesPage />} />
+            <Route path="/stock-opname" element={<Navigate to="/warehouse/stock-opname" replace />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="stock-opname.create" />}>
+            <Route path="/warehouse/stock-opname/create" element={<StockOpnameCreatePage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="stock-opname.view" />}>
+            <Route path="/warehouse/stock-opname/:id" element={<StockOpnameDetailPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="stock-adjustments.view" />}>
+            <Route path="/warehouse/stock-adjustments" element={<StockAdjustmentsPage />} />
+            <Route path="/stock-adjustments" element={<Navigate to="/warehouse/stock-adjustments" replace />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="stock-adjustments.create" />}>
+            <Route path="/warehouse/stock-adjustments/create" element={<StockAdjustmentCreatePage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="stock-adjustments.view" />}>
+            <Route path="/warehouse/stock-adjustments/:id" element={<StockAdjustmentDetailPage />} />
           </Route>
 
           {placeholderRoutes.map((route) => (
