@@ -7,9 +7,12 @@ import { inventoryTutorial } from './inventory.config'
 import { recipeBuilderTutorial } from './recipeBuilder.config'
 import { productionOrderTutorial } from './productionOrder.config'
 import { backwardTraceabilityTutorial, forwardTraceabilityTutorial } from './traceability.config'
+import { dashboardTutorial } from './dashboard.config'
+import { reportingTutorial } from './reporting.config'
 
 export const allTutorials: TutorialDefinition[] = [
   appIntroTutorial,
+  dashboardTutorial,
   masterDataTutorial,
   goodsReceivingTutorial,
   lotAndQrTutorial,
@@ -18,10 +21,12 @@ export const allTutorials: TutorialDefinition[] = [
   productionOrderTutorial,
   backwardTraceabilityTutorial,
   forwardTraceabilityTutorial,
+  reportingTutorial,
 ]
 
 export const tutorialRegistry: Record<string, TutorialDefinition> = {
   'app-intro': appIntroTutorial,
+  dashboard: dashboardTutorial,
   'master-data': masterDataTutorial,
   'goods-receiving': goodsReceivingTutorial,
   'lot-qr': lotAndQrTutorial,
@@ -30,6 +35,7 @@ export const tutorialRegistry: Record<string, TutorialDefinition> = {
   'production-order': productionOrderTutorial,
   'traceability-backward': backwardTraceabilityTutorial,
   'traceability-forward': forwardTraceabilityTutorial,
+  reporting: reportingTutorial,
 }
 
 export function getAvailableTutorials(

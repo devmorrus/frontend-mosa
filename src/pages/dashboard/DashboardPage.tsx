@@ -219,7 +219,7 @@ export function DashboardPage() {
         </div>
       </section>
 
-      <Card>
+      <Card data-tour="dashboard-period">
         <CardHeader className="pb-3">
           <CardTitle>Global Filter</CardTitle>
           <CardDescription>Filter ini dikirim langsung ke endpoint dashboard summary.</CardDescription>
@@ -273,17 +273,17 @@ function DashboardContent({
 }) {
   return (
     <div className="space-y-8">
-      <section className="space-y-4">
+      <section className="space-y-4" data-tour="dashboard-production">
         <SectionHeader title="Production" description="Status production order berdasarkan periode filter." />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <KpiCard label="Total Production Order" value={formatNumber(summary.production.total)} caption="Semua status PO" icon={Factory} to={buildLink('/production/orders', productionFilters)} />
           <KpiCard label="In Progress" value={formatNumber(summary.production.inProgress)} caption="Sedang diproses operator" icon={Gauge} to={buildLink('/production/orders', { ...productionFilters, status: 'IN_PROGRESS' })} tone="signal" />
           <KpiCard label="Completed" value={formatNumber(summary.production.completed)} caption="Termasuk waiting QC" icon={CheckCircle2} to={buildLink('/production/orders', { ...productionFilters, status: 'COMPLETED' })} tone="success" />
-          <KpiCard label="Material Shortage" value={formatNumber(summary.production.materialShortage)} caption="Butuh tindak lanjut stock" icon={AlertTriangle} to={buildLink('/production/orders', { ...productionFilters, status: 'MATERIAL_SHORTAGE' })} tone={summary.production.materialShortage > 0 ? 'danger' : 'default'} />
+          <div data-tour="dashboard-shortage"><KpiCard label="Material Shortage" value={formatNumber(summary.production.materialShortage)} caption="Butuh tindak lanjut stock" icon={AlertTriangle} to={buildLink('/production/orders', { ...productionFilters, status: 'MATERIAL_SHORTAGE' })} tone={summary.production.materialShortage > 0 ? 'danger' : 'default'} /></div>
         </div>
       </section>
 
-      <section className="space-y-4">
+      <section className="space-y-4" data-tour="dashboard-inventory">
         <SectionHeader title="Inventory" description="Snapshot raw material LOT aktif, low stock, dan expiry window backend." />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <KpiCard label="Raw Material Stock" value={formatNumber(summary.inventory.totalRawMaterialsWithStock)} caption="Material dengan stock aktif" icon={Boxes} to={buildLink('/inventory', { warehouseId: filterParams.warehouseId })} />
@@ -294,7 +294,7 @@ function DashboardContent({
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.8fr)]">
-        <div className="space-y-4">
+          <div className="space-y-4" data-tour="dashboard-qc">
           <SectionHeader title="Quality Control" description="Distribusi status QC finished goods lot sesuai periode produksi." />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 2xl:grid-cols-4">
             <KpiCard label="Waiting QC" value={formatNumber(summary.qc.waitingQc)} caption="Menunggu inspeksi" icon={ClipboardCheck} to={buildLink('/quality-control', { ...filterParams, status: 'WAITING_QC' })} tone="signal" />
@@ -315,7 +315,7 @@ function DashboardContent({
               <MetricTile label="Target Output" value={formatNumber(summary.performance.targetOutput)} icon={Target} />
               <MetricTile label="Actual Output" value={formatNumber(summary.performance.actualOutput)} icon={Scale} />
             </div>
-            <div className="rounded-[24px] border border-white/70 bg-white/75 p-5">
+            <div data-tour="dashboard-yield" className="rounded-[24px] border border-white/70 bg-white/75 p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Yield</div>
@@ -326,7 +326,7 @@ function DashboardContent({
               </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Link to={buildLink('/production/deviations', { ...filterParams, status: 'ALL' })} className="rounded-[22px] border border-slate-200 bg-white/80 p-4 transition hover:border-ink/20">
+              <Link data-tour="dashboard-deviation" to={buildLink('/production/deviations', { ...filterParams, status: 'ALL' })} className="rounded-[22px] border border-slate-200 bg-white/80 p-4 transition hover:border-ink/20">
                 <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Deviation</div>
                 <div className={cn('mt-2 font-display text-2xl font-semibold', getDeviationTone(deviation))}>{formatNumber(deviation)}</div>
                 <p className="mt-1 text-sm text-slate-500">{formatNumber(summary.performance.deviationCount)} deviation record</p>

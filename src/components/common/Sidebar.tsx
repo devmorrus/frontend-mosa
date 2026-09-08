@@ -199,6 +199,7 @@ function getDataTourAttr(item: SidebarItem): string | undefined {
   if (item.path === '/production/recipes' || item.code === 'recipes') return 'recipe-menu'
   if (item.path === '/production/orders' || item.code === 'orders') return 'po-menu'
   if (item.path === '/traceability' || item.code === 'traceability-search') return 'traceability-menu'
+  if (item.path === '/reports' || item.code === 'reports') return 'reports-menu'
   return undefined
 }
 
