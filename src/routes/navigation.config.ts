@@ -32,27 +32,11 @@ export interface SidebarIconMap {
   [code: string]: ComponentType<{ size?: number; className?: string }>
 }
 
-export const placeholderRoutes: PlaceholderRoute[] = [
-  {
-    title: 'Lots',
-    path: '/lots',
-    description: 'Foundation route untuk modul Lots sudah siap dan diproteksi permission.',
-    permission: 'lots.view',
-  },
-  {
-    title: 'Inventory',
-    path: '/inventory',
-    description: 'Foundation route untuk modul Inventory sudah siap dan diproteksi permission.',
-    permission: 'inventory.view',
-  },
-  {
-    title: 'Stock Movements',
-    path: '/stock-movements',
-    description:
-      'Foundation route untuk modul Stock Movements sudah siap dan diproteksi permission.',
-    permission: 'stock-movements.view',
-  },
-]
+/**
+ * @deprecated Tasking 4: semua route utama sudah terdaftar di AppRoutes.
+ * Daftar ini dipertahankan kosong agar tidak ada route placeholder paralel.
+ */
+export const placeholderRoutes: PlaceholderRoute[] = []
 
 export const sidebarIconMap: SidebarIconMap = {
   dashboard: LayoutDashboard,
@@ -73,10 +57,23 @@ export const sidebarIconMap: SidebarIconMap = {
   'production-orders': Factory,
   'operator-production': Factory,
   'quality-control': ShieldCheck,
+  'quality-control-queue': ShieldCheck,
+  recipes: Factory,
   traceability: Waypoints,
   'traceability-search': Waypoints,
   reports: ChartNoAxesColumn,
+  'reports-raw-material-stock': ChartNoAxesColumn,
+  'reports-lot-inventory': ChartNoAxesColumn,
+  'reports-goods-receiving': ChartNoAxesColumn,
+  'reports-material-consumption': ChartNoAxesColumn,
+  'reports-production': ChartNoAxesColumn,
+  'reports-target-vs-actual': ChartNoAxesColumn,
+  'reports-qc': ChartNoAxesColumn,
+  'reports-traceability': ChartNoAxesColumn,
+  'reports-yield': ChartNoAxesColumn,
+  'reports-stock-control': ChartNoAxesColumn,
   administration: ShieldEllipsis,
+  'audit-trail': ShieldEllipsis,
   users: Users,
   roles: ShieldCheck,
   menus: MenuSquare,

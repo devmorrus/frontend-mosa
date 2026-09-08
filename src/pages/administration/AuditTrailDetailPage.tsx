@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, ShieldEllipsis } from 'lucide-react'
+import { ArrowLeft, ExternalLink, ShieldEllipsis } from 'lucide-react'
 import { auditApi } from '@/api/audit.api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
 import { MasterDataErrorState, MasterDataLoadingState } from '@/features/master-data/components/MasterDataStates'
 import { AuditChangeViewer } from '@/features/audit-trail/components/AuditChangeViewer'
 import { formatDateTime, formatReadable } from '@/features/audit-trail/utils'
 import type { AuditDetailResponse } from '@/features/audit-trail/types'
+import { breadcrumbs, getAuditEntityLink } from '@/routes/canonicalRoutes'
 
 export function AuditTrailDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -37,8 +39,11 @@ export function AuditTrailDetailPage() {
   if (loading) return <MasterDataLoadingState title="Memuat detail audit" description="Mengambil detail aktivitas dari backend..." />
   if (error || !detail) return <MasterDataErrorState description={error ?? 'Audit log tidak ditemukan.'} onRetry={() => navigate('/admin/audit-trail')} />
 
+  const entityLink = getAuditEntityLink(detail.entity.entityType, detail.entity.entityId)
+
   return (
     <div className="space-y-6">
+      <Breadcrumb items={breadcrumbs.auditDetail(detail.action)} />
       <Button asChild variant="secondary">
         <Link to="/admin/audit-trail"><ArrowLeft size={16} /> Kembali ke audit trail</Link>
       </Button>
@@ -72,6 +77,17 @@ export function AuditTrailDetailPage() {
             <Info label="Entity ID" value={detail.entity.entityId ?? '-'} />
             <Info label="Reference" value={detail.entity.reference ?? '-'} />
             <Info label="Created At" value={formatDateTime(detail.createdAtUtc)} />
+            {entityLink ? (
+              <Button asChild variant="secondary" data-tour="audit-entity-link">
+                <Link to={entityLink}>
+                  <ExternalLink size={16} /> Buka entity terkait ({detail.entity.reference ?? detail.entity.entityType})
+                </Link>
+              </Button>
+            ) : (
+              <p className="text-xs text-slate-500">
+                Tidak ada link aman untuk entity ini (reference disembunyikan backend).
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

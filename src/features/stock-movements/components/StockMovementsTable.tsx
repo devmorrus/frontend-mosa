@@ -1,15 +1,16 @@
 import { Link } from 'react-router-dom'
 import { MasterDataPagination } from '@/features/master-data/components/MasterDataPagination'
+import { StatusBadge } from '@/components/common/StatusBadge'
 import type { MasterDataPagination as PaginationMeta } from '@/features/master-data/types'
 import type { StockMovementListItem } from '@/features/stock-movements/types'
 import {
-  canOpenReceivingReference,
   formatStockMovementDateTimeLabel,
   formatStockMovementQuantity,
-  getStockMovementDirectionTone,
   getStockMovementDisplayLabel,
   getStockMovementReferenceLabel,
+  getStockMovementReferenceLink,
 } from '@/features/stock-movements/utils'
+import { entityLinks } from '@/routes/canonicalRoutes'
 
 interface StockMovementsTableProps {
   items: StockMovementListItem[]
@@ -60,21 +61,26 @@ export function StockMovementsTable({
                 <td className="px-6 py-4 text-sm text-slate-600">
                   {formatStockMovementDateTimeLabel(item.createdAtUtc)}
                 </td>
-                <td className="px-6 py-4 text-sm font-medium text-ink">{item.movementType}</td>
+                <td className="px-6 py-4 text-sm font-medium text-ink"><StatusBadge domain="movement" value={item.movementType} /></td>
                 <td className="px-6 py-4 text-sm text-slate-600">
                   <div className="font-medium text-ink">{item.rawMaterialName}</div>
                   <div className="mt-1 text-xs text-slate-500">{item.rawMaterialCode}</div>
                 </td>
-                <td className="px-6 py-4 text-sm text-slate-600">{item.internalLotNumber}</td>
+                <td className="px-6 py-4 text-sm text-slate-600">
+                  {item.rawMaterialLotId ? (
+                    <Link to={entityLinks.lotDetail(item.rawMaterialLotId)} className="font-medium text-ink underline underline-offset-4">
+                      {item.internalLotNumber}
+                    </Link>
+                  ) : (
+                    item.internalLotNumber
+                  )}
+                </td>
                 <td className="px-6 py-4 text-sm text-slate-600">
                   {item.warehouseCode} - {item.warehouseName}
                 </td>
                 <td className="px-6 py-4 text-sm">
-                  <span
-                    className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${getStockMovementDirectionTone(item.quantityDirection)}`}
-                  >
-                    {getStockMovementDisplayLabel(item)}
-                  </span>
+                  <StatusBadge domain="movement-direction" value={item.quantityDirection === 'OUT' ? 'OUT' : 'IN'} />
+                  <span className="ml-2 text-slate-600">{getStockMovementDisplayLabel(item)}</span>
                 </td>
                 <td className="px-6 py-4 text-sm text-slate-600">
                   {formatStockMovementQuantity(item.quantityBefore)}
@@ -83,16 +89,19 @@ export function StockMovementsTable({
                   {formatStockMovementQuantity(item.quantityAfter)}
                 </td>
                 <td className="px-6 py-4 text-sm text-slate-600">
-                  {canOpenReceivingReference(item) ? (
-                    <Link
-                      to={`/goods-receiving/${item.referenceId}`}
-                      className="font-medium text-ink underline underline-offset-4"
-                    >
-                      {getStockMovementReferenceLabel(item)}
-                    </Link>
-                  ) : (
-                    getStockMovementReferenceLabel(item)
-                  )}
+                  {(() => {
+                    const link = getStockMovementReferenceLink(item)
+                    return link ? (
+                      <Link
+                        to={link}
+                        className="font-medium text-ink underline underline-offset-4"
+                      >
+                        {getStockMovementReferenceLabel(item)}
+                      </Link>
+                    ) : (
+                      getStockMovementReferenceLabel(item)
+                    )
+                  })()}
                 </td>
                 <td className="px-6 py-4 text-sm text-slate-600">{item.createdBy ?? '-'}</td>
               </tr>

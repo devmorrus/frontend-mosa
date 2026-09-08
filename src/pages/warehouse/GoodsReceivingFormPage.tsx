@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, LoaderCircle, PackageSearch, Plus } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { StatusBadge } from '@/components/common/StatusBadge'
+import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
 import { suppliersApi } from '@/api/suppliers.api'
 import { warehousesApi } from '@/api/warehouses.api'
@@ -172,8 +175,15 @@ export function GoodsReceivingFormPage() {
     return <MasterDataErrorState description={form.loadError} onRetry={() => void form.reload()} />
   }
 
+  const generatedLots = useMemo(
+    () => (form.detail?.items ?? []).filter((item) => item.internalLot),
+    [form.detail],
+  )
+  const isPosted = form.detail?.status === 'POSTED'
+
   return (
     <div className="space-y-6">
+      <Breadcrumb items={form.detail ? breadcrumbs.receivingDetail(form.detail.receivingNumber) : breadcrumbs.receivingList()} />
       <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8 sm:py-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(232,163,61,0.22),transparent_55%)]" />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -205,7 +215,7 @@ export function GoodsReceivingFormPage() {
                   Status
                 </div>
                 <div className="font-display text-2xl font-semibold text-paper">
-                  {form.detail.status}
+                  <StatusBadge domain="receiving" value={form.detail.status} />
                 </div>
                 <p className="text-paper/60">Created by {form.detail.createdBy ?? 'system'}</p>
                 <p className="text-paper/60">Updated {formatDateTimeLabel(form.detail.updatedAtUtc ?? form.detail.createdAtUtc)}</p>
@@ -364,6 +374,44 @@ export function GoodsReceivingFormPage() {
           </div>
         </CardContent>
       </Card>
+
+      {form.detail && generatedLots.length > 0 ? (
+        <Card data-tour="receiving-generated-lots">
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-xl font-semibold text-ink">
+              Generated LOTs ({generatedLots.length})
+            </h2>
+            <p className="text-sm text-slate-500">
+              LOT internal dibuat saat posting. Klik untuk membuka detail LOT.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {generatedLots.map((item) => (
+                <Link
+                  key={item.id}
+                  to={entityLinks.lotList({ search: item.internalLot ?? '' })}
+                  className="rounded-2xl border border-ink/10 p-4 transition-colors hover:border-ink hover:bg-sand/30"
+                >
+                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {item.rawMaterialCode} — {item.rawMaterialName}
+                  </div>
+                  <div className="mt-1 font-semibold text-ink underline underline-offset-4">
+                    {item.internalLot}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    Qty {item.quantity} {item.unitOfMeasureCode}
+                    {item.supplierLot ? ` • Supplier LOT ${item.supplierLot}` : ''}
+                  </div>
+                </Link>
+              ))}
+            </div>
+            {!isPosted ? (
+              <p className="text-xs text-slate-500">
+                Dokumen belum POSTED — daftar di atas adalah preview internal LOT yang akan dibuat.
+              </p>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <section className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

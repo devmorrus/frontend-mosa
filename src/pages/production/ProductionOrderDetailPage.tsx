@@ -12,8 +12,10 @@ import {
   X,
   XCircle,
 } from 'lucide-react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { productionOrdersApi } from '@/api/productionOrders.api'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -288,6 +290,7 @@ export function ProductionOrderDetailPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb items={breadcrumbs.productionOrderDetail(order.productionOrderNumber)} />
       <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8 sm:py-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(232,163,61,0.22),transparent_55%)]" />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -545,7 +548,19 @@ export function ProductionOrderDetailPage() {
                       </div>
                     </DetailItem>
                     <DetailItem label="Product" value={`${order.product.code} - ${order.product.name}`} />
-                    <DetailItem label="Recipe" value={`${order.recipeVersion.recipeName} v${order.recipeVersion.versionNumber}`} />
+                    <DetailItem label="Recipe">
+                      {can('recipes.view') ? (
+                        <Link
+                          to={entityLinks.recipeVersionDetail(order.recipeVersion.recipeId, order.recipeVersion.id)}
+                          className="font-medium text-ink underline underline-offset-4"
+                          data-tour="po-link-recipe"
+                        >
+                          {order.recipeVersion.recipeName} v{order.recipeVersion.versionNumber}
+                        </Link>
+                      ) : (
+                        `${order.recipeVersion.recipeName} v${order.recipeVersion.versionNumber}`
+                      )}
+                    </DetailItem>
                     <DetailItem label="Target Output" value={`${order.targetOutput} ${order.unitOfMeasure.code}`} />
                     <DetailItem label="Warehouse" value={`${order.warehouse.code} - ${order.warehouse.name}`} />
                     <DetailItem label="Scheduled Date" value={order.scheduledDate ? new Date(order.scheduledDate).toLocaleDateString('id-ID') : '-'} />
@@ -621,7 +636,18 @@ export function ProductionOrderDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <DetailItem label="Recipe Version" value={`${order.recipeVersion.recipeName} V${order.recipeVersion.versionNumber}`} />
+                  <DetailItem label="Recipe Version">
+                    {can('recipes.view') ? (
+                      <Link
+                        to={entityLinks.recipeVersionDetail(order.recipeVersion.recipeId, order.recipeVersion.id)}
+                        className="font-medium text-ink underline underline-offset-4"
+                      >
+                        {order.recipeVersion.recipeName} V{order.recipeVersion.versionNumber}
+                      </Link>
+                    ) : (
+                      `${order.recipeVersion.recipeName} V${order.recipeVersion.versionNumber}`
+                    )}
+                  </DetailItem>
                   <DetailItem label="Standard Output" value={`${standardOutput} ${order.unitOfMeasure.code}`} />
                   <DetailItem label="Target Output" value={`${order.targetOutput} ${order.unitOfMeasure.code}`} />
                   <DetailItem label="Scaling Factor">
@@ -661,7 +687,17 @@ export function ProductionOrderDetailPage() {
                           return (
                             <tr key={req.id} className="border-b border-slate-200/70 bg-white">
                               <td className="px-6 py-4 text-sm font-medium text-ink">
-                                {req.rawMaterialCode} - {req.rawMaterialName}
+                                {can('lots.view') ? (
+                                  <Link
+                                    to={entityLinks.lotList({ rawMaterialId: req.rawMaterialId })}
+                                    className="underline underline-offset-4 hover:text-ink"
+                                    title="Lihat LOT material ini"
+                                  >
+                                    {req.rawMaterialCode} - {req.rawMaterialName}
+                                  </Link>
+                                ) : (
+                                  <>{req.rawMaterialCode} - {req.rawMaterialName}</>
+                                )}
                               </td>
                               <td className="px-6 py-4 text-sm text-slate-500">
                                 {req.recipeTargetQuantity} {req.unitOfMeasure.code}

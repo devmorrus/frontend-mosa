@@ -1,13 +1,16 @@
 import { useDeferredValue, useEffect, useState } from 'react'
 import { LoaderCircle, PackageSearch } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { AppPagination } from '@/components/common/AppPagination'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { StatusBadge } from '@/components/common/StatusBadge'
+import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 import { goodsReceivingsApi } from '@/api/goodsReceivings.api'
 import { suppliersApi } from '@/api/suppliers.api'
 import { warehousesApi } from '@/api/warehouses.api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { MasterDataPagination } from '@/features/master-data/components/MasterDataPagination'
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
@@ -117,6 +120,7 @@ export function GoodsReceivingsPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb items={breadcrumbs.receivingList()} />
       <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8 sm:py-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(232,163,61,0.22),transparent_55%)]" />
         <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
@@ -306,14 +310,12 @@ export function GoodsReceivingsPage() {
                         <td className="px-6 py-4 text-sm text-slate-600">{item.warehouseName}</td>
                         <td className="px-6 py-4 text-sm text-slate-600">{item.itemsCount}</td>
                         <td className="px-6 py-4 text-sm">
-                          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
-                            {item.status}
-                          </span>
+                          <StatusBadge domain="receiving" value={item.status} />
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600">{item.createdBy ?? '-'}</td>
                         <td className="px-6 py-4 text-right">
                           <Button asChild variant="secondary" size="sm">
-                            <Link to={`/goods-receiving/${item.id}`}>
+                            <Link to={entityLinks.receivingDetail(item.id)}>
                               {canEditDraft ? 'Edit Draft' : 'View Detail'}
                             </Link>
                           </Button>
@@ -324,9 +326,10 @@ export function GoodsReceivingsPage() {
                 </tbody>
               </table>
             </div>
-            <MasterDataPagination
+            <AppPagination
               pagination={pagination}
               onPageChange={(page) => setQuery((current) => ({ ...current, page }))}
+              onPageSizeChange={(pageSize) => setQuery((current) => ({ ...current, pageSize, page: 1 }))}
             />
           </CardContent>
         </Card>

@@ -63,6 +63,23 @@ export function canOpenReceivingReference(item: StockMovementListItem) {
   return item.referenceType === 'GoodsReceiving' && Boolean(item.referenceId)
 }
 
+/** Route aman untuk reference movement apa pun; null bila tidak ada route. */
+export function getStockMovementReferenceLink(item: StockMovementListItem): string | null {
+  if (!item.referenceId) return null
+  switch (item.referenceType) {
+    case 'GoodsReceiving':
+      return `/goods-receiving/${item.referenceId}`
+    case 'StockAdjustment':
+      return `/warehouse/stock-adjustments/${item.referenceId}`
+    case 'StockOpname':
+      return `/warehouse/stock-opname/${item.referenceId}`
+    case 'ProductionOrder':
+      return `/production/orders/${item.referenceId}`
+    default:
+      return null
+  }
+}
+
 export function getStockMovementReferenceLabel(item: StockMovementListItem) {
   return item.referenceNumber ?? item.referenceType
 }

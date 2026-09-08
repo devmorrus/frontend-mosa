@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import { Eye } from 'lucide-react'
+import { ExternalLink, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { AuditListItem } from '../types'
 import { formatDateTime } from '../utils'
+import { entityLinks, getAuditEntityLink } from '@/routes/canonicalRoutes'
 
 export function AuditTrailTable({ items }: { items: AuditListItem[] }) {
   return (
@@ -26,14 +27,38 @@ export function AuditTrailTable({ items }: { items: AuditListItem[] }) {
               <td className="px-5 py-4 font-medium text-ink">{item.userFullName ?? item.username ?? '-'}</td>
               <td className="px-5 py-4">{item.action}</td>
               <td className="px-5 py-4">{item.category} / {item.entityType}</td>
-              <td className="px-5 py-4 text-slate-600">{item.entityId ?? '-'}{item.reference ? ` / ${item.reference}` : ''}</td>
+              <td className="px-5 py-4 text-slate-600">
+                {(() => {
+                  const link = getAuditEntityLink(item.entityType, item.entityId)
+                  const label = `${item.entityId ?? '-'}${item.reference ? ` / ${item.reference}` : ''}`
+                  return link ? (
+                    <Link to={link} className="font-medium text-ink underline underline-offset-4" title="Buka entity terkait">
+                      {label}
+                    </Link>
+                  ) : (
+                    label
+                  )
+                })()}
+              </td>
               <td className="px-5 py-4 text-slate-600">{item.ipAddress ?? '-'}</td>
               <td className="px-5 py-4">
-                <Button asChild size="sm" variant="secondary">
-                  <Link data-tour="audit-detail" to={`/admin/audit-trail/${item.id}`}>
-                    <Eye size={15} /> Detail
-                  </Link>
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild size="sm" variant="secondary">
+                    <Link data-tour="audit-detail" to={entityLinks.auditDetail(item.id)}>
+                      <Eye size={15} /> Detail
+                    </Link>
+                  </Button>
+                  {(() => {
+                    const link = getAuditEntityLink(item.entityType, item.entityId)
+                    return link ? (
+                      <Button asChild size="sm" variant="secondary">
+                        <Link to={link} title="Buka entity terkait">
+                          <ExternalLink size={15} /> Entity
+                        </Link>
+                      </Button>
+                    ) : null
+                  })()}
+                </div>
               </td>
             </tr>
           ))}

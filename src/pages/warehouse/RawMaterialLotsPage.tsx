@@ -1,6 +1,8 @@
 import { useDeferredValue, useEffect, useState } from 'react'
 import { LoaderCircle, Tags } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { breadcrumbs } from '@/routes/canonicalRoutes'
 import { rawMaterialLotsApi } from '@/api/rawMaterialLots.api'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
 import { suppliersApi } from '@/api/suppliers.api'
@@ -35,8 +37,15 @@ import type { WarehouseListItem } from '@/features/warehouses/types'
 import type { ApiError } from '@/types/api'
 
 export function RawMaterialLotsPage() {
-  const [query, setQuery] = useState<RawMaterialLotQueryState>(emptyRawMaterialLotQuery)
-  const [searchInput, setSearchInput] = useState('')
+  const [searchParams] = useSearchParams()
+  const [query, setQuery] = useState<RawMaterialLotQueryState>(() => ({
+    ...emptyRawMaterialLotQuery,
+    search: searchParams.get('search') ?? '',
+    rawMaterialId: searchParams.get('rawMaterialId') ?? '',
+    supplierId: searchParams.get('supplierId') ?? '',
+    warehouseId: searchParams.get('warehouseId') ?? '',
+  }))
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '')
   const deferredSearch = useDeferredValue(searchInput)
   const [items, setItems] = useState<RawMaterialLotListItem[]>([])
   const [pagination, setPagination] = useState<PaginationMeta>(EMPTY_PAGINATION)
@@ -149,6 +158,7 @@ export function RawMaterialLotsPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb items={breadcrumbs.lotList()} />
       <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8 sm:py-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(232,163,61,0.22),transparent_55%)]" />
         <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">

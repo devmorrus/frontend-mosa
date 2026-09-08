@@ -1,6 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { ArrowLeft, QrCode, ScanLine, Waypoints } from 'lucide-react'
+import { ArrowLeftRight, QrCode, ScanLine, Waypoints } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { StatusBadge } from '@/components/common/StatusBadge'
+import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 import { rawMaterialLotsApi } from '@/api/rawMaterialLots.api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -19,7 +22,6 @@ import {
   formatLotDateLabel,
   formatLotDateTimeLabel,
   formatLotQuantity,
-  getLotStatusTone,
   prepareRawMaterialLotPrintWindow,
   renderRawMaterialLotPrintWindow,
 } from '@/features/raw-material-lots/utils'
@@ -132,15 +134,16 @@ export function RawMaterialLotDetailPage() {
     )
   }
 
+  const canOpenMovements = can('stock-movements.view')
   return (
     <div className="space-y-6">
+      <Breadcrumb items={breadcrumbs.lotDetail(detail.internalLotNumber)} />
       <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8 sm:py-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(232,163,61,0.22),transparent_55%)]" />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <Button asChild variant="ghost" className="-ml-3 h-auto px-3 py-2">
-              <Link to="/lots">
-                <ArrowLeft size={16} />
+              <Link to={entityLinks.lotList()}>
                 Kembali ke LOT list
               </Link>
             </Button>
@@ -184,13 +187,7 @@ export function RawMaterialLotDetailPage() {
               <DetailField label="Expiry Date" value={formatLotDateLabel(detail.expiryDate)} />
               <DetailField
                 label="Status"
-                value={
-                  <span
-                    className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${getLotStatusTone(detail.status)}`}
-                  >
-                    {detail.status}
-                  </span>
-                }
+                value={<StatusBadge domain="lot" value={detail.status} />}
               />
               <DetailField label="Receiving Date" value={formatLotDateLabel(detail.receivingDate)} />
               <DetailField
@@ -222,9 +219,15 @@ export function RawMaterialLotDetailPage() {
                 </Link>
               </Button>
               {can('traceability.view') ? <Button asChild variant="secondary">
-                <Link to={`/traceability/raw-material/${detail.id}`}>
+                <Link to={entityLinks.traceRawMaterial(detail.id)}>
                   <Waypoints size={16} />
                   Lihat Traceability
+                </Link>
+              </Button> : null}
+              {canOpenMovements ? <Button asChild variant="secondary" data-tour="lot-link-movements">
+                <Link to={entityLinks.stockMovements({ rawMaterialLotId: detail.id })}>
+                  <ArrowLeftRight size={16} />
+                  Stock Movement LOT ini
                 </Link>
               </Button> : null}
             </div>
