@@ -1,4 +1,5 @@
 import { useDeferredValue, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/stores/uiStore'
 import type { ApiError } from '@/types/api'
@@ -15,6 +16,7 @@ import { rolesApi } from '@/api/roles.api'
 
 const DEFAULT_QUERY: UsersQueryState = {
   search: '',
+  roleId: '',
   status: 'ALL',
   page: 1,
   pageSize: 10,
@@ -28,6 +30,7 @@ interface UseUsersModuleOptions {
 }
 
 export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
+  const navigate = useNavigate()
   const { can } = useAuth()
   const pushToast = useUiStore((state) => state.pushToast)
 
@@ -61,6 +64,10 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
   const [passwordTarget, setPasswordTarget] = useState<UserListItem | null>(null)
   const [passwordErrors, setPasswordErrors] = useState<MasterDataFormErrors>({})
   const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false)
+
+  const [isRevokeDialogOpen, setIsRevokeDialogOpen] = useState(false)
+  const [revokeTarget, setRevokeTarget] = useState<UserListItem | null>(null)
+  const [isRevokeSubmitting, setIsRevokeSubmitting] = useState(false)
 
   const deferredSearch = useDeferredValue(searchInput)
   const querySignature = JSON.stringify(query)
@@ -121,6 +128,10 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
     setQuery((current) => ({ ...current, pageSize, page: 1 }))
   }
 
+  function handleRoleChange(roleId: string) {
+    setQuery((current) => ({ ...current, roleId, page: 1 }))
+  }
+
   async function fetchAvailableRoles() {
     try {
       const roles = await rolesApi.listOptions()
@@ -131,13 +142,11 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
   }
 
   function openCreateDialog() {
-    setFormMode('create')
-    setEditingId(null)
-    setFormValues(emptyUserFormValues)
-    setFormErrors({})
-    setFormError(null)
-    setIsFormOpen(true)
-    void fetchAvailableRoles()
+    navigate('/admin/users/create')
+  }
+
+  function openDetailPage(item: UserListItem) {
+    navigate(`/admin/users/${item.id}`)
   }
 
   async function openEditDialog(item: UserListItem) {
@@ -154,6 +163,7 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
       setFormValues({
         username: detail.username,
         fullName: detail.fullName,
+        email: detail.email ?? '',
         password: '',
         roleIds: detail.roles.map((r) => r.id),
         isActive: detail.isActive,
@@ -321,6 +331,36 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
     }
   }
 
+  function openRevokeSessionsDialog(item: UserListItem) {
+    setRevokeTarget(item)
+    setIsRevokeDialogOpen(true)
+  }
+
+  function closeRevokeSessionsDialog(open: boolean) {
+    if (!open) {
+      setIsRevokeDialogOpen(false)
+      setRevokeTarget(null)
+    }
+  }
+
+  async function confirmRevokeSessions() {
+    if (!revokeTarget) return
+
+    setIsRevokeSubmitting(true)
+
+    try {
+      await api.revokeSessions(revokeTarget.id)
+      pushToast('success', 'Sesi login user berhasil dicabut.')
+      setIsRevokeDialogOpen(false)
+      setRevokeTarget(null)
+    } catch (caughtError) {
+      const apiError = caughtError as ApiError
+      pushToast('error', apiError.message)
+    } finally {
+      setIsRevokeSubmitting(false)
+    }
+  }
+
   return {
     items,
     query,
@@ -335,6 +375,7 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
     handlePageChange,
     handleStatusChange,
     handlePageSizeChange,
+    handleRoleChange,
     canCreate,
     canUpdate,
     isFormOpen,
@@ -369,5 +410,12 @@ export function useUsersModule({ api, permissions }: UseUsersModuleOptions) {
     openPasswordDialog,
     closePasswordDialog,
     submitPasswordForm,
+    isRevokeDialogOpen,
+    revokeTarget,
+    isRevokeSubmitting,
+    openRevokeSessionsDialog,
+    closeRevokeSessionsDialog,
+    confirmRevokeSessions,
+    openDetailPage,
   }
 }

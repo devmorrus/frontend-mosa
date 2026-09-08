@@ -114,6 +114,7 @@ export function RolesPage() {
             items={roleModule.items}
             pagination={roleModule.pagination}
             onPageChange={roleModule.handlePageChange}
+            onDetail={(item) => window.location.assign(`/admin/roles/${item.id}`)}
             onEdit={roleModule.openEditDialog}
             onPermissions={roleModule.openPermissionsDialog}
             onToggleStatus={roleModule.openStatusDialog}

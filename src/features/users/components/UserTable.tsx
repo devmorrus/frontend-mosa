@@ -111,16 +111,20 @@ function RoleBadges({ roles }: { roles: UserListItem['roles'] }) {
 
 function ActionMenu({
   item,
+  onDetail,
   onEdit,
   onToggleStatus,
   onRoles,
   onPassword,
+  onRevokeSessions,
 }: {
   item: UserListItem
+  onDetail: (item: UserListItem) => void
   onEdit: (item: UserListItem) => void
   onToggleStatus: (item: UserListItem) => void
   onRoles: (item: UserListItem) => void
   onPassword: (item: UserListItem) => void
+  onRevokeSessions: (item: UserListItem) => void
 }) {
   return (
     <DropdownMenu>
@@ -133,6 +137,10 @@ function ActionMenu({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => onDetail(item)}>
+          <User size={15} className="text-slate-500" />
+          <span>Lihat Detail</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onEdit(item)}>
           <PencilLine size={15} className="text-slate-500" />
           <span>Edit Profil</span>
@@ -144,6 +152,10 @@ function ActionMenu({
         <DropdownMenuItem onClick={() => onPassword(item)}>
           <KeyRound size={15} className="text-slate-500" />
           <span>Ganti Password</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onRevokeSessions(item)}>
+          <RotateCcw size={15} className="text-slate-500" />
+          <span>Revoke Sessions</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -164,17 +176,21 @@ function UserCardRow({
   item,
   index,
   onEdit,
+  onDetail,
   onToggleStatus,
   onRoles,
   onPassword,
+  onRevokeSessions,
   canUpdate,
 }: {
   item: UserListItem
   index: number
   onEdit: (item: UserListItem) => void
+  onDetail: (item: UserListItem) => void
   onToggleStatus: (item: UserListItem) => void
   onRoles: (item: UserListItem) => void
   onPassword: (item: UserListItem) => void
+  onRevokeSessions: (item: UserListItem) => void
   canUpdate: boolean
 }) {
   return (
@@ -193,10 +209,12 @@ function UserCardRow({
           {canUpdate && (
             <ActionMenu
               item={item}
+              onDetail={onDetail}
               onEdit={onEdit}
               onToggleStatus={onToggleStatus}
               onRoles={onRoles}
               onPassword={onPassword}
+              onRevokeSessions={onRevokeSessions}
             />
           )}
         </div>
@@ -205,10 +223,13 @@ function UserCardRow({
           <RoleBadges roles={item.roles} />
         </div>
 
-        <div className="mt-2.5">
-          <StatusBadge isActive={item.isActive} />
-        </div>
-      </div>
+            <div className="mt-2.5">
+              <StatusBadge isActive={item.isActive} />
+            </div>
+            <div className="mt-2 text-xs text-slate-400">
+              {item.lastLoginAtUtc ? `Login terakhir: ${new Date(item.lastLoginAtUtc).toLocaleString('id-ID')}` : 'Belum ada login tercatat'}
+            </div>
+          </div>
       <span className="absolute right-4 top-4 text-[10px] font-medium text-slate-300">
         #{index + 1}
       </span>
@@ -223,18 +244,22 @@ export function UserTable({
   pagination,
   onPageChange,
   onEdit,
+  onDetail,
   onToggleStatus,
   onRoles,
   onPassword,
+  onRevokeSessions,
   canUpdate,
 }: {
   items: UserListItem[]
   pagination: PaginationMeta
   onPageChange: (page: number) => void
   onEdit: (item: UserListItem) => void
+  onDetail: (item: UserListItem) => void
   onToggleStatus: (item: UserListItem) => void
   onRoles: (item: UserListItem) => void
   onPassword: (item: UserListItem) => void
+  onRevokeSessions: (item: UserListItem) => void
   canUpdate: boolean
 }) {
   const startIndex = (pagination.page - 1) * pagination.pageSize
@@ -265,17 +290,19 @@ export function UserTable({
         {/* ── Mobile: stacked cards ── */}
         <div className="divide-y divide-slate-100 sm:hidden">
           {items.map((item, index) => (
-            <UserCardRow
-              key={item.id}
-              item={item}
-              index={startIndex + index}
-              onEdit={onEdit}
-              onToggleStatus={onToggleStatus}
-              onRoles={onRoles}
-              onPassword={onPassword}
-              canUpdate={canUpdate}
-            />
-          ))}
+              <UserCardRow
+                key={item.id}
+                item={item}
+                index={startIndex + index}
+                onEdit={onEdit}
+                onDetail={onDetail}
+                onToggleStatus={onToggleStatus}
+                onRoles={onRoles}
+                onPassword={onPassword}
+                onRevokeSessions={onRevokeSessions}
+                canUpdate={canUpdate}
+              />
+            ))}
         </div>
 
         {/* ── Desktop: table ── */}
@@ -345,21 +372,28 @@ export function UserTable({
                   </td>
 
                   {/* Status badge */}
-                  <td className="px-4 py-4">
-                    <StatusBadge isActive={item.isActive} />
-                  </td>
+                      <td className="px-4 py-4">
+                        <StatusBadge isActive={item.isActive} />
+                        <div className="mt-2 text-[11px] text-slate-400">
+                          {item.lastLoginAtUtc
+                            ? `Login terakhir: ${new Date(item.lastLoginAtUtc).toLocaleDateString('id-ID')}`
+                            : 'Belum ada login tercatat'}
+                        </div>
+                      </td>
 
                   {/* Action dropdown */}
                   {canUpdate && (
-                    <td className="w-20 py-4 pl-4 pr-6 text-center">
-                      <ActionMenu
-                        item={item}
-                        onEdit={onEdit}
-                        onToggleStatus={onToggleStatus}
-                        onRoles={onRoles}
-                        onPassword={onPassword}
-                      />
-                    </td>
+                      <td className="w-20 py-4 pl-4 pr-6 text-center">
+                        <ActionMenu
+                          item={item}
+                          onDetail={onDetail}
+                          onEdit={onEdit}
+                          onToggleStatus={onToggleStatus}
+                          onRoles={onRoles}
+                          onPassword={onPassword}
+                          onRevokeSessions={onRevokeSessions}
+                        />
+                      </td>
                   )}
                 </tr>
               ))}

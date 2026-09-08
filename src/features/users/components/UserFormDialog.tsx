@@ -346,6 +346,24 @@ export function UserFormDialog({
                   <FieldHelper>Username unik untuk login (3-50 karakter)</FieldHelper>
                 </div>
 
+                {/* Email */}
+                <div>
+                  <FieldLabel>Email</FieldLabel>
+                  <IconInput icon={<Hash size={15} />}>
+                    <Input
+                      type="email"
+                      value={values.email}
+                      onChange={(e) =>
+                        onValuesChange((prev) => ({ ...prev, email: e.target.value }))
+                      }
+                      placeholder="user@domain.com"
+                      className="h-12"
+                    />
+                  </IconInput>
+                  <MasterDataFormFieldError message={getFieldError(errors, 'email')} />
+                  <FieldHelper>Opsional jika sistem menggunakan email sebagai identitas tambahan</FieldHelper>
+                </div>
+
                 {/* Status */}
                 <div>
                   <FieldLabel>Status</FieldLabel>

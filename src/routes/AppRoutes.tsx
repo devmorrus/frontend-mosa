@@ -11,6 +11,11 @@ import { SuppliersPage } from '@/pages/master-data/SuppliersPage'
 import { MenusPage } from '@/pages/administration/MenusPage'
 import { UsersPage } from '@/pages/administration/UsersPage'
 import { RolesPage } from '@/pages/administration/RolesPage'
+import { UserCreatePage } from '@/pages/administration/UserCreatePage'
+import { UserDetailPage } from '@/pages/administration/UserDetailPage'
+import { RoleDetailPage } from '@/pages/administration/RoleDetailPage'
+import { AuditTrailPage } from '@/pages/administration/AuditTrailPage'
+import { AuditTrailDetailPage } from '@/pages/administration/AuditTrailDetailPage'
 import { UnitsPage } from '@/pages/master-data/UnitsPage'
 import { WarehousesPage } from '@/pages/master-data/WarehousesPage'
 import { MenuPlaceholderPage } from '@/pages/modules/MenuPlaceholderPage'
@@ -171,13 +176,23 @@ export function AppRoutes() {
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="users.view" />}>
-            <Route path="/users" element={<UsersPage />} />
-            <Route path="/administration/users" element={<UsersPage />} />
+            <Route path="/admin/users" element={<UsersPage />} />
+            <Route path="/admin/users/create" element={<UserCreatePage />} />
+            <Route path="/admin/users/:id" element={<UserDetailPage />} />
+            <Route path="/users" element={<Navigate to="/admin/users" replace />} />
+            <Route path="/administration/users" element={<Navigate to="/admin/users" replace />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="roles.view" />}>
-            <Route path="/roles" element={<RolesPage />} />
-            <Route path="/administration/roles" element={<RolesPage />} />
+            <Route path="/admin/roles" element={<RolesPage />} />
+            <Route path="/admin/roles/:id" element={<RoleDetailPage />} />
+            <Route path="/roles" element={<Navigate to="/admin/roles" replace />} />
+            <Route path="/administration/roles" element={<Navigate to="/admin/roles" replace />} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="audit.view" />}>
+            <Route path="/admin/audit-trail" element={<AuditTrailPage />} />
+            <Route path="/admin/audit-trail/:id" element={<AuditTrailDetailPage />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="menus.view" />}>

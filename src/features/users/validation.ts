@@ -5,15 +5,19 @@ import type { UserFormValues } from '@/features/users/types'
 export const emptyUserFormValues: UserFormValues = {
   username: '',
   fullName: '',
+  email: '',
   password: '',
   roleIds: [],
   isActive: true,
 }
 
 export function normalizeUserFormValues(values: UserFormValues): UserFormValues {
+  const email = normalizeText(values.email)
+
   return {
     username: normalizeText(values.username),
     fullName: normalizeText(values.fullName),
+    email,
     password: values.password,
     roleIds: [...new Set(values.roleIds)],
     isActive: values.isActive,
@@ -37,6 +41,10 @@ export function validateUserForm(
     errors.fullName = ['Nama lengkap harus 3-150 karakter.']
   }
 
+  if (normalized.email.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized.email)) {
+    errors.email = ['Format email tidak valid.']
+  }
+
   if (mode === 'create') {
     if (normalized.password.length === 0) {
       errors.password = ['Password wajib diisi.']
@@ -47,6 +55,10 @@ export function validateUserForm(
     } else if (!/[0-9]/.test(normalized.password)) {
       errors.password = ['Password harus mengandung minimal satu angka.']
     }
+  }
+
+  if (normalized.roleIds.length === 0) {
+    errors.roleIds = ['Minimal pilih satu role.']
   }
 
   return errors

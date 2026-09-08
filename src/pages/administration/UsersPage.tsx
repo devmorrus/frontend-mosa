@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import { LoaderCircle, Users } from 'lucide-react'
 import { usersApi } from '@/api/users.api'
+import { rolesApi } from '@/api/roles.api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { MasterDataStatusDialog } from '@/features/master-data/components/MasterDataStatusDialog'
@@ -13,6 +15,7 @@ import { UserTable } from '@/features/users/components/UserTable'
 import { UserToolbar } from '@/features/users/components/UserToolbar'
 
 export function UsersPage() {
+  const [roleOptions, setRoleOptions] = useState<Array<{ value: string; label: string }>>([])
   const userModule = useUsersModule({
     api: usersApi,
     permissions: {
@@ -21,6 +24,12 @@ export function UsersPage() {
       update: 'users.update',
     },
   })
+
+  useEffect(() => {
+    void rolesApi.listOptions().then((items) => {
+      setRoleOptions(items.map((item) => ({ value: item.id, label: item.name })))
+    }).catch(() => setRoleOptions([]))
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -82,6 +91,8 @@ export function UsersPage() {
         searchValue={userModule.searchInput}
         searchPlaceholder="Cari username, nama lengkap, atau role user"
         onSearchValueChange={userModule.setSearchInput}
+        roleOptions={roleOptions}
+        onRoleChange={userModule.handleRoleChange}
         onStatusChange={userModule.handleStatusChange}
         onPageSizeChange={userModule.handlePageSizeChange}
         createLabel="Add User"
@@ -115,10 +126,12 @@ export function UsersPage() {
             items={userModule.items}
             pagination={userModule.pagination}
             onPageChange={userModule.handlePageChange}
+            onDetail={userModule.openDetailPage}
             onEdit={userModule.openEditDialog}
             onToggleStatus={userModule.openStatusDialog}
             onRoles={userModule.openRolesDialog}
             onPassword={userModule.openPasswordDialog}
+            onRevokeSessions={userModule.openRevokeSessionsDialog}
             canUpdate={userModule.canUpdate}
           />
         </div>

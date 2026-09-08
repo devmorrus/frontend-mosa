@@ -10,6 +10,8 @@ export function UserToolbar({
   searchValue,
   searchPlaceholder,
   onSearchValueChange,
+  roleOptions,
+  onRoleChange,
   onStatusChange,
   onPageSizeChange,
   createLabel,
@@ -20,6 +22,8 @@ export function UserToolbar({
   searchValue: string
   searchPlaceholder: string
   onSearchValueChange: (value: string) => void
+  roleOptions: Array<{ value: string; label: string }>
+  onRoleChange: (roleId: string) => void
   onStatusChange: (status: UsersQueryState['status']) => void
   onPageSizeChange: (pageSize: number) => void
   createLabel: string
@@ -79,6 +83,29 @@ export function UserToolbar({
             }`}
           >
             {STATUS_FILTER_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+            ▾
+          </span>
+        </div>
+
+        {/* Role select */}
+        <div className="relative">
+          <select
+            value={query.roleId}
+            onChange={(e) => onRoleChange(e.target.value)}
+            className={`h-9 appearance-none rounded-xl border pl-3 pr-8 text-xs font-medium outline-none transition-all hover:border-slate-300 focus:ring-2 focus:ring-ink/10 ${
+              query.roleId
+                ? 'border-ink/20 bg-ink/5 text-ink focus:border-ink'
+                : 'border-slate-200 bg-white text-ink focus:border-ink'
+            }`}
+          >
+            <option value="">Semua role</option>
+            {roleOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>

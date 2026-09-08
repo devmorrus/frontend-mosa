@@ -15,12 +15,57 @@ export interface PermissionItem {
   isActive: boolean
 }
 
+interface BackendRoleListItemResponse {
+  id: string
+  name: string
+  description: string | null
+  isSystem: boolean
+  isActive: boolean
+}
+
+interface BackendPermissionItemResponse extends PermissionItem {}
+
+interface BackendRoleDetailResponse {
+  id: string
+  name: string
+  description: string | null
+  isSystem: boolean
+  isActive: boolean
+  permissions: BackendPermissionItemResponse[]
+}
+
+interface BackendPermissionGroupResponse {
+  module: string
+  permissions: BackendPermissionItemResponse[]
+}
+
+function mapRoleListItem(response: BackendRoleListItemResponse): RoleListItem {
+  return {
+    id: response.id,
+    name: response.name,
+    description: response.description,
+    isSystem: response.isSystem,
+    isActive: response.isActive,
+  }
+}
+
+function mapRoleDetail(response: BackendRoleDetailResponse): RoleDetail {
+  return {
+    id: response.id,
+    name: response.name,
+    description: response.description,
+    isSystem: response.isSystem,
+    isActive: response.isActive,
+    permissions: response.permissions,
+  }
+}
+
 const ADMIN_ROLES_BASE = '/admin/roles'
 const ADMIN_PERMS_BASE = '/admin/permissions'
 
 export const rolesApi = {
   listOptions: async (isActive: boolean = true): Promise<RoleLookupResponse[]> => {
-    const response = await apiClient.get<ApiPaginatedResponse<RoleListItem>>(ADMIN_ROLES_BASE, {
+    const response = await apiClient.get<ApiPaginatedResponse<BackendRoleListItemResponse>>(ADMIN_ROLES_BASE, {
       params: { isActive, page: 1, pageSize: 100 },
     })
     return response.data.items.map((r) => ({ id: r.id, name: r.name }))
@@ -28,7 +73,7 @@ export const rolesApi = {
 
   list: (query: RolesQueryState): Promise<MasterDataListResult<RoleListItem>> =>
     apiClient
-      .get<ApiPaginatedResponse<RoleListItem>>(ADMIN_ROLES_BASE, {
+      .get<ApiPaginatedResponse<BackendRoleListItemResponse>>(ADMIN_ROLES_BASE, {
         params: {
           search: query.search || undefined,
           isActive: query.status === 'ALL' ? undefined : query.status === 'ACTIVE',
@@ -36,27 +81,32 @@ export const rolesApi = {
           pageSize: query.pageSize,
         },
       })
-      .then((response) => mapPaginatedResponse(response.data)),
+      .then((response) => ({
+        ...mapPaginatedResponse(response.data),
+        items: response.data.items.map(mapRoleListItem),
+      })),
 
   getById: (id: string): Promise<RoleDetail> =>
-    apiClient.get<RoleDetail>(`${ADMIN_ROLES_BASE}/${id}`).then((response) => response.data),
+    apiClient
+      .get<BackendRoleDetailResponse>(`${ADMIN_ROLES_BASE}/${id}`)
+      .then((response) => mapRoleDetail(response.data)),
 
   create: (values: RoleFormValues): Promise<RoleDetail> =>
     apiClient
-      .post<RoleDetail>(ADMIN_ROLES_BASE, {
+      .post<BackendRoleDetailResponse>(ADMIN_ROLES_BASE, {
         name: values.name.trim(),
         description: values.description.trim() || null,
       })
-      .then((response) => response.data),
+      .then((response) => mapRoleDetail(response.data)),
 
   update: (id: string, values: RoleFormValues): Promise<RoleDetail> =>
     apiClient
-      .put<RoleDetail>(`${ADMIN_ROLES_BASE}/${id}`, {
+      .put<BackendRoleDetailResponse>(`${ADMIN_ROLES_BASE}/${id}`, {
         name: values.name.trim(),
         description: values.description.trim() || null,
         isActive: values.isActive,
       })
-      .then((response) => response.data),
+      .then((response) => mapRoleDetail(response.data)),
 
   delete: (id: string): Promise<void> =>
     apiClient.delete(`${ADMIN_ROLES_BASE}/${id}`).then(() => undefined),
@@ -68,8 +118,8 @@ export const rolesApi = {
 
   setPermissions: (id: string, permissionIds: string[]): Promise<RoleDetail> =>
     apiClient
-      .put<RoleDetail>(`${ADMIN_ROLES_BASE}/${id}/permissions`, { permissionIds })
-      .then((response) => response.data),
+      .put<BackendRoleDetailResponse>(`${ADMIN_ROLES_BASE}/${id}/permissions`, { permissionIds })
+      .then((response) => mapRoleDetail(response.data)),
 
   listPermissions: (): Promise<PermissionItem[]> =>
     apiClient
@@ -79,7 +129,7 @@ export const rolesApi = {
       .then((response) => response.data.items),
 
   listGroupedPermissions: async (): Promise<{ module: string; permissions: PermissionItem[] }[]> => {
-    const response = await apiClient.get<{ module: string; permissions: PermissionItem[] }[]>(`${ADMIN_PERMS_BASE}/grouped`)
+    const response = await apiClient.get<BackendPermissionGroupResponse[]>(`${ADMIN_PERMS_BASE}/grouped`)
     return response.data
   },
 }

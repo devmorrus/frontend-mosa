@@ -50,12 +50,14 @@ function SystemBadge() {
 
 function ActionMenu({
   item,
+  onDetail,
   onEdit,
   onPermissions,
   onToggleStatus,
   onDelete,
 }: {
   item: RoleListItem
+  onDetail: (item: RoleListItem) => void
   onEdit: (item: RoleListItem) => void
   onPermissions: (item: RoleListItem) => void
   onToggleStatus: (item: RoleListItem) => void
@@ -72,6 +74,10 @@ function ActionMenu({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => onDetail(item)}>
+          <Shield size={15} className="text-slate-500" />
+          <span>Lihat Detail</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onEdit(item)}>
           <PencilLine size={15} className="text-slate-500" />
           <span>Edit Role</span>
@@ -109,6 +115,7 @@ function ActionMenu({
 function RoleCardRow({
   item,
   index,
+  onDetail,
   onEdit,
   onPermissions,
   onToggleStatus,
@@ -117,6 +124,7 @@ function RoleCardRow({
 }: {
   item: RoleListItem
   index: number
+  onDetail: (item: RoleListItem) => void
   onEdit: (item: RoleListItem) => void
   onPermissions: (item: RoleListItem) => void
   onToggleStatus: (item: RoleListItem) => void
@@ -143,6 +151,7 @@ function RoleCardRow({
           {canManage && (
             <ActionMenu
               item={item}
+              onDetail={onDetail}
               onEdit={onEdit}
               onPermissions={onPermissions}
               onToggleStatus={onToggleStatus}
@@ -169,6 +178,7 @@ export function RoleTable({
   pagination,
   onPageChange,
   onEdit,
+  onDetail,
   onPermissions,
   onToggleStatus,
   onDelete,
@@ -177,6 +187,7 @@ export function RoleTable({
   items: RoleListItem[]
   pagination: PaginationMeta
   onPageChange: (page: number) => void
+  onDetail: (item: RoleListItem) => void
   onEdit: (item: RoleListItem) => void
   onPermissions: (item: RoleListItem) => void
   onToggleStatus: (item: RoleListItem) => void
@@ -211,15 +222,16 @@ export function RoleTable({
         {/* ── Mobile: stacked cards ── */}
         <div className="divide-y divide-slate-100 sm:hidden">
           {items.map((item, index) => (
-            <RoleCardRow
-              key={item.id}
-              item={item}
-              index={startIndex + index}
-              onEdit={onEdit}
-              onPermissions={onPermissions}
-              onToggleStatus={onToggleStatus}
-              onDelete={onDelete}
-              canManage={canManage}
+              <RoleCardRow
+                key={item.id}
+                item={item}
+                index={startIndex + index}
+                onDetail={onDetail}
+                onEdit={onEdit}
+                onPermissions={onPermissions}
+                onToggleStatus={onToggleStatus}
+                onDelete={onDelete}
+                canManage={canManage}
             />
           ))}
         </div>
@@ -294,14 +306,15 @@ export function RoleTable({
 
                   {/* Action dropdown */}
                   {canManage && (
-                    <td className="w-20 py-4 pl-4 pr-6 text-center">
-                      <ActionMenu
-                        item={item}
-                        onEdit={onEdit}
-                        onPermissions={onPermissions}
-                        onToggleStatus={onToggleStatus}
-                        onDelete={onDelete}
-                      />
+                      <td className="w-20 py-4 pl-4 pr-6 text-center">
+                        <ActionMenu
+                          item={item}
+                          onDetail={onDetail}
+                          onEdit={onEdit}
+                          onPermissions={onPermissions}
+                          onToggleStatus={onToggleStatus}
+                          onDelete={onDelete}
+                        />
                     </td>
                   )}
                 </tr>
