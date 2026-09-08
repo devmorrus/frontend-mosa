@@ -29,7 +29,7 @@ export interface TutorialDefinition {
   id: string
   title: string
   description: string
-  category: 'general' | 'master-data' | 'warehouse' | 'production' | 'traceability' | 'reports'
+  category: 'general' | 'master-data' | 'warehouse' | 'production' | 'traceability' | 'reports' | 'administration'
   requiredPermissions: string[]
   allowedRoles?: string[]
   steps: TutorialStep[]

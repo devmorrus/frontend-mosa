@@ -50,7 +50,7 @@ export function UserRolesDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg overflow-hidden p-0">
+      <DialogContent data-tour="user-role-dialog" className="max-w-lg overflow-hidden p-0">
         {/* Accent bar */}
         <div className="absolute inset-x-0 top-0 h-1 rounded-t-[28px] bg-gradient-to-r from-blue-500 to-indigo-400" />
 
@@ -92,6 +92,7 @@ export function UserRolesDialog({
                   <button
                     key={role.id}
                     type="button"
+                    data-tour="user-role-option"
                     className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${
                       isSelected
                         ? 'border-blue-200 bg-blue-50 text-ink'

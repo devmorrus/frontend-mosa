@@ -9,6 +9,7 @@ import { productionOrderTutorial } from './productionOrder.config'
 import { backwardTraceabilityTutorial, forwardTraceabilityTutorial } from './traceability.config'
 import { dashboardTutorial } from './dashboard.config'
 import { reportingTutorial } from './reporting.config'
+import { adminAuditTrailTutorial, adminRolesPermissionsTutorial, adminUserManagementTutorial } from './administration.config'
 
 export const allTutorials: TutorialDefinition[] = [
   appIntroTutorial,
@@ -22,6 +23,9 @@ export const allTutorials: TutorialDefinition[] = [
   backwardTraceabilityTutorial,
   forwardTraceabilityTutorial,
   reportingTutorial,
+  adminUserManagementTutorial,
+  adminRolesPermissionsTutorial,
+  adminAuditTrailTutorial,
 ]
 
 export const tutorialRegistry: Record<string, TutorialDefinition> = {
@@ -36,6 +40,9 @@ export const tutorialRegistry: Record<string, TutorialDefinition> = {
   'traceability-backward': backwardTraceabilityTutorial,
   'traceability-forward': forwardTraceabilityTutorial,
   reporting: reportingTutorial,
+  'admin-user-management': adminUserManagementTutorial,
+  'admin-roles-permissions': adminRolesPermissionsTutorial,
+  'admin-audit-trail': adminAuditTrailTutorial,
 }
 
 export function getAvailableTutorials(

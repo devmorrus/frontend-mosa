@@ -69,7 +69,7 @@ export function RolePermissionsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl overflow-hidden p-0">
+      <DialogContent data-tour="permission-dialog" className="max-w-2xl overflow-hidden p-0">
         {/* Accent bar */}
         <div className="absolute inset-x-0 top-0 h-1 rounded-t-[28px] bg-gradient-to-r from-indigo-500 to-violet-400" />
 
@@ -127,7 +127,7 @@ export function RolePermissionsDialog({
                 const someSelected = moduleIds.some((id) => selectedIds.has(id))
 
                 return (
-                  <div key={group.module} className="rounded-xl border border-slate-200 overflow-hidden">
+                    <div key={group.module} data-tour="permission-group" className="rounded-xl border border-slate-200 overflow-hidden">
                     {/* Module header */}
                     <button
                       type="button"
@@ -209,6 +209,7 @@ export function RolePermissionsDialog({
           <button
             type="button"
             onClick={handleSubmit}
+            data-tour="permission-save"
             disabled={submitting || permissionGroups.length === 0}
             className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-ink px-6 py-3.5 text-sm font-semibold text-paper shadow-md shadow-ink/20 transition-all duration-150 hover:bg-ink-light hover:shadow-lg active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
           >

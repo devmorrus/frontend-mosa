@@ -277,7 +277,7 @@ export function UserFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl overflow-hidden p-0">
+      <DialogContent data-tour="user-form" className="max-w-xl overflow-hidden p-0">
         {/* Accent bar */}
         <AccentBar mode={mode} />
 

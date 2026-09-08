@@ -156,6 +156,7 @@ export function UserToolbar({
         {canCreate && (
           <button
             onClick={onCreate}
+            data-tour="user-create"
             className="inline-flex h-9 items-center gap-2 rounded-xl bg-ink px-4 text-xs font-semibold text-paper shadow-sm transition-all hover:bg-ink-light hover:shadow-md active:scale-95"
           >
             <Plus size={14} />

@@ -200,6 +200,10 @@ function getDataTourAttr(item: SidebarItem): string | undefined {
   if (item.path === '/production/orders' || item.code === 'orders') return 'po-menu'
   if (item.path === '/traceability' || item.code === 'traceability-search') return 'traceability-menu'
   if (item.path === '/reports' || item.code === 'reports') return 'reports-menu'
+  if (item.path === '/admin' || item.code === 'administration') return 'admin-menu'
+  if (item.path === '/admin/users' || item.code === 'users') return 'users-menu'
+  if (item.path === '/admin/roles' || item.code === 'roles') return 'roles-menu'
+  if (item.path === '/admin/audit-trail' || item.code === 'audit-trail') return 'audit-menu'
   return undefined
 }
 

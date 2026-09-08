@@ -64,7 +64,7 @@ function ActionMenu({
   onDelete: (item: RoleListItem) => void
 }) {
   return (
-    <DropdownMenu>
+      <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/20"
@@ -141,7 +141,7 @@ function RoleCardRow({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <div className="truncate text-sm font-semibold text-ink">{item.name}</div>
+                <div data-tour="role-select" className="truncate text-sm font-semibold text-ink">{item.name}</div>
               {item.isSystem && <SystemBadge />}
             </div>
             {item.description && (
@@ -285,7 +285,7 @@ export function RoleTable({
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <div className="truncate text-sm font-semibold text-ink">{item.name}</div>
+                          <div data-tour="role-select" className="truncate text-sm font-semibold text-ink">{item.name}</div>
                           {item.isSystem && <SystemBadge />}
                         </div>
                       </div>

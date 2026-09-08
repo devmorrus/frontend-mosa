@@ -127,7 +127,7 @@ function ActionMenu({
   onRevokeSessions: (item: UserListItem) => void
 }) {
   return (
-    <DropdownMenu>
+        <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/20"
@@ -153,7 +153,7 @@ function ActionMenu({
           <KeyRound size={15} className="text-slate-500" />
           <span>Ganti Password</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onRevokeSessions(item)}>
+        <DropdownMenuItem data-tour="user-revoke-session" onClick={() => onRevokeSessions(item)}>
           <RotateCcw size={15} className="text-slate-500" />
           <span>Revoke Sessions</span>
         </DropdownMenuItem>
@@ -219,11 +219,11 @@ function UserCardRow({
           )}
         </div>
 
-        <div className="mt-2.5">
+        <div data-tour="user-role" className="mt-2.5">
           <RoleBadges roles={item.roles} />
         </div>
 
-            <div className="mt-2.5">
+            <div data-tour="user-status" className="mt-2.5">
               <StatusBadge isActive={item.isActive} />
             </div>
             <div className="mt-2 text-xs text-slate-400">
