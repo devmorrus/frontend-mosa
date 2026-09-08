@@ -127,7 +127,7 @@ export function StockOpnameDetailPage() {
       <div className="rounded-[24px] border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><div className="flex gap-3"><AlertTriangle size={18} className="mt-0.5 shrink-0" /><p>Posting Stock Opname akan menyesuaikan inventory berdasarkan hasil physical count. Pastikan seluruh quantity sudah benar.</p></div></div>
       {actionError ? <div className="rounded-[24px] border border-red-100 bg-red-50 p-4 text-sm text-red-700">{actionError}</div> : null}
 
-      <div className="grid gap-4 lg:grid-cols-5">
+      <div className="grid gap-4 lg:grid-cols-5" data-tour="opname-variance">
         <Card className="rounded-[24px]"><CardContent className="p-4"><div className="text-xs uppercase text-slate-400">Total LOT Counted</div><div className="mt-2 text-2xl font-semibold">{summary.totalLotCounted}/{detail.items.length}</div></CardContent></Card>
         <Card className="rounded-[24px]"><CardContent className="p-4"><div className="text-xs uppercase text-slate-400">Matching LOT</div><div className="mt-2 text-2xl font-semibold text-emerald-700">{summary.matchingLot}</div></CardContent></Card>
         <Card className="rounded-[24px]"><CardContent className="p-4"><div className="text-xs uppercase text-slate-400">Positive Variance</div><div className="mt-2 text-2xl font-semibold text-blue-700">{summary.positiveVariance}</div></CardContent></Card>
@@ -135,8 +135,8 @@ export function StockOpnameDetailPage() {
         <Card className="rounded-[24px]"><CardContent className="p-4"><div className="text-xs uppercase text-slate-400">Total Correction</div><div className="mt-2 text-2xl font-semibold">{formatQuantity(summary.totalCorrection)}</div><div className="text-xs text-slate-400">Net {formatQuantity(summary.netVariance)}</div></CardContent></Card>
       </div>
 
-      <Card className="overflow-hidden rounded-[28px] border-slate-200/80">
-        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><CardTitle>Inventory Snapshot</CardTitle><div className="flex gap-2">{isEditable ? <Button disabled={!allCounted || isSaving} onClick={() => void saveCounts()}><Save size={16} />{isSaving ? 'Saving...' : 'Save Count'}</Button> : null}{canPost ? <Button disabled={!allCounted || isPosting} onClick={() => setConfirmOpen(true)} className="bg-red-700 text-white hover:bg-red-800"><CheckCircle2 size={16} />POST STOCK OPNAME</Button> : null}</div></CardHeader>
+      <Card className="overflow-hidden rounded-[28px] border-slate-200/80" data-tour="opname-count-table">
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><CardTitle>Inventory Snapshot</CardTitle><div className="flex gap-2">{isEditable ? <Button disabled={!allCounted || isSaving} onClick={() => void saveCounts()}><Save size={16} />{isSaving ? 'Saving...' : 'Save Count'}</Button> : null}{canPost ? <Button data-tour="opname-post-btn" disabled={!allCounted || isPosting} onClick={() => setConfirmOpen(true)} className="bg-red-700 text-white hover:bg-red-800"><CheckCircle2 size={16} />POST STOCK OPNAME</Button> : null}</div></CardHeader>
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead className="sticky top-0 bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr>{['Material', 'LOT', 'System Qty', 'Physical Qty', 'Variance'].map((label) => <th key={label} className="px-5 py-3">{label}</th>)}</tr></thead>

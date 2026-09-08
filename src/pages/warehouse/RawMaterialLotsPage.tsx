@@ -174,6 +174,11 @@ export function RawMaterialLotsPage() {
               Warehouse dapat mencari LOT secara manual, membuka detail, melihat QR, dan menguji
               scan browser camera tanpa bergantung pada device scanner khusus.
             </p>
+            <div className="mt-5">
+              <Button asChild variant="secondary" data-tour="lot-scan-qr-btn">
+                <Link to="/lots/scan">Scan QR LOT</Link>
+              </Button>
+            </div>
           </div>
 
           <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">

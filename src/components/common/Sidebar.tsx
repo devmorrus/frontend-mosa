@@ -362,7 +362,7 @@ export function Sidebar() {
       </aside>
 
       <Sheet open={isMobileSidebarOpen} onOpenChange={(open) => !open && closeMobileSidebar()}>
-        <SheetContent side="left" className="w-72 border-r border-paper/8 p-0 md:hidden">
+        <SheetContent side="left" data-tour="sidebar" className="w-72 border-r border-paper/8 p-0 md:hidden">
           <SheetHeader className="sr-only">
             <SheetTitle>Navigasi MOSA</SheetTitle>
           </SheetHeader>

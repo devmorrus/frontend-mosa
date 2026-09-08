@@ -26,6 +26,7 @@ export function TutorialLauncherPage() {
     { id: 'production', label: 'Production' },
     { id: 'traceability', label: 'Traceability' },
     { id: 'reports', label: 'Reports' },
+    { id: 'administration', label: 'Administration' },
   ]
 
   const filteredTutorials =

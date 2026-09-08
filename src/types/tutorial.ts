@@ -23,6 +23,11 @@ export interface TutorialStep {
   placement?: 'top' | 'bottom' | 'left' | 'right' | 'auto'
   requiredAction?: StepRequiredAction
   canSkip?: boolean
+  /**
+   * Critical steps (post/approve/release/decide/submit) must be INFO-only.
+   * The engine treats critical+ACTION as INFO (fail-safe, Tasking 5).
+   */
+  critical?: boolean
 }
 
 export interface TutorialDefinition {

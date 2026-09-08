@@ -88,12 +88,12 @@ export function OperatorProductionQueuePage() {
       ) : items.length === 0 ? (
         <MasterDataEmptyState description="Belum ada production order released atau in progress yang ditugaskan kepada Anda." />
       ) : (
-        <section className="grid gap-4">
-          {items.map((item) => {
+        <section data-tour="operator-queue" className="grid gap-4">
+          {items.map((item, index) => {
             const isReleased = item.status === ProductionOrderStatus.Released
             const uom = item.unitOfMeasureSymbol ?? item.unitOfMeasureCode
             const progress = item.progress.totalSteps === 0 ? 0 : Math.round((item.progress.completedSteps / item.progress.totalSteps) * 100)
-            return <Card key={item.id} className="overflow-hidden">
+            return <Card key={item.id} data-tour={index === 0 ? 'operator-queue-row' : undefined} className="overflow-hidden">
               <CardContent className="flex flex-col gap-5 p-6 sm:p-7 md:flex-row md:items-center md:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2"><Badge variant={isReleased ? 'signal' : 'default'}>{isReleased ? 'Released' : 'In progress'}</Badge><span className="text-xs font-semibold tracking-wide text-slate-500">{item.productionOrderNumber}</span></div>

@@ -142,9 +142,11 @@ export const goodsReceivingTutorial: TutorialDefinition = {
       totalSteps: 12,
       title: 'Internal LOT Berhasil Diterbitkan',
       instruction:
-        'Receiving berhasil diposting! MOSA secara otomatis membuat Internal LOT unik untuk keterlacakan bahan baku.',
+        'Setelah posting, MOSA otomatis membuat Internal LOT unik untuk keterlacakan bahan baku. Lihat panel Generated LOTs di halaman detail receiving.',
       type: 'INFO',
+      route: '/goods-receiving',
       targetSelector: '[data-tour="receiving-internal-lot-badge"]',
+      targetFallback: '[data-tour="receiving-generated-lots"]',
     },
     {
       id: 'step-12-complete',
@@ -154,6 +156,7 @@ export const goodsReceivingTutorial: TutorialDefinition = {
       instruction:
         'Selamat! Anda telah memahami seluruh alur pendaftaran penerimaan barang hingga penerbitan stok Internal LOT.',
       type: 'INFO',
+      route: '/goods-receiving',
       targetSelector: '[data-tour="receiving-menu"]',
     },
   ],

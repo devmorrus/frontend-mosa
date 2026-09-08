@@ -275,7 +275,9 @@ export function RecipesPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 align-top">
-                        <RecipeStatusBadge status={item.currentVersion?.status ?? item.status} />
+                        <span data-tour="recipe-active-badge" className="inline-flex">
+                          <RecipeStatusBadge status={item.currentVersion?.status ?? item.status} />
+                        </span>
                       </td>
                       <td className="px-6 py-4 align-top text-sm text-slate-600">
                         {formatRecipeDate(item.updatedAtUtc ?? item.createdAtUtc)}

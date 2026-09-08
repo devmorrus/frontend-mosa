@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { AlertCircle } from 'lucide-react'
 import { useTutorialStore } from '@/stores/tutorialStore'
 import { tutorialRegistry } from '@/config/tutorials'
+import { syncTutorialProgressBestEffort, tutorialsApi } from '@/api/tutorials.api'
 import { TutorialSpotlight } from './TutorialSpotlight'
 import { TutorialTooltip } from './TutorialTooltip'
 
@@ -24,8 +25,21 @@ export function TutorialController() {
   const [targetFound, setTargetFound] = useState<boolean>(true)
 
   const activeTutorial = activeTutorialId ? tutorialRegistry[activeTutorialId] : null
-  const currentStep = activeTutorial?.steps[currentStepIndex]
+  const rawStep = activeTutorial?.steps[currentStepIndex]
+  // Fail-safe (Tasking 5): critical steps are never ACTION — treat as INFO.
+  const currentStep = rawStep && rawStep.critical && rawStep.type === 'ACTION'
+    ? { ...rawStep, type: 'INFO' as const }
+    : rawStep
   const totalSteps = activeTutorial?.steps.length ?? 0
+
+  // ── Backend progress sync (best-effort, localStorage stays primary) ──
+  useEffect(() => {
+    if (!activeTutorialId || !activeTutorial) return
+    syncTutorialProgressBestEffort(
+      tutorialsApi.start(activeTutorialId, totalSteps).catch(() => undefined),
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTutorialId])
 
   // ── Auto Navigation & Route Awareness ──────────────────────────────────────
   useEffect(() => {
@@ -120,11 +134,33 @@ export function TutorialController() {
         instruction={currentStep.instruction}
         type={currentStep.type}
         targetSelector={currentStep.targetSelector}
+        targetFallback={currentStep.targetFallback}
         isActionValid={isActionValid}
         canSkip={currentStep.canSkip !== false}
-        onNext={() => nextStep(totalSteps)}
+        onNext={() => {
+          if (activeTutorialId) {
+            const nextIndex = currentStepIndex + 1
+            if (nextIndex < totalSteps) {
+              syncTutorialProgressBestEffort(
+                tutorialsApi.advance(activeTutorialId, nextIndex).catch(() => undefined),
+              )
+            } else {
+              syncTutorialProgressBestEffort(
+                tutorialsApi.complete(activeTutorialId).catch(() => undefined),
+              )
+            }
+          }
+          nextStep(totalSteps)
+        }}
         onBack={previousStep}
-        onSkip={skipTutorial}
+        onSkip={() => {
+          if (activeTutorialId) {
+            syncTutorialProgressBestEffort(
+              tutorialsApi.skip(activeTutorialId).catch(() => undefined),
+            )
+          }
+          skipTutorial()
+        }}
         onClose={closeTutorial}
       />
     </>

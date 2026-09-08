@@ -76,7 +76,7 @@ export function StockOpnamesPage() {
   }, [JSON.stringify(query)])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-tour="opname-queue">
       <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8">
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
@@ -86,7 +86,7 @@ export function StockOpnamesPage() {
             <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">Physical count raw material LOT</h1>
             <p className="mt-3 max-w-xl text-sm leading-7 text-paper/68">Buat opname, isi physical count, review variance, lalu post correction ke inventory.</p>
           </div>
-          <Button asChild className="bg-signal text-ink hover:bg-signal/90">
+          <Button asChild className="bg-signal text-ink hover:bg-signal/90" data-tour="opname-create-btn">
             <Link to="/warehouse/stock-opname/create"><Plus size={16} />Create Opname</Link>
           </Button>
         </div>

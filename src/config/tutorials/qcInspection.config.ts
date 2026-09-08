@@ -1,0 +1,88 @@
+import type { TutorialDefinition } from '@/types/tutorial'
+
+/**
+ * QC Inspection — inspeksi finished goods oleh tim QC.
+ * Keputusan Pass/Hold/Reject kritikal → INFO-only. Total 7 steps (mirror backend catalog).
+ */
+export const qcInspectionTutorial: TutorialDefinition = {
+  id: 'qc-inspection',
+  title: 'QC Inspection',
+  description: 'Menuntun tim QC memeriksa finished goods: antrean, parameter, pengisian hasil, keputusan, dan riwayat inspeksi.',
+  category: 'production',
+  requiredPermissions: ['qc.view'],
+  allowedRoles: ['QC', 'ADMIN', 'SUPERADMIN'],
+  steps: [
+    {
+      id: 'step-1-queue',
+      stepNumber: 1,
+      totalSteps: 7,
+      title: 'Antrean QC',
+      instruction: 'Buka menu Quality Control untuk melihat LOT finished goods berstatus Waiting QC atau Hold.',
+      type: 'INFO',
+      route: '/quality-control',
+      targetSelector: '[data-tour="qc-queue"]',
+      placement: 'right',
+    },
+    {
+      id: 'step-2-row',
+      stepNumber: 2,
+      totalSteps: 7,
+      title: 'Buka Inspeksi',
+      instruction: 'Pilih baris LOT untuk membuka halaman inspeksi berisi parameter QC produk tersebut.',
+      type: 'INFO',
+      route: '/quality-control',
+      targetSelector: '[data-tour="qc-queue-row"]',
+    },
+    {
+      id: 'step-3-params',
+      stepNumber: 3,
+      totalSteps: 7,
+      title: 'Parameter QC',
+      instruction: 'Kartu parameter membedakan required dan optional. Parameter required wajib diisi sebelum keputusan.',
+      type: 'INFO',
+      targetSelector: '[data-tour="qc-param-card"]',
+      targetFallback: '[data-tour="qc-queue"]',
+    },
+    {
+      id: 'step-4-input',
+      stepNumber: 4,
+      totalSteps: 7,
+      title: 'Pengisian Hasil (Panduan)',
+      instruction: 'Kolom hasil diisi sesuai tipe (angka, teks, pass/fail). Tutorial hanya menjelaskan — pengisian nyata di luar tutorial.',
+      type: 'INFO',
+      targetSelector: '[data-tour="qc-result-input"]',
+      targetFallback: '[data-tour="qc-queue"]',
+    },
+    {
+      id: 'step-5-decide',
+      stepNumber: 5,
+      totalSteps: 7,
+      title: 'Keputusan (Panduan Saja)',
+      instruction: 'Bar Pass/Hold/Reject hanya ditunjuk. Hold dan Reject wajib disertai notes. Tutorial tidak mengubah status LOT.',
+      type: 'INFO',
+      targetSelector: '[data-tour="qc-decide-bar"]',
+      targetFallback: '[data-tour="qc-queue"]',
+      critical: true,
+    },
+    {
+      id: 'step-6-history',
+      stepNumber: 6,
+      totalSteps: 7,
+      title: 'Riwayat Inspeksi',
+      instruction: 'Riwayat menampilkan keputusan sebelumnya dengan pagination server-side untuk audit mutu.',
+      type: 'INFO',
+      targetSelector: '[data-tour="qc-history"]',
+      targetFallback: '[data-tour="qc-queue"]',
+    },
+    {
+      id: 'step-7-done',
+      stepNumber: 7,
+      totalSteps: 7,
+      title: 'Tutorial QC Selesai',
+      instruction: 'Selamat! Anda memahami alur inspeksi QC yang terdokumentasi dan aman.',
+      type: 'INFO',
+      route: '/quality-control',
+      targetSelector: '[data-tour="qc-queue"]',
+    },
+  ],
+}

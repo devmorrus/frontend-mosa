@@ -10,6 +10,7 @@ interface TutorialTooltipProps {
   instruction: string
   type: 'INFO' | 'ACTION'
   targetSelector: string
+  targetFallback?: string
   isActionValid: boolean
   canSkip?: boolean
   onNext: () => void
@@ -25,6 +26,7 @@ export function TutorialTooltip({
   instruction,
   type,
   targetSelector,
+  targetFallback,
   isActionValid,
   canSkip = true,
   onNext,
@@ -43,8 +45,9 @@ export function TutorialTooltip({
     const updateTooltipPosition = () => {
       let el = document.querySelector<HTMLElement>(targetSelector)
       const targetBounds = el?.getBoundingClientRect()
-      if ((!el || !targetBounds || targetBounds.width === 0 || targetBounds.height === 0) && targetSelector.includes('traceability-menu')) {
-        el = document.querySelector<HTMLElement>('[data-tour="traceability-search"]')
+      // Generic fallback (Tasking 5): use configured targetFallback before giving up.
+      if ((!el || !targetBounds || targetBounds.width === 0 || targetBounds.height === 0) && targetFallback) {
+        el = document.querySelector<HTMLElement>(targetFallback)
       }
       if (!el) {
         // Center-bottom fallback if element not found or mobile screen
@@ -119,7 +122,7 @@ export function TutorialTooltip({
       window.removeEventListener('resize', updateTooltipPosition)
       window.removeEventListener('scroll', updateTooltipPosition)
     }
-  }, [targetSelector])
+  }, [targetSelector, targetFallback])
 
   const isFirstStep = stepNumber === 1
   const isLastStep = stepNumber === totalSteps
