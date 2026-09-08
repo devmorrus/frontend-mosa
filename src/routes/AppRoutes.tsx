@@ -193,6 +193,8 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute requiredPermission="audit.view" />}>
             <Route path="/admin/audit-trail" element={<AuditTrailPage />} />
             <Route path="/admin/audit-trail/:id" element={<AuditTrailDetailPage />} />
+            <Route path="/audit-logs" element={<Navigate to="/admin/audit-trail" replace />} />
+            <Route path="/audit-logs/:id" element={<Navigate to="/admin/audit-trail/:id" replace />} />
           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="menus.view" />}>
