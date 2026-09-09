@@ -13,6 +13,7 @@ import { EMPTY_PAGINATION } from '@/features/master-data/utils'
 import type { StockOpnameListItem, StockOpnameQueryState, StockOpnameStatus } from '@/features/stock-opname/types'
 import { emptyStockOpnameQuery } from '@/features/stock-opname/validation'
 import type { WarehouseListItem } from '@/features/warehouses/types'
+import { useAuth } from '@/hooks/useAuth'
 import type { ApiError } from '@/types/api'
 
 const statuses: Array<'ALL' | StockOpnameStatus> = ['ALL', 'DRAFT', 'INPROGRESS', 'READYTOPOST', 'POSTED', 'CANCELLED']
@@ -33,6 +34,8 @@ function StatusBadge({ status }: { status: StockOpnameStatus }) {
 }
 
 export function StockOpnamesPage() {
+  const { can } = useAuth()
+  const canCreateOpname = can('stock-opname.create')
   const [query, setQuery] = useState<StockOpnameQueryState>(emptyStockOpnameQuery)
   const [searchInput, setSearchInput] = useState('')
   const deferredSearch = useDeferredValue(searchInput)
@@ -86,9 +89,11 @@ export function StockOpnamesPage() {
             <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">Physical count raw material LOT</h1>
             <p className="mt-3 max-w-xl text-sm leading-7 text-paper/68">Buat opname, isi physical count, review variance, lalu post correction ke inventory.</p>
           </div>
-          <Button asChild className="bg-signal text-ink hover:bg-signal/90" data-tour="opname-create-btn">
-            <Link to="/warehouse/stock-opname/create"><Plus size={16} />Create Opname</Link>
-          </Button>
+          {canCreateOpname ? (
+            <Button asChild className="bg-signal text-ink hover:bg-signal/90" data-tour="opname-create-btn">
+              <Link to="/warehouse/stock-opname/create"><Plus size={16} />Create Opname</Link>
+            </Button>
+          ) : null}
         </div>
       </section>
 
@@ -107,7 +112,7 @@ export function StockOpnamesPage() {
         </CardContent>
       </Card>
 
-      {isLoading ? <MasterDataLoadingState description="Stock opname sedang dimuat." /> : error ? <MasterDataErrorState description={error} onRetry={() => void loadData(query)} /> : items.length === 0 ? <MasterDataEmptyState description="Belum ada stock opname." action={<Button asChild><Link to="/warehouse/stock-opname/create">Create Opname</Link></Button>} /> : (
+      {isLoading ? <MasterDataLoadingState description="Stock opname sedang dimuat." /> : error ? <MasterDataErrorState description={error} onRetry={() => void loadData(query)} /> : items.length === 0 ? <MasterDataEmptyState description="Belum ada stock opname." action={canCreateOpname ? <Button asChild><Link to="/warehouse/stock-opname/create">Create Opname</Link></Button> : undefined} /> : (
         <Card className="overflow-hidden rounded-[28px] border-slate-200/80">
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">

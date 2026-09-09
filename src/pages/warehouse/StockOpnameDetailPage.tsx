@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { MasterDataErrorState, MasterDataLoadingState } from '@/features/master-data/components/MasterDataStates'
 import type { StockOpnameDetail, StockOpnameStatus } from '@/features/stock-opname/types'
 import { getStockOpnameSummary } from '@/features/stock-opname/validation'
+import { useAuth } from '@/hooks/useAuth'
 import type { ApiError } from '@/types/api'
 
 function formatQuantity(value: number | null, unit?: string | null) {
@@ -36,6 +37,7 @@ function varianceClass(value: number | null) {
 
 export function StockOpnameDetailPage() {
   const { id } = useParams()
+  const { can } = useAuth()
   const [detail, setDetail] = useState<StockOpnameDetail | null>(null)
   const [counts, setCounts] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
@@ -64,8 +66,10 @@ export function StockOpnameDetailPage() {
   useEffect(() => { void loadData() }, [id])
 
   const summary = useMemo(() => getStockOpnameSummary(detail?.items ?? []), [detail])
-  const isEditable = detail?.status === 'DRAFT' || detail?.status === 'INPROGRESS'
-  const canPost = detail?.status === 'INPROGRESS' || detail?.status === 'READYTOPOST'
+  const canUpdateCount = can('stock-opname.update')
+  const canPostOpname = can('stock-opname.post')
+  const isEditable = (detail?.status === 'DRAFT' || detail?.status === 'INPROGRESS') && canUpdateCount
+  const canPost = (detail?.status === 'INPROGRESS' || detail?.status === 'READYTOPOST') && canPostOpname
   const allCounted = detail ? detail.items.every((item) => counts[item.id] !== '' && Number(counts[item.id]) >= 0) : false
 
   async function saveCounts() {
