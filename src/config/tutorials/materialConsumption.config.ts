@@ -8,7 +8,7 @@ import type { TutorialDefinition } from '@/types/tutorial'
 export const materialConsumptionTutorial: TutorialDefinition = {
   id: 'material-consumption',
   title: 'Material Consumption',
-  description: 'Menuntun pencatatan konsumsi material: pilih LOT FEFO, isi actual quantity, pahami tolerance, dan ketahui tombol submit.',
+  description: 'Menuntun pencatatan konsumsi material: pilih LOT FEFO, isi actual quantity, pahami tolerance, dan ketahui tombol submit. Buka via Help → Tutorial & Panduan (berlaku untuk halaman Operator Production).',
   category: 'production',
   requiredPermissions: ['production-orders.execute'],
   allowedRoles: ['OPERATOR', 'PRODUCTION_SUPERVISOR', 'ADMIN', 'SUPERADMIN'],

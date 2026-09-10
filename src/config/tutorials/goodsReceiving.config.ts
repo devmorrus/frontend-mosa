@@ -5,7 +5,7 @@ export const goodsReceivingTutorial: TutorialDefinition = {
   title: 'Goods Receiving — Penerimaan Bahan Baku',
   description: 'Menuntun petugas Warehouse melakukan penerimaan barang dari supplier sampai POST dan terbit Internal LOT.',
   category: 'warehouse',
-  requiredPermissions: ['receiving.view', 'receiving.create'],
+  requiredPermissions: ['receiving.view'],
   allowedRoles: ['Warehouse', 'Admin', 'SuperAdmin'],
   steps: [
     {

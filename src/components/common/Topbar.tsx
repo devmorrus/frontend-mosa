@@ -17,6 +17,9 @@ function getInitials(name?: string): string {
 /**
  * Explicit contextual mapping (Tasking 5). Returns null when the current
  * route is the Guided Recipe simulation (separate system, no overlay tour).
+ * Note: /operator/production maps to guided-production (primary). The
+ * material-consumption tutorial shares the same pages — launch it explicitly
+ * via Help → Tutorial & Panduan.
  */
 export function getPageTutorialId(pathname: string): string | null {
   if (/^\/production\/recipes\/[^/]+\/versions\/[^/]+\/tutorial/.test(pathname)) return null

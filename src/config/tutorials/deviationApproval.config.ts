@@ -32,6 +32,7 @@ export const deviationApprovalTutorial: TutorialDefinition = {
       type: 'INFO',
       route: '/production/deviations',
       targetSelector: '[data-tour="deviation-queue-row"]',
+      targetFallback: '[data-tour="deviation-queue"]',
     },
     {
       id: 'step-3-context',
@@ -61,7 +62,7 @@ export const deviationApprovalTutorial: TutorialDefinition = {
       instruction: 'Tombol Approve dan Reject hanya ditunjuk. Tutorial tidak mengambil keputusan — reject wajib diisi reason, approve boleh dengan notes.',
       type: 'INFO',
       targetSelector: '[data-tour="deviation-approve-btn"]',
-      targetFallback: '[data-tour="deviation-reject-btn"]',
+      targetFallback: '[data-tour="deviation-queue"]',
       critical: true,
     },
     {

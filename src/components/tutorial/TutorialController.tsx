@@ -19,6 +19,7 @@ export function TutorialController() {
     previousStep,
     skipTutorial,
     closeTutorial,
+    restartTutorial,
     setStepValid,
   } = useTutorialStore()
 
@@ -111,6 +112,19 @@ export function TutorialController() {
 
   return (
     <>
+      {/* Persistent Tutorial Mode banner — distinguishes tutorial from LIVE production */}
+      <div className="pointer-events-none fixed left-1/2 top-3 z-[70] -translate-x-1/2">
+        <div className="flex max-w-[calc(100vw-32px)] items-center gap-2 rounded-full border border-signal/40 bg-ink/95 px-4 py-1.5 shadow-xl backdrop-blur-md">
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-signal opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-signal" />
+          </span>
+          <span className="truncate text-[11px] font-bold uppercase tracking-[0.14em] text-paper">
+            Mode Tutorial{activeTutorial ? ` — ${activeTutorial.title}` : ''} · bukan Live
+          </span>
+        </div>
+      </div>
+
       {/* Target Not Found Warning Alert */}
       {!targetFound && (
         <div className="fixed top-24 right-6 z-50 flex max-w-md items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-950/90 p-4 text-amber-200 shadow-xl backdrop-blur-md">
@@ -140,6 +154,7 @@ export function TutorialController() {
         targetFallback={currentStep.targetFallback}
         isActionValid={isActionValid}
         canSkip={currentStep.canSkip !== false}
+        tutorialTitle={activeTutorial.title}
         onNext={() => {
           if (activeTutorialId) {
             const nextIndex = currentStepIndex + 1
@@ -165,6 +180,14 @@ export function TutorialController() {
           skipTutorial()
         }}
         onClose={closeTutorial}
+        onRestart={() => {
+          if (!activeTutorialId) return
+          // Reset backend index to 0 (best-effort); local store resets to step 0.
+          syncTutorialProgressBestEffort(
+            tutorialsApi.advance(activeTutorialId, 0).catch(() => undefined),
+          )
+          restartTutorial(activeTutorialId)
+        }}
       />
     </>
   )

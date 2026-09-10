@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, ArrowRight, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, RotateCcw, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
@@ -13,10 +13,12 @@ interface TutorialTooltipProps {
   targetFallback?: string
   isActionValid: boolean
   canSkip?: boolean
+  tutorialTitle?: string
   onNext: () => void
   onBack: () => void
   onSkip: () => void
   onClose: () => void
+  onRestart?: () => void
 }
 
 export function TutorialTooltip({
@@ -29,10 +31,12 @@ export function TutorialTooltip({
   targetFallback,
   isActionValid,
   canSkip = true,
+  tutorialTitle,
   onNext,
   onBack,
   onSkip,
   onClose,
+  onRestart,
 }: TutorialTooltipProps) {
   const [style, setStyle] = useState<React.CSSProperties>({
     position: 'fixed',
@@ -156,7 +160,17 @@ export function TutorialTooltip({
 
       {/* Content */}
       <div className="py-3.5">
-        <h4 className="font-display text-base font-semibold text-paper">{title}</h4>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge variant="subtle" className="bg-signal/20 text-signal font-bold text-[10px] uppercase tracking-wide">
+            Mode Tutorial — bukan Live
+          </Badge>
+          {tutorialTitle ? (
+            <span className="max-w-full truncate text-[11px] font-medium text-paper/50" title={tutorialTitle}>
+              {tutorialTitle}
+            </span>
+          ) : null}
+        </div>
+        <h4 className="mt-2 font-display text-base font-semibold text-paper">{title}</h4>
         <p className="mt-1.5 text-xs leading-relaxed text-paper/70">{instruction}</p>
         {type === 'ACTION' && !isActionValid && (
           <p className="mt-2 text-[11px] font-medium text-amber-400">
@@ -190,6 +204,19 @@ export function TutorialTooltip({
         </div>
 
         <div className="flex items-center gap-2">
+          {onRestart ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onRestart}
+              title="Ulangi tutorial dari awal"
+              aria-label="Ulangi tutorial dari awal"
+              className="h-8 text-xs px-2 text-paper/50 hover:bg-paper/10 hover:text-paper"
+            >
+              <RotateCcw size={14} className="mr-1" /> Restart
+            </Button>
+          ) : null}
           {!isFirstStep && (
             <Button
               type="button"

@@ -32,6 +32,7 @@ export const qcInspectionTutorial: TutorialDefinition = {
       type: 'INFO',
       route: '/quality-control',
       targetSelector: '[data-tour="qc-queue-row"]',
+      targetFallback: '[data-tour="qc-queue"]',
     },
     {
       id: 'step-3-params',

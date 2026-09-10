@@ -5,7 +5,7 @@ export const productionOrderTutorial: TutorialDefinition = {
   title: 'Production Order & Material Requirement Check',
   description: 'Menuntun Production Supervisor merencanakan perintah produksi, memeriksa kecukupan stok bahan, hingga merilis order ke lapangan.',
   category: 'production',
-  requiredPermissions: ['production-orders.view', 'production-orders.create'],
+  requiredPermissions: ['production-orders.view'],
   allowedRoles: ['Production Supervisor', 'Admin', 'SuperAdmin'],
   steps: [
     {

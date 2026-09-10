@@ -367,12 +367,12 @@ export function UserTable({
                   </td>
 
                   {/* Roles */}
-                  <td className="px-4 py-4">
+                  <td className="px-4 py-4" data-tour="user-role">
                     <RoleBadges roles={item.roles} />
                   </td>
 
                   {/* Status badge */}
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-4" data-tour="user-status">
                         <StatusBadge isActive={item.isActive} />
                         <div className="mt-2 text-[11px] text-slate-400">
                           {item.lastLoginAtUtc

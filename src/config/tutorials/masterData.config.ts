@@ -3,9 +3,9 @@ import type { TutorialDefinition } from '@/types/tutorial'
 export const masterDataTutorial: TutorialDefinition = {
   id: 'master-data',
   title: 'Master Data — Supplier',
-  description: 'Menuntun user membuat data dasar Master Data Supplier.',
+  description: 'Pengenalan Master Data Supplier tanpa membuat data nyata. Panduan saja — tidak menyimpan transaksi.',
   category: 'master-data',
-  requiredPermissions: ['suppliers.view', 'suppliers.create'],
+  requiredPermissions: ['suppliers.view'],
   steps: [
     {
       id: 'step-1-open-menu',
@@ -83,23 +83,21 @@ export const masterDataTutorial: TutorialDefinition = {
       id: 'step-6-save-supplier',
       stepNumber: 6,
       totalSteps: 7,
-      title: 'Simpan Supplier',
-      instruction: 'Klik Save untuk menyimpan data Supplier ke sistem.',
-      type: 'ACTION',
+      title: 'Simpan Supplier (Panduan Saja)',
+      instruction:
+        'Tombol Save hanya ditunjuk — jangan simpan data nyata saat tutorial. Lakukan penyimpanan nyata di luar tutorial bila sudah yakin.',
+      type: 'INFO',
       route: '/suppliers',
       targetSelector: '[data-tour="supplier-save-btn"]',
-      requiredAction: {
-        type: 'click',
-        elementSelector: '[data-tour="supplier-save-btn"]',
-      },
+      critical: true,
     },
     {
       id: 'step-7-complete',
       stepNumber: 7,
       totalSteps: 7,
-      title: 'Supplier Berhasil Dibuat',
+      title: 'Tutorial Master Data Selesai',
       instruction:
-        'Supplier baru telah berhasil dibuat dan siap digunakan pada penerimaan barang (Goods Receiving).',
+        'Anda telah memahami alur Master Data Supplier. Tutorial ini panduan saja — tidak ada data Supplier yang dibuat.',
       type: 'INFO',
       route: '/suppliers',
       targetSelector: '[data-tour="suppliers-header"]',

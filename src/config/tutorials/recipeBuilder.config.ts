@@ -5,7 +5,7 @@ export const recipeBuilderTutorial: TutorialDefinition = {
   title: 'Recipe Builder & Approval Workflow',
   description: 'Menuntun Production Supervisor menyusun resep formulasi produksi dari draft sampai disetujui (Approved).',
   category: 'production',
-  requiredPermissions: ['recipes.view', 'recipes.create'],
+  requiredPermissions: ['recipes.view'],
   allowedRoles: ['Production Supervisor', 'Admin', 'SuperAdmin'],
   steps: [
     {
