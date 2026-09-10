@@ -27,6 +27,7 @@ import {
 } from '@/features/master-data/components/MasterDataStates'
 import { ProductionOrderStatusBadge } from '@/features/production-orders/components/ProductionOrderStatusBadge'
 import { ProductionOrderCancelDialog } from '@/features/production-orders/components/ProductionOrderCancelDialog'
+import { ProductionOrderReleaseDialog } from '@/features/production-orders/components/ProductionOrderReleaseDialog'
 import {
   ProductionOrderStatus,
   type ProductionOrderDetail as ProductionOrderDetailType,
@@ -62,6 +63,7 @@ export function ProductionOrderDetailPage() {
   const [isSaving, setIsSaving] = useState(false)
 
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
+  const [isReleaseDialogOpen, setIsReleaseDialogOpen] = useState(false)
   const [isCheckingMaterials, setIsCheckingMaterials] = useState(false)
   const [isReleasing, setIsReleasing] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -263,6 +265,7 @@ export function ProductionOrderDetailPage() {
     } catch (caughtError) {
       const apiError = caughtError as ApiError
       setActionError(`Release gagal: ${apiError.message}`)
+      throw caughtError
     } finally {
       setIsReleasing(false)
     }
@@ -347,7 +350,7 @@ export function ProductionOrderDetailPage() {
             {canRelease && !isEditing ? (
               <Button
                 data-tour="po-release-btn"
-                onClick={() => void handleRelease()}
+                onClick={() => setIsReleaseDialogOpen(true)}
                 disabled={isReleasing || isCheckingMaterials}
                 className="bg-emerald-600 text-white hover:bg-emerald-700"
               >
@@ -748,6 +751,14 @@ export function ProductionOrderDetailPage() {
         onOpenChange={setIsCancelDialogOpen}
         onConfirm={handleCancelOrder}
         productionOrderNumber={order.productionOrderNumber}
+      />
+
+      <ProductionOrderReleaseDialog
+        open={isReleaseDialogOpen}
+        onOpenChange={setIsReleaseDialogOpen}
+        onConfirm={handleRelease}
+        productionOrderNumber={order.productionOrderNumber}
+        summary={`Target ${order.targetOutput} ${order.unitOfMeasure.symbol ?? order.unitOfMeasure.code} · Recipe v${order.recipeVersion.versionNumber}.`}
       />
     </div>
   )

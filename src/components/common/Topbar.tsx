@@ -60,7 +60,7 @@ export function Topbar() {
   }
 
   return (
-    <header className="sticky top-0 z-20 flex h-20 shrink-0 items-center justify-between border-b border-slate-200/80 bg-paper/90 px-4 backdrop-blur-sm sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-20 flex h-20 shrink-0 items-center justify-between gap-2 border-b border-slate-200/80 bg-paper/90 px-4 backdrop-blur-sm sm:gap-3 sm:px-6 lg:px-8">
       <Button
         type="button"
         variant="secondary"
@@ -72,12 +72,12 @@ export function Topbar() {
         <Menu size={20} />
       </Button>
 
-      <div className="hidden md:block">
-        <p className="font-display text-lg font-semibold text-ink">MOSA Workspace</p>
-        <p className="text-sm text-slate-500">Fondasi operasional siap untuk pengembangan modul.</p>
+      <div className="hidden min-w-0 md:block">
+        <p className="truncate font-display text-lg font-semibold text-ink">MOSA Workspace</p>
+        <p className="hidden truncate text-sm text-slate-500 lg:block">Fondasi operasional siap untuk pengembangan modul.</p>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
         {/* Quick Start Page Tutorial Button — permission-aware, mobile icon-only */}
         {activePageTutorialId !== null ? (
           <>
@@ -91,7 +91,7 @@ export function Topbar() {
               className="hidden sm:flex items-center gap-1.5 bg-signal/10 text-signal hover:bg-signal/20 font-medium text-xs rounded-xl disabled:opacity-40"
             >
               <HelpCircle size={15} />
-              <span>Tutorial Halaman Ini</span>
+              <span className="hidden lg:inline">Tutorial Halaman Ini</span>
             </Button>
             <Button
               type="button"
@@ -109,10 +109,10 @@ export function Topbar() {
         ) : null}
 
         {/* User Profile Container */}
-        <div data-tour="user-profile" className="flex items-center gap-2.5">
-          <div className="hidden text-right leading-tight sm:block">
-            <p className="text-sm font-semibold text-slate-900">{user?.name ?? '—'}</p>
-            <p className="text-xs text-slate-500">{user?.roles.join(', ') ?? 'Pengguna'}</p>
+        <div data-tour="user-profile" className="flex min-w-0 items-center gap-2.5">
+          <div className="hidden min-w-0 text-right leading-tight sm:block">
+            <p className="max-w-[110px] truncate text-sm font-semibold text-slate-900 lg:max-w-[180px]">{user?.name ?? '—'}</p>
+            <p className="max-w-[110px] truncate text-xs text-slate-500 lg:max-w-[180px]">{user?.roles.join(', ') ?? 'Pengguna'}</p>
           </div>
           <Avatar>
             <AvatarFallback>{initials}</AvatarFallback>

@@ -3,6 +3,7 @@ import { env } from '@/config/env'
 import { useAuthStore } from '@/stores/authStore'
 import { useUiStore } from '@/stores/uiStore'
 import type { ApiError } from '@/types/api'
+import { resolveBusinessErrorMessage } from '@/utils/errorMessages'
 import { tokenStorage } from '@/utils/tokenStorage'
 
 /**
@@ -74,11 +75,14 @@ function normalizeError(error: AxiosError): ApiError {
     }
   }
 
+  const code = body?.code ?? body?.errorCode
+  const rawMessage = body?.message ?? body?.detail ?? body?.title ?? 'Terjadi kesalahan pada server.'
   return {
     status,
-    message: body?.message ?? body?.detail ?? body?.title ?? 'Terjadi kesalahan pada server.',
+    // TASKING 5: known business error codes get Indonesian user-friendly text.
+    message: resolveBusinessErrorMessage(code, rawMessage),
     errors: body?.errors,
-    code: body?.code ?? body?.errorCode,
+    code,
   }
 }
 

@@ -154,7 +154,7 @@ export function ReportsPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-        <Card data-tour="reports-menu" className="h-fit">
+        <Card data-tour="reports-menu" className="h-fit min-w-0">
           <CardHeader><CardTitle>Report Menu</CardTitle><CardDescription>Pilih kategori dan report.</CardDescription></CardHeader>
           <CardContent className="space-y-5">
             {categories.map((category) => (
@@ -171,10 +171,10 @@ export function ReportsPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-5">
-          <Card>
+        <div className="min-w-0 space-y-5">
+          <Card className="min-w-0">
             <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div><div className="text-xs font-semibold uppercase tracking-[0.16em] text-signal">{activeReport.rpt}</div><CardTitle className="mt-2">{activeReport.name}</CardTitle><CardDescription className="mt-2">{activeReport.description}</CardDescription><p className="mt-2 text-xs text-slate-400">Last Generated/Loaded: {loadedAt ?? '-'}</p></div>
+              <div className="min-w-0"><div className="text-xs font-semibold uppercase tracking-[0.16em] text-signal">{activeReport.rpt}</div><CardTitle className="mt-2">{activeReport.name}</CardTitle><CardDescription className="mt-2">{activeReport.description}</CardDescription><p className="mt-2 text-xs text-slate-400">Last Generated/Loaded: {loadedAt ?? '-'}</p></div>
               <div data-tour="reports-export" className="flex flex-wrap gap-2">
                 <Button variant="secondary" onClick={() => void exportReport('csv')} disabled={Boolean(isExporting)}><Download size={16} />{isExporting === 'csv' ? 'Exporting...' : 'CSV'}</Button>
                 <Button onClick={() => void exportReport('xlsx')} disabled={Boolean(isExporting)}><Download size={16} />{isExporting === 'xlsx' ? 'Exporting...' : 'Excel'}</Button>
