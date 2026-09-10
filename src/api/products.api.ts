@@ -30,6 +30,7 @@ export const productsApi = {
           page: 1,
           pageSize: 100,
         },
+        skipForbiddenRedirect: true,
       })
       .then((response) => response.data.items),
 

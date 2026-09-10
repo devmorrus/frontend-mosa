@@ -62,6 +62,7 @@ export const dashboardApi = {
           dateTo: query.dateTo || undefined,
           warehouseId: query.warehouseId || undefined,
         },
+        skipForbiddenRedirect: true,
       })
       .then((response) => response.data),
 }

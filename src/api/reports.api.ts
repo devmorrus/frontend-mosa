@@ -65,6 +65,10 @@ function buildParams(query: ReportQuery, includePagination = true) {
   }
 }
 
+export function buildReportParams(query: ReportQuery, includePagination = true) {
+  return buildParams(query, includePagination)
+}
+
 export const emptyReportQuery: ReportQuery = {
   search: '',
   dateFrom: '',

@@ -32,11 +32,12 @@ export const suppliersApi = {
           page: 1,
           pageSize: 100,
         },
+        skipForbiddenRedirect: true,
       })
       .then((response) => response.data.items),
 
   getById: (id: string) =>
-    apiClient.get<SupplierDetail>(`/suppliers/${id}`).then((response) => response.data),
+    apiClient.get<SupplierDetail>(`/suppliers/${id}`, { skipForbiddenRedirect: true }).then((response) => response.data),
 
   create: (values: SupplierFormValues) => {
     const normalized = normalizeSupplierFormValues(values)

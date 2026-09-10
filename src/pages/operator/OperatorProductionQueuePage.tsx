@@ -35,25 +35,45 @@ export function OperatorProductionQueuePage() {
   const [items, setItems] = useState<OperatorProductionQueueItem[]>([])
   const [pagination, setPagination] = useState<MasterDataPagination>(EMPTY_PAGINATION)
   const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [startingId, setStartingId] = useState<string | null>(null)
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null)
 
-  async function loadQueue() {
-    setIsLoading(true)
+  async function loadQueue(background = false) {
+    if (background) setIsRefreshing(true)
+    else setIsLoading(true)
     setError(null)
     try {
       const result = await productionOrdersApi.getMyQueue(page, PAGE_SIZE)
       setItems(result.items)
       setPagination(result.pagination)
+      setLastUpdatedAt(new Date().toLocaleString('id-ID'))
     } catch (caughtError) {
       setError((caughtError as ApiError).message)
     } finally {
       setIsLoading(false)
+      setIsRefreshing(false)
     }
   }
 
   useEffect(() => {
     void loadQueue()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page])
+
+  useEffect(() => {
+    const interval = window.setInterval(() => void loadQueue(true), 15000)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void loadQueue(true)
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', onVisible)
+    return () => {
+      window.clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', onVisible)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page])
 
@@ -82,6 +102,13 @@ export function OperatorProductionQueuePage() {
           <p className="mt-3 max-w-xl text-sm leading-6 text-paper/70">Pilih satu production order. Sistem hanya akan menampilkan langkah yang dapat Anda kerjakan sekarang.</p>
         </div>
       </section>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <Button variant="secondary" disabled={isLoading || isRefreshing} onClick={() => void loadQueue(true)}>
+          {isRefreshing ? 'Menyegarkan...' : 'Refresh antrean'}
+        </Button>
+        {lastUpdatedAt ? <span className="text-xs text-slate-500">Terakhir diperbarui {lastUpdatedAt} · auto-refresh 15 detik</span> : null}
+      </div>
 
       {isLoading ? <MasterDataLoadingState description="Memuat antrean produksi Anda." /> : error ? (
         <MasterDataErrorState description={error} onRetry={() => void loadQueue()} />

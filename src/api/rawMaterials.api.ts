@@ -28,7 +28,7 @@ export const rawMaterialsApi = {
       .then((response) => mapPaginatedResponse(response.data)),
 
   getById: (id: string) =>
-    apiClient.get<RawMaterialDetail>(`/raw-materials/${id}`).then((response) => response.data),
+    apiClient.get<RawMaterialDetail>(`/raw-materials/${id}`, { skipForbiddenRedirect: true }).then((response) => response.data),
 
   listActiveOptions: () =>
     apiClient
@@ -38,6 +38,7 @@ export const rawMaterialsApi = {
           page: 1,
           pageSize: 100,
         },
+        skipForbiddenRedirect: true,
       })
       .then((response) => response.data.items),
 

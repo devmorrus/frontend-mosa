@@ -30,11 +30,12 @@ export const warehousesApi = {
           page: 1,
           pageSize: 100,
         },
+        skipForbiddenRedirect: true,
       })
       .then((response) => response.data.items),
 
   getById: (id: string) =>
-    apiClient.get<WarehouseDetail>(`/warehouses/${id}`).then((response) => response.data),
+    apiClient.get<WarehouseDetail>(`/warehouses/${id}`, { skipForbiddenRedirect: true }).then((response) => response.data),
 
   create: (values: WarehouseFormValues) =>
     apiClient

@@ -71,14 +71,19 @@ export function GoodsReceivingFormPage() {
       setLookupError(null)
 
       try {
-        const [supplierOptions, warehouseOptions, materialOptions] = await Promise.all([
+        const [supplierResult, warehouseResult, materialResult] = await Promise.allSettled([
           suppliersApi.listOptions('ACTIVE'),
           warehousesApi.listOptions('ACTIVE'),
           rawMaterialsApi.listActiveOptions(),
         ])
-        setSuppliers(supplierOptions)
-        setWarehouses(warehouseOptions)
-        setMaterials(materialOptions)
+        if (supplierResult.status === 'fulfilled') setSuppliers(supplierResult.value)
+        if (warehouseResult.status === 'fulfilled') setWarehouses(warehouseResult.value)
+        if (materialResult.status === 'fulfilled') setMaterials(materialResult.value)
+        const rejected = [supplierResult, warehouseResult, materialResult].find((r) => r.status === 'rejected') as PromiseRejectedResult | undefined
+        if (rejected) {
+          const apiError = rejected.reason as ApiError
+          if ((apiError as ApiError)?.status !== 403) setLookupError(apiError.message)
+        }
       } catch (caughtError) {
         const apiError = caughtError as ApiError
         setLookupError(apiError.message)

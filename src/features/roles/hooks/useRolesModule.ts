@@ -28,7 +28,7 @@ interface UseRolesModuleOptions {
 }
 
 export function useRolesModule({ api, permissions }: UseRolesModuleOptions) {
-  const { can } = useAuth()
+  const { can, refreshSession } = useAuth()
   const pushToast = useUiStore((state) => state.pushToast)
 
   const [items, setItems] = useState<RoleListItem[]>([])
@@ -246,6 +246,11 @@ export function useRolesModule({ api, permissions }: UseRolesModuleOptions) {
       setSelectedPermissionIds(new Set())
       setAvailablePermissions([])
       await loadData(query, { background: true })
+      try {
+        await refreshSession()
+      } catch {
+        pushToast('error', 'Permissions tersimpan, tetapi menu sesi belum refresh. Silakan refresh browser.')
+      }
     } catch (caughtError) {
       const apiError = caughtError as ApiError
       pushToast('error', apiError.message)

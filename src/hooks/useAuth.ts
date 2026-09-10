@@ -34,6 +34,12 @@ export function useAuth() {
     }
   }, [clearSession])
 
+  const refreshSession = useCallback(async () => {
+    const [refreshedUser, refreshedSidebar] = await Promise.all([authApi.me(), authApi.sidebar()])
+    useAuthStore.setState({ user: refreshedUser, sidebarItems: refreshedSidebar, isAuthenticated: true })
+    return { user: refreshedUser, sidebar: refreshedSidebar }
+  }, [])
+
   return {
     user,
     sidebarItems,
@@ -45,5 +51,6 @@ export function useAuth() {
     canAny: hasAnyPermission,
     login,
     logout,
+    refreshSession,
   }
 }
