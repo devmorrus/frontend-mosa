@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface SpotlightRect {
   top: number
@@ -19,7 +19,11 @@ export function TutorialSpotlight({
   onTargetFound,
 }: TutorialSpotlightProps) {
   const [rect, setRect] = useState<SpotlightRect | null>(null)
-  const [foundElement, setFoundElement] = useState<HTMLElement | null>(null)
+  const onTargetFoundRef = useRef(onTargetFound)
+
+  useEffect(() => {
+    onTargetFoundRef.current = onTargetFound
+  }, [onTargetFound])
 
   useEffect(() => {
     let animationFrameId: number
@@ -31,8 +35,7 @@ export function TutorialSpotlight({
         el = document.querySelector<HTMLElement>(targetFallback)
       }
 
-      setFoundElement(el)
-      onTargetFound?.(el)
+      onTargetFoundRef.current?.(el)
 
       if (el) {
         const bounds = el.getBoundingClientRect()
@@ -61,9 +64,9 @@ export function TutorialSpotlight({
     window.addEventListener('scroll', handleResizeOrScroll, { passive: true })
 
     const observer = new ResizeObserver(updatePosition)
-    if (foundElement) {
-      observer.observe(foundElement)
-    }
+    const observedElement = document.querySelector<HTMLElement>(targetSelector) ??
+      (targetFallback ? document.querySelector<HTMLElement>(targetFallback) : null)
+    if (observedElement) observer.observe(observedElement)
 
     return () => {
       window.removeEventListener('resize', handleResizeOrScroll)
@@ -71,7 +74,7 @@ export function TutorialSpotlight({
       cancelAnimationFrame(animationFrameId)
       observer.disconnect()
     }
-  }, [targetSelector, targetFallback, foundElement])
+  }, [targetSelector, targetFallback])
 
   if (!rect) return null
 

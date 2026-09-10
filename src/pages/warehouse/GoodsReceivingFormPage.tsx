@@ -155,6 +155,12 @@ export function GoodsReceivingFormPage() {
     [materials, materialOverrides],
   )
 
+  const generatedLots = useMemo(
+    () => (form.detail?.items ?? []).filter((item) => item.internalLot),
+    [form.detail],
+  )
+  const isPosted = form.detail?.status === 'POSTED'
+
   async function handleSubmit() {
     const result = await form.submit()
     if (!result) return
@@ -174,12 +180,6 @@ export function GoodsReceivingFormPage() {
   if (form.loadError) {
     return <MasterDataErrorState description={form.loadError} onRetry={() => void form.reload()} />
   }
-
-  const generatedLots = useMemo(
-    () => (form.detail?.items ?? []).filter((item) => item.internalLot),
-    [form.detail],
-  )
-  const isPosted = form.detail?.status === 'POSTED'
 
   return (
     <div className="space-y-6">

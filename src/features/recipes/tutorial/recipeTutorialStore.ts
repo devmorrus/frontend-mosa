@@ -25,6 +25,10 @@ function storageKey(userId: string, recipeVersionId: string, targetOutput: numbe
   return `mosa_recipe_tutorial_v1:${userId}:${recipeVersionId}:${targetOutput}`
 }
 
+export function getRecipeTutorialStorageKey(userId: string, recipeVersionId: string, targetOutput: number) {
+  return storageKey(userId, recipeVersionId, targetOutput)
+}
+
 function readProgress(userId: string, recipeVersionId: string, targetOutput: number): RecipeTutorialProgress | null {
   try {
     const value = localStorage.getItem(storageKey(userId, recipeVersionId, targetOutput))

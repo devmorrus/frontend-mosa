@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AlertCircle } from 'lucide-react'
 import { useTutorialStore } from '@/stores/tutorialStore'
@@ -27,9 +27,12 @@ export function TutorialController() {
   const activeTutorial = activeTutorialId ? tutorialRegistry[activeTutorialId] : null
   const rawStep = activeTutorial?.steps[currentStepIndex]
   // Fail-safe (Tasking 5): critical steps are never ACTION — treat as INFO.
-  const currentStep = rawStep && rawStep.critical && rawStep.type === 'ACTION'
-    ? { ...rawStep, type: 'INFO' as const }
-    : rawStep
+  const currentStep = useMemo(
+    () => rawStep && rawStep.critical && rawStep.type === 'ACTION'
+      ? { ...rawStep, type: 'INFO' as const }
+      : rawStep,
+    [rawStep],
+  )
   const totalSteps = activeTutorial?.steps.length ?? 0
 
   // ── Backend progress sync (best-effort, localStorage stays primary) ──
