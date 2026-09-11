@@ -14,6 +14,7 @@ import { MasterDataEmptyState, MasterDataErrorState, MasterDataLoadingState } fr
 import { MasterDataPagination } from '@/features/master-data/components/MasterDataPagination'
 import type { MasterDataPagination as PaginationMeta } from '@/features/master-data/types'
 import { EMPTY_PAGINATION } from '@/features/master-data/utils'
+import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 import type { ProductListItem } from '@/features/products/types'
 import type { RawMaterialListItem } from '@/features/raw-materials/types'
 import type { SupplierListItem } from '@/features/suppliers/types'
@@ -96,11 +97,14 @@ export function ReportsPage() {
   }, [routeCode])
 
   useEffect(() => {
+    // Each filter lookup needs its own view permission (e.g. management has
+    // reports.view but not warehouses.view). Skipped lookups stay empty
+    // instead of producing 403s.
     void Promise.all([
-      warehousesApi.listOptions('ALL').then(setWarehouses),
-      rawMaterialsApi.listActiveOptions().then(setMaterials),
-      productsApi.listActiveOptions().then(setProducts),
-      suppliersApi.listOptions('ALL').then(setSuppliers),
+      fetchLookupIfAllowed('warehouses.view', () => warehousesApi.listOptions('ALL'), []).then(setWarehouses),
+      fetchLookupIfAllowed('materials.view', () => rawMaterialsApi.listActiveOptions(), []).then(setMaterials),
+      fetchLookupIfAllowed('products.view', () => productsApi.listActiveOptions(), []).then(setProducts),
+      fetchLookupIfAllowed('suppliers.view', () => suppliersApi.listOptions('ALL'), []).then(setSuppliers),
     ]).catch(() => undefined)
   }, [])
 

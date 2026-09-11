@@ -35,6 +35,7 @@ import {
   MasterDataLoadingState,
 } from '@/features/master-data/components/MasterDataStates'
 import { useAuth } from '@/hooks/useAuth'
+import { canFetchLookup, fetchLookupIfAllowed } from '@/utils/lookupGuard'
 import type { RawMaterialListItem } from '@/features/raw-materials/types'
 import type { SupplierListItem } from '@/features/suppliers/types'
 import type { WarehouseListItem } from '@/features/warehouses/types'
@@ -72,9 +73,9 @@ export function GoodsReceivingFormPage() {
 
       try {
         const [supplierResult, warehouseResult, materialResult] = await Promise.allSettled([
-          suppliersApi.listOptions('ACTIVE'),
-          warehousesApi.listOptions('ACTIVE'),
-          rawMaterialsApi.listActiveOptions(),
+          fetchLookupIfAllowed('suppliers.view', () => suppliersApi.listOptions('ACTIVE'), []),
+          fetchLookupIfAllowed('warehouses.view', () => warehousesApi.listOptions('ACTIVE'), []),
+          fetchLookupIfAllowed('materials.view', () => rawMaterialsApi.listActiveOptions(), []),
         ])
         if (supplierResult.status === 'fulfilled') setSuppliers(supplierResult.value)
         if (warehouseResult.status === 'fulfilled') setWarehouses(warehouseResult.value)
@@ -101,8 +102,10 @@ export function GoodsReceivingFormPage() {
 
       try {
         if (form.formValues.supplierId && !suppliers.some((item) => item.id === form.formValues.supplierId)) {
-          const detail = await suppliersApi.getById(form.formValues.supplierId)
-          setSupplierOverride(detail)
+          if (canFetchLookup('suppliers.view')) {
+            const detail = await suppliersApi.getById(form.formValues.supplierId)
+            setSupplierOverride(detail)
+          }
         } else {
           setSupplierOverride(null)
         }
@@ -111,8 +114,10 @@ export function GoodsReceivingFormPage() {
           form.formValues.warehouseId &&
           !warehouses.some((item) => item.id === form.formValues.warehouseId)
         ) {
-          const detail = await warehousesApi.getById(form.formValues.warehouseId)
-          setWarehouseOverride(detail)
+          if (canFetchLookup('warehouses.view')) {
+            const detail = await warehousesApi.getById(form.formValues.warehouseId)
+            setWarehouseOverride(detail)
+          }
         } else {
           setWarehouseOverride(null)
         }
@@ -126,7 +131,7 @@ export function GoodsReceivingFormPage() {
               !materialOverrides[materialId],
           )
 
-        if (missingMaterialIds.length > 0) {
+        if (missingMaterialIds.length > 0 && canFetchLookup('materials.view')) {
           const details = await Promise.all(missingMaterialIds.map((materialId) => rawMaterialsApi.getById(materialId)))
           setMaterialOverrides((current) => ({
             ...current,

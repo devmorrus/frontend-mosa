@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { FullScreenSpinner } from '@/components/common/FullScreenSpinner'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { MainLayout } from '@/layouts/MainLayout'
 import { LoginPage } from '@/pages/auth/LoginPage'
@@ -46,6 +47,8 @@ import { StockOpnameDetailPage } from '@/pages/warehouse/StockOpnameDetailPage'
 import { StockOpnamesPage } from '@/pages/warehouse/StockOpnamesPage'
 import { placeholderRoutes } from '@/routes/navigation.config'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
+import { resolveHomeRoute } from '@/routes/homeRoute'
+import { useAuthStore } from '@/stores/authStore'
 import { TutorialLauncherPage } from '@/pages/help/TutorialLauncherPage'
 import { OperatorProductionQueuePage } from '@/pages/operator/OperatorProductionQueuePage'
 import { OperatorGuidedProductionPage } from '@/pages/operator/OperatorGuidedProductionPage'
@@ -55,6 +58,23 @@ import { QualityControlInspectionPage } from '@/pages/production/QualityControlI
 import { FinishedGoodsTraceabilityPage, TraceabilitySearchPage } from '@/pages/traceability/TraceabilityPages'
 import { RawMaterialTraceabilityPage } from '@/pages/traceability/RawMaterialTraceabilityPage'
 import { ReportsPage } from '@/pages/reports/ReportsPage'
+
+/**
+ * Landing route: send every authenticated user to the first page they may
+ * actually open (dashboard when allowed, otherwise first sidebar path).
+ * This keeps roles without `dashboard.view` away from dashboard API calls.
+ */
+function HomeRedirect() {
+  const user = useAuthStore((state) => state.user)
+  const sidebarItems = useAuthStore((state) => state.sidebarItems)
+  const isInitializing = useAuthStore((state) => state.isInitializing)
+
+  if (isInitializing) {
+    return <FullScreenSpinner />
+  }
+
+  return <Navigate to={resolveHomeRoute(user, sidebarItems)} replace />
+}
 
 /**
  * Central route tree. Feature modules (Supplier, Material, Product, ...)
@@ -73,7 +93,9 @@ export function AppRoutes() {
       {/* Protected routes: any authenticated user */}
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route element={<ProtectedRoute requiredPermission="dashboard.view" />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+          </Route>
           <Route path="/help/tutorials" element={<TutorialLauncherPage />} />
           <Route path="/help" element={<Navigate to="/help/tutorials" replace />} />
 
@@ -263,7 +285,7 @@ export function AppRoutes() {
         </Route>
       </Route>
 
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<HomeRedirect />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )

@@ -26,6 +26,7 @@ import {
 } from '@/features/raw-material-inventory/validation'
 import type { RawMaterialListItem } from '@/features/raw-materials/types'
 import type { WarehouseListItem } from '@/features/warehouses/types'
+import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 import type { ApiError } from '@/types/api'
 
 export function RawMaterialInventoryPage() {
@@ -61,8 +62,8 @@ export function RawMaterialInventoryPage() {
     async function loadLookups() {
       try {
         const [warehouseOptions, materialOptions] = await Promise.all([
-          warehousesApi.listOptions('ALL'),
-          rawMaterialsApi.listActiveOptions(),
+          fetchLookupIfAllowed('warehouses.view', () => warehousesApi.listOptions('ALL'), []),
+          fetchLookupIfAllowed('materials.view', () => rawMaterialsApi.listActiveOptions(), []),
         ])
         setWarehouses(warehouseOptions)
         setMaterials(materialOptions)

@@ -27,6 +27,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
+import { ForbiddenPage } from '@/pages/errors/ForbiddenPage'
 import { cn } from '@/lib/utils'
 import type { ApiError } from '@/types/api'
 import type { WarehouseListItem } from '@/features/warehouses/types'
@@ -116,7 +117,9 @@ function SectionHeader({ title, description }: { title: string; description: str
 }
 
 export function DashboardPage() {
-  const { user } = useAuth()
+  const { user, hasPermission } = useAuth()
+  const canViewDashboard = hasPermission('dashboard.view')
+  const canViewWarehouses = hasPermission('warehouses.view')
   const [query, setQuery] = useState<DashboardSummaryQuery>({
     dateFrom: startOfMonthInputValue(),
     dateTo: todayInputValue(),
@@ -130,6 +133,14 @@ export function DashboardPage() {
   const [lookupError, setLookupError] = useState<string | null>(null)
 
   async function loadDashboard(nextQuery = query, background = false) {
+    // Never fire the summary request without the permission: the backend
+    // answers 403 and the console fills with errors for roles like operator.
+    if (!hasPermission('dashboard.view')) {
+      setIsLoading(false)
+      setIsRefreshing(false)
+      return
+    }
+
     if (nextQuery.dateFrom && nextQuery.dateTo && nextQuery.dateFrom > nextQuery.dateTo) {
       setError('Tanggal awal harus lebih kecil atau sama dengan tanggal akhir.')
       setIsLoading(false)
@@ -156,6 +167,12 @@ export function DashboardPage() {
   }
 
   useEffect(() => {
+    // The warehouse filter is optional: skip the lookup entirely when the
+    // role may not list warehouses, instead of producing a 403.
+    if (!canViewWarehouses) {
+      return
+    }
+
     async function loadWarehouses() {
       try {
         const result = await warehousesApi.listOptions('ALL')
@@ -167,12 +184,16 @@ export function DashboardPage() {
     }
 
     void loadWarehouses()
-  }, [])
+  }, [canViewWarehouses])
 
   useEffect(() => {
+    if (!canViewDashboard) {
+      setIsLoading(false)
+      return
+    }
     void loadDashboard(query, Boolean(summary))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(query)])
+  }, [JSON.stringify(query), canViewDashboard])
 
   const selectedWarehouse = warehouses.find((warehouse) => warehouse.id === query.warehouseId)
   const filterParams = {
@@ -187,6 +208,12 @@ export function DashboardPage() {
     dateTo: query.dateTo || undefined,
   }
   const deviation = summary ? summary.performance.actualOutput - summary.performance.targetOutput : 0
+
+  // The route guard already redirects here, this is a second layer so the
+  // page never fires dashboard API calls without the permission.
+  if (!canViewDashboard) {
+    return <ForbiddenPage />
+  }
 
   return (
     <div className="space-y-6">
@@ -227,10 +254,12 @@ export function DashboardPage() {
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1.3fr_auto]">
           <Input type="date" value={query.dateFrom} onChange={(event) => setQuery((current) => ({ ...current, dateFrom: event.target.value }))} />
           <Input type="date" value={query.dateTo} onChange={(event) => setQuery((current) => ({ ...current, dateTo: event.target.value }))} />
-          <select className="h-14 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none focus-visible:border-ink focus-visible:ring-4 focus-visible:ring-ink/10" value={query.warehouseId} onChange={(event) => setQuery((current) => ({ ...current, warehouseId: event.target.value }))}>
-            <option value="">Semua warehouse</option>
-            {warehouses.map((warehouse) => <option key={warehouse.id} value={warehouse.id}>{warehouse.name}</option>)}
-          </select>
+          {canViewWarehouses ? (
+            <select className="h-14 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none focus-visible:border-ink focus-visible:ring-4 focus-visible:ring-ink/10" value={query.warehouseId} onChange={(event) => setQuery((current) => ({ ...current, warehouseId: event.target.value }))}>
+              <option value="">Semua warehouse</option>
+              {warehouses.map((warehouse) => <option key={warehouse.id} value={warehouse.id}>{warehouse.name}</option>)}
+            </select>
+          ) : null}
           <Button variant="secondary" onClick={() => void loadDashboard(query, true)} disabled={isRefreshing}>
             {isRefreshing ? <LoaderCircle size={16} className="animate-spin" /> : <RefreshCcw size={16} />}
             Refresh

@@ -14,6 +14,7 @@ import type { StockOpnameListItem, StockOpnameQueryState, StockOpnameStatus } fr
 import { emptyStockOpnameQuery } from '@/features/stock-opname/validation'
 import type { WarehouseListItem } from '@/features/warehouses/types'
 import { useAuth } from '@/hooks/useAuth'
+import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 import type { ApiError } from '@/types/api'
 
 const statuses: Array<'ALL' | StockOpnameStatus> = ['ALL', 'DRAFT', 'INPROGRESS', 'READYTOPOST', 'POSTED', 'CANCELLED']
@@ -54,7 +55,7 @@ export function StockOpnamesPage() {
   }, [deferredSearch])
 
   useEffect(() => {
-    void warehousesApi.listOptions('ALL').then(setWarehouses).catch(() => setWarehouses([]))
+    void fetchLookupIfAllowed('warehouses.view', () => warehousesApi.listOptions('ALL'), []).then(setWarehouses).catch(() => setWarehouses([]))
   }, [])
 
   async function loadData(nextQuery = query, background = false) {

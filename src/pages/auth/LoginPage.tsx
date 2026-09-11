@@ -2,13 +2,15 @@ import { useState, type FormEvent } from 'react'
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { isPathAllowed, resolveHomeRoute } from '@/routes/homeRoute'
+import { useAuthStore } from '@/stores/authStore'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { ApiError } from '@/types/api'
 
 export function LoginPage() {
-  const { login, isAuthenticated } = useAuth()
+  const { login, isAuthenticated, sidebarItems } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -20,8 +22,14 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   if (isAuthenticated) {
-    const redirectTo = (location.state as { from?: Location })?.from?.pathname ?? '/dashboard'
-    return <Navigate to={redirectTo} replace />
+    const user = useAuthStore.getState().user
+    const permissions = user?.permissions ?? []
+    const requestedPath = (location.state as { from?: Location })?.from?.pathname
+    const target =
+      requestedPath && isPathAllowed(requestedPath, permissions)
+        ? requestedPath
+        : resolveHomeRoute(user, sidebarItems)
+    return <Navigate to={target} replace />
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -31,9 +39,17 @@ export function LoginPage() {
     setIsSubmitting(true)
 
     try {
-      await login({ email, password })
-      const redirectTo = (location.state as { from?: { pathname?: string } })?.from?.pathname
-      navigate(redirectTo ?? '/dashboard', { replace: true })
+      const loggedInUser = await login({ email, password })
+      const requestedPath = (location.state as { from?: { pathname?: string } })?.from?.pathname
+      const homeRoute = resolveHomeRoute(
+        loggedInUser,
+        useAuthStore.getState().sidebarItems,
+      )
+      const target =
+        requestedPath && isPathAllowed(requestedPath, loggedInUser.permissions)
+          ? requestedPath
+          : homeRoute
+      navigate(target, { replace: true })
     } catch (error) {
       const apiError = error as ApiError
       setFieldErrors(apiError.errors ?? {})

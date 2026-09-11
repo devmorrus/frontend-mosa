@@ -15,6 +15,7 @@ import type { RawMaterialListItem } from '@/features/raw-materials/types'
 import type { StockAdjustmentPreview, StockAdjustmentType } from '@/features/stock-adjustments/types'
 import { toSignedAdjustmentQuantity, validateStockAdjustmentForm } from '@/features/stock-adjustments/validation'
 import type { WarehouseListItem } from '@/features/warehouses/types'
+import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 import type { ApiError } from '@/types/api'
 
 function qty(value: number | null) { return value === null ? '-' : new Intl.NumberFormat('id-ID', { maximumFractionDigits: 4 }).format(value) }
@@ -42,7 +43,10 @@ export function StockAdjustmentCreatePage() {
 
   useEffect(() => {
     async function loadLookups() {
-      const [warehouseOptions, materialOptions] = await Promise.all([warehousesApi.listOptions('ACTIVE'), rawMaterialsApi.listActiveOptions()])
+      const [warehouseOptions, materialOptions] = await Promise.all([
+        fetchLookupIfAllowed('warehouses.view', () => warehousesApi.listOptions('ACTIVE'), []),
+        fetchLookupIfAllowed('materials.view', () => rawMaterialsApi.listActiveOptions(), []),
+      ])
       setWarehouses(warehouseOptions); setMaterials(materialOptions)
     }
     void loadLookups().catch(() => undefined)
@@ -51,8 +55,8 @@ export function StockAdjustmentCreatePage() {
   useEffect(() => {
     async function loadLots() {
       if (!warehouseId || !rawMaterialId) { setLots([]); setRawMaterialLotId(''); return }
-      const result = await rawMaterialLotsApi.list({ search: '', rawMaterialId, supplierId: '', warehouseId, status: 'AVAILABLE', expiryFrom: '', expiryTo: '', receivedDateFrom: '', receivedDateTo: '', page: 1, pageSize: 100 })
-      setLots(result.items)
+      const result = await fetchLookupIfAllowed('lots.view', () => rawMaterialLotsApi.list({ search: '', rawMaterialId, supplierId: '', warehouseId, status: 'AVAILABLE', expiryFrom: '', expiryTo: '', receivedDateFrom: '', receivedDateTo: '', page: 1, pageSize: 100 }), null)
+      setLots(result?.items ?? [])
     }
     void loadLots().catch(() => setLots([]))
   }, [warehouseId, rawMaterialId])

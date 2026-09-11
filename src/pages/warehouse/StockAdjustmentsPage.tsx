@@ -18,6 +18,7 @@ import type { StockAdjustmentListItem, StockAdjustmentQueryState } from '@/featu
 import { emptyStockAdjustmentQuery } from '@/features/stock-adjustments/validation'
 import type { WarehouseListItem } from '@/features/warehouses/types'
 import { useAuth } from '@/hooks/useAuth'
+import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 import type { ApiError } from '@/types/api'
 
 function formatDate(value: string | null) { return value ? new Date(value).toLocaleString('id-ID') : '-' }
@@ -48,11 +49,11 @@ export function StockAdjustmentsPage() {
     async function loadLookups() {
       try {
         const [warehouseOptions, materialOptions, lotResult] = await Promise.all([
-          warehousesApi.listOptions('ALL'),
-          rawMaterialsApi.listActiveOptions(),
-          rawMaterialLotsApi.list({ search: '', rawMaterialId: '', supplierId: '', warehouseId: '', status: 'ALL', expiryFrom: '', expiryTo: '', receivedDateFrom: '', receivedDateTo: '', page: 1, pageSize: 100 }),
+          fetchLookupIfAllowed('warehouses.view', () => warehousesApi.listOptions('ALL'), []),
+          fetchLookupIfAllowed('materials.view', () => rawMaterialsApi.listActiveOptions(), []),
+          fetchLookupIfAllowed('lots.view', () => rawMaterialLotsApi.list({ search: '', rawMaterialId: '', supplierId: '', warehouseId: '', status: 'ALL', expiryFrom: '', expiryTo: '', receivedDateFrom: '', receivedDateTo: '', page: 1, pageSize: 100 }), null),
         ])
-        setWarehouses(warehouseOptions); setMaterials(materialOptions); setLots(lotResult.items)
+        setWarehouses(warehouseOptions); setMaterials(materialOptions); setLots(lotResult?.items ?? [])
       } catch { setWarehouses([]); setMaterials([]); setLots([]) }
     }
     void loadLookups()

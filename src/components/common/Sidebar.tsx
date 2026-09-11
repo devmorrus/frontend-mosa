@@ -2,6 +2,7 @@ import { createElement, useEffect, useMemo, useState, type ReactNode } from 'rea
 import { BookOpen, ChevronRight, PanelLeftClose } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { filterSidebarItems } from '@/routes/homeRoute'
 import { getSidebarIcon } from '@/routes/navigation.config'
 import { useUiStore } from '@/stores/uiStore'
 import type { SidebarItem } from '@/types/auth'
@@ -210,16 +211,24 @@ function getDataTourAttr(item: SidebarItem): string | undefined {
 // ─── SidebarContent ───────────────────────────────────────────────────────────
 
 function SidebarContent() {
-  const { sidebarItems } = useAuth()
+  const { sidebarItems, user } = useAuth()
   const location = useLocation()
   const closeMobileSidebar = useUiStore((state) => state.closeMobileSidebar)
 
+  // Drop links the role may not open (e.g. Dashboard for operator): the
+  // backend sidebar can include parent menus without a required permission
+  // while the route itself is guarded.
+  const visibleItems = useMemo(
+    () => filterSidebarItems(sidebarItems, user?.permissions ?? []),
+    [sidebarItems, user],
+  )
+
   const [openIds, setOpenIds] = useState<Set<string>>(() =>
-    new Set(collectActiveAncestorIds(sidebarItems, location.pathname)),
+    new Set(collectActiveAncestorIds(visibleItems, location.pathname)),
   )
 
   useEffect(() => {
-    const activeAncestorIds = collectActiveAncestorIds(sidebarItems, location.pathname)
+    const activeAncestorIds = collectActiveAncestorIds(visibleItems, location.pathname)
     if (activeAncestorIds.length === 0) return
     setOpenIds((prev) => {
       const next = new Set(prev)
@@ -232,11 +241,11 @@ function SidebarContent() {
       })
       return changed ? next : prev
     })
-  }, [sidebarItems, location.pathname])
+  }, [visibleItems, location.pathname])
 
   const sortedItems = useMemo(
-    () => sidebarItems.slice().sort((a, b) => a.sortOrder - b.sortOrder),
-    [sidebarItems],
+    () => visibleItems.slice().sort((a, b) => a.sortOrder - b.sortOrder),
+    [visibleItems],
   )
 
   const rootIds = useMemo(() => sortedItems.map((item) => item.id), [sortedItems])
@@ -295,7 +304,7 @@ function SidebarContent() {
         />
       ))}
 
-      {sidebarItems.length === 0 && (
+      {visibleItems.length === 0 && (
         <div className="rounded-2xl border border-dashed border-paper/10 px-4 py-4 text-sm text-paper/45">
           Navigasi sedang disiapkan dari server.
         </div>

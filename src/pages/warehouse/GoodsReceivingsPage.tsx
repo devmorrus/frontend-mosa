@@ -26,6 +26,7 @@ import type {
 } from '@/features/goods-receivings/types'
 import { formatDateLabel } from '@/features/goods-receivings/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 import type { MasterDataPagination as PaginationMeta } from '@/features/master-data/types'
 import type { SupplierListItem } from '@/features/suppliers/types'
 import type { WarehouseListItem } from '@/features/warehouses/types'
@@ -78,8 +79,8 @@ export function GoodsReceivingsPage() {
     async function loadFilters() {
       try {
         const [supplierOptions, warehouseOptions] = await Promise.all([
-          suppliersApi.listOptions('ALL'),
-          warehousesApi.listOptions('ALL'),
+          fetchLookupIfAllowed('suppliers.view', () => suppliersApi.listOptions('ALL'), []),
+          fetchLookupIfAllowed('warehouses.view', () => warehousesApi.listOptions('ALL'), []),
         ])
         setSuppliers(supplierOptions)
         setWarehouses(warehouseOptions)

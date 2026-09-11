@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { validateStockOpnameCreate } from '@/features/stock-opname/validation'
 import type { WarehouseListItem } from '@/features/warehouses/types'
+import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 import type { ApiError } from '@/types/api'
 
 function todayInput() {
@@ -26,7 +27,7 @@ export function StockOpnameCreatePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    void warehousesApi.listOptions('ACTIVE').then(setWarehouses).catch(() => setWarehouses([]))
+    void fetchLookupIfAllowed('warehouses.view', () => warehousesApi.listOptions('ACTIVE'), []).then(setWarehouses).catch(() => setWarehouses([]))
   }, [])
 
   async function handleSubmit(event: FormEvent) {

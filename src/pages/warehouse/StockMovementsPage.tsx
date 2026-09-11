@@ -28,6 +28,7 @@ import {
   validateStockMovementQuery,
 } from '@/features/stock-movements/validation'
 import type { WarehouseListItem } from '@/features/warehouses/types'
+import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 import type { ApiError } from '@/types/api'
 
 export function StockMovementsPage() {
@@ -67,9 +68,9 @@ export function StockMovementsPage() {
     async function loadLookups() {
       try {
         const [warehouseOptions, materialOptions, lotResult] = await Promise.all([
-          warehousesApi.listOptions('ALL'),
-          rawMaterialsApi.listActiveOptions(),
-          rawMaterialLotsApi.list({
+          fetchLookupIfAllowed('warehouses.view', () => warehousesApi.listOptions('ALL'), []),
+          fetchLookupIfAllowed('materials.view', () => rawMaterialsApi.listActiveOptions(), []),
+          fetchLookupIfAllowed('lots.view', () => rawMaterialLotsApi.list({
             search: '',
             rawMaterialId: '',
             supplierId: '',
@@ -81,12 +82,12 @@ export function StockMovementsPage() {
             receivedDateTo: '',
             page: 1,
             pageSize: 100,
-          }),
+          }), null),
         ])
 
         setWarehouses(warehouseOptions)
         setMaterials(materialOptions)
-        setLots(lotResult.items)
+        setLots(lotResult?.items ?? [])
       } catch (caughtError) {
         const apiError = caughtError as ApiError
         setLookupError(apiError.message)
