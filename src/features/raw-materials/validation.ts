@@ -1,5 +1,6 @@
 import type { MasterDataFormErrors } from '@/features/master-data/types'
 import { normalizeOptionalText, normalizeText } from '@/features/master-data/utils'
+import { isAllowedRawMaterialCategory } from '@/features/raw-materials/categories'
 import type { RawMaterialFormValues } from '@/features/raw-materials/types'
 
 export const emptyRawMaterialFormValues: RawMaterialFormValues = {
@@ -44,6 +45,8 @@ export function validateRawMaterialForm(
 
   if (normalized.category.length > 100) {
     errors.category = ['Kategori material maksimal 100 karakter.']
+  } else if (!isAllowedRawMaterialCategory(normalized.category)) {
+    errors.category = ['Pilih kategori dari daftar yang tersedia.']
   }
 
   if (!normalized.unitOfMeasureId) {

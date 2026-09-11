@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input'
 import { MasterDataFormFieldError } from '@/features/master-data/components/MasterDataFormFieldError'
 import { getFieldError } from '@/features/master-data/utils'
 import type { MasterDataFormErrors } from '@/features/master-data/types'
+import { RAW_MATERIAL_CATEGORIES } from '@/features/raw-materials/categories'
 import type { RawMaterialFormValues } from '@/features/raw-materials/types'
 import type { UnitOfMeasureOption } from '@/features/unit-of-measures/types'
 
@@ -415,14 +416,20 @@ export function RawMaterialFormDialog({
                 <div>
                   <FieldLabel>Category</FieldLabel>
                   <IconInput icon={<Boxes size={15} />}>
-                    <Input
+                    <select
                       value={values.category}
                       onChange={(event) =>
                         onValuesChange((prev) => ({ ...prev, category: event.target.value }))
                       }
-                      placeholder="Dry Goods"
-                      className="h-12"
-                    />
+                      className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-white pr-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
+                    >
+                      <option value="">Tanpa kategori</option>
+                      {RAW_MATERIAL_CATEGORIES.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
                   </IconInput>
                   <MasterDataFormFieldError message={getFieldError(errors, 'category')} />
                   <FieldHelper>Pengelompokan material untuk kebutuhan operasional</FieldHelper>

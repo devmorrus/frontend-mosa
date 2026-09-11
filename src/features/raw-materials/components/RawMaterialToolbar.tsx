@@ -3,6 +3,7 @@ import {
   PAGE_SIZE_OPTIONS,
   STATUS_FILTER_OPTIONS,
 } from '@/features/master-data/utils'
+import { RAW_MATERIAL_CATEGORIES } from '@/features/raw-materials/categories'
 import type { RawMaterialQueryState } from '@/features/raw-materials/types'
 import type { UnitOfMeasureOption } from '@/features/unit-of-measures/types'
 
@@ -112,13 +113,27 @@ export function RawMaterialToolbar({
           </span>
         </div>
 
-        <input
-          type="text"
-          value={query.category}
-          onChange={(event) => onCategoryChange(event.target.value)}
-          placeholder="Filter kategori"
-          className="h-9 min-w-[180px] rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-ink placeholder:text-slate-400 outline-none transition-all hover:border-slate-300 focus:border-ink focus:ring-2 focus:ring-ink/10"
-        />
+        <div className="relative">
+          <select
+            value={query.category}
+            onChange={(event) => onCategoryChange(event.target.value)}
+            className={`h-9 appearance-none rounded-xl border pl-3 pr-8 text-xs font-medium outline-none transition-all hover:border-slate-300 focus:ring-2 focus:ring-ink/10 ${
+              query.category
+                ? 'border-ink/20 bg-ink/5 text-ink focus:border-ink'
+                : 'border-slate-200 bg-white text-ink focus:border-ink'
+            }`}
+          >
+            <option value="">Semua kategori</option>
+            {RAW_MATERIAL_CATEGORIES.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+            ▾
+          </span>
+        </div>
 
         <div className="relative">
           <select
