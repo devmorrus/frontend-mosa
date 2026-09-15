@@ -1,81 +1,116 @@
-# Day 6 QA: Recipe Builder, Versioning & Approval
+# Day 6 Production Manual Testing
 
-Gunakan checklist ini di `LOCAL_DISPOSABLE`, `SHARED_QA/STAGING`, atau `PRODUCTION`. Tulis `PASS` / `FAIL` / `BLOCKED` / `N/A`. Setiap `FAIL` wajib menyertakan screenshot dan `traceId`.
+Checklist ini khusus verifikasi production untuk Recipe Builder, versioning, approval, dan scaling. Default pengujian production adalah **read-only**. Tulis `PASS` / `FAIL` / `BLOCKED` / `N/A`; setiap `FAIL` wajib menyertakan screenshot, waktu kejadian, user, dan `traceId`.
 
-## Aturan environment
+## Safety Gate
 
-| Environment | Aturan |
-| --- | --- |
-| `LOCAL_DISPOSABLE` | Boleh membuat product/material/recipe dummy dan menguji semua invalid case, scaling, reorder, reject, serta resubmit. |
-| `SHARED_QA` / `STAGING` | Gunakan master data yang disetujui. Cleanup hanya melalui alur resmi. Jangan mengubah recipe yang sedang dipakai produksi. |
-| `PRODUCTION` | Read-only untuk recipe/version yang ada. Jangan membuat recipe/version, submit, approve, reject, delete step, atau mengubah recipe aktif tanpa change ticket dan approval. |
+Sebelum mulai:
 
-## Persiapan QA/local
+1. Pastikan environment dan tenant yang dipilih benar-benar `PRODUCTION`.
+2. Gunakan recipe, version, product, dan material yang sudah ada. Jangan membuat data uji.
+3. Jangan klik `Save`, `Submit`, `Approve`, `Reject`, `Delete`, atau `Reorder` saat melakukan verifikasi read-only.
+4. Aksi approval hanya boleh dilakukan jika ada change ticket yang menyebutkan `recipeVersionId`, approver, alasan, dan rollback/mitigasi.
+5. Jika tidak ada recipe version berstatus `Pending Approval`, tandai test approval `N/A`, bukan membuat data baru.
+6. Jangan mengubah status product, raw material, atau UOM untuk simulasi.
 
-1. Siapkan satu product aktif, satu material aktif, satu material inactive, dan UOM aktif.
-2. Siapkan akun dengan `recipes.view`, `recipes.create`, `recipes.update`, `recipes.submit`, dan `recipes.approve` secara terpisah untuk pengujian permission.
-3. Untuk production cukup buka list/detail/version/approval queue secara read-only.
+## Akun dan permission
 
-## Recipe & versioning
+Catat user yang digunakan. Pengujian permission dilakukan dengan login/logout memakai akun yang telah disetujui, bukan dengan mengubah role user production.
 
-| ID | Scope | Langkah | Lolos jika | Hasil |
-| --- | --- | --- | --- | --- |
-| D6-REC-01 | LOCAL/STAGING | Create Recipe dengan product aktif dan output valid | Recipe dibuat, product relation dan UOM benar, V1 Draft muncul | [ ] |
-| D6-REC-02 | LOCAL/STAGING | Buat V2 dari recipe lama | V2 dibuat, V1 tetap ada, history tidak hilang | [ ] |
-| D6-REC-03 | LOCAL/STAGING | Coba duplicate version number melalui API/test tool | Ditolak `duplicate_recipe_version`; tidak ada version parsial | [ ] |
-| D6-REC-04 | SEMUA | Buka recipe detail dan version history | Semua version tampil dengan status, approver, timestamp, dan step count | [ ] |
-| D6-REC-05 | SEMUA | Buka Approved/Historical/Pending version | Builder read-only; tidak ada edit/delete/reorder yang efektif | [ ] |
-| D6-REC-06 | LOCAL/STAGING | Create New Version dari recipe approved | Version baru Draft; version approved lama tetap immutable | [ ] |
+| Akun | Permission yang diharapkan | Tujuan |
+| --- | --- | --- |
+| Viewer | `recipes.view` | List, detail, history, version detail, queue sesuai akses |
+| Builder | `recipes.view`, `recipes.create`, `recipes.update`, `recipes.submit` | Verifikasi tombol/editability jika ada change ticket |
+| Approver | `recipes.view`, `recipes.approve` | Approval queue dan keputusan approval dengan change ticket |
 
-## Recipe steps
+## Recipe List dan Product Relation
 
-| ID | Scope | Langkah | Lolos jika | Hasil |
-| --- | --- | --- | --- | --- |
-| D6-STP-01 | LOCAL/STAGING | Tambah Material, Process, Timer, dan Check step | Semua tersimpan dengan field yang sesuai step type | [ ] |
-| D6-STP-02 | LOCAL/STAGING | Material inactive, target 0/negatif, tolerance negatif | Ditolak client dan backend; tidak ada perubahan tersimpan | [ ] |
-| D6-STP-03 | LOCAL/STAGING | Timer 0 atau instruction kosong | Ditolak dengan validation error yang jelas | [ ] |
-| D6-STP-04 | LOCAL/STAGING | Sequence duplicate atau reorder | Ditolak bila invalid; reorder valid menghasilkan sequence 1..N tanpa duplicate | [ ] |
-| D6-STP-05 | LOCAL/STAGING | Delete step pada Draft | Step terhapus dan sequence setelahnya compact | [ ] |
-| D6-STP-06 | SEMUA | Update/delete/reorder Pending atau Approved | Ditolak dan data tidak berubah | [ ] |
-
-## Approval
-
-| ID | Scope | Langkah | Lolos jika | Hasil |
-| --- | --- | --- | --- | --- |
-| D6-APR-01 | LOCAL/STAGING | Submit Draft | Status Pending Approval, SubmittedBy/SubmittedAt terisi, audit tercatat | [ ] |
-| D6-APR-02 | LOCAL/STAGING | Submit Pending/Approved | Ditolak; status tetap | [ ] |
-| D6-APR-03 | LOCAL/STAGING | Approve sebagai akun tanpa `recipes.approve` | HTTP 403; status tetap Pending Approval | [ ] |
-| D6-APR-04 | LOCAL/STAGING | Approve sebagai approver | Status Approved, ApprovedBy dan ApprovedAt terisi | [ ] |
-| D6-APR-05 | LOCAL/STAGING | Reject tanpa reason | Ditolak; status tetap Pending Approval | [ ] |
-| D6-APR-06 | LOCAL/STAGING | Reject dengan reason lalu edit/resubmit | Status Needs Revision, reason tersimpan, dapat diedit, resubmit kembali Pending | [ ] |
-| D6-APR-07 | LOCAL/STAGING | Approve V2 saat V1 Approved | V2 Approved, V1 Historical, seluruh version history tetap ada, audit approve + historical tercatat | [ ] |
-
-## Scaling
-
-| ID | Scope | Langkah | Lolos jika |
+| ID | Langkah read-only | Lolos jika | Hasil |
 | --- | --- | --- | --- |
-| D6-SCL-01 | LOCAL/STAGING | Preview output 1x, 2.5x, 5x | Scaling factor dan seluruh material mengikuti rasio output | [ ] |
-| D6-SCL-02 | LOCAL/STAGING | Gunakan dua material dengan decimal quantity | Masing-masing material diskalakan independen dengan precision yang sesuai | [ ] |
-| D6-SCL-03 | LOCAL/STAGING | Target output 0 / negatif atau standard output invalid | Ditolak, tidak ada mutasi recipe | [ ] |
+| D6-PROD-REC-01 | Buka `Production > Recipes` | List tampil tanpa error; recipe name, product code/name, status, dan current version terbaca | [ ] |
+| D6-PROD-REC-02 | Cari recipe berdasarkan nama dan product code | Hasil pencarian konsisten dengan data yang ada; pagination tidak menggandakan/menghilangkan item | [ ] |
+| D6-PROD-REC-03 | Buka satu recipe yang sudah dipakai operasional | Product relation benar; recipe tidak menunjuk product yang salah | [ ] |
+| D6-PROD-REC-04 | Buka recipe detail | Current version, standard output, UOM, status, dan metadata tampil | [ ] |
 
-## Frontend & responsive
+## Version History dan Read-only
 
-| ID | Scope | Langkah | Lolos jika | Hasil |
-| --- | --- | --- | --- | --- |
-| D6-UI-01 | SEMUA | Buka Recipe List, Create, Detail, Version Builder | Semua halaman load tanpa lookup 403 yang tidak perlu | [ ] |
-| D6-UI-02 | LOCAL/STAGING | Gunakan Material/Process/Timer/Check editor dan reorder | Form error inline, save, delete, reorder, submit berjalan | [ ] |
-| D6-UI-03 | LOCAL/STAGING | Buka Approval Queue dan approve/reject | Queue hanya pending; decision dialog dan refresh benar | [ ] |
-| D6-UI-04 | SEMUA | Test viewport 1440, 768, dan 375 px | Builder menumpuk rapi, tabel scroll horizontal, action tidak terpotong | [ ] |
+| ID | Langkah read-only | Lolos jika | Hasil |
+| --- | --- | --- | --- |
+| D6-PROD-VER-01 | Buka version history recipe | Semua version yang ada tampil; tidak ada history yang hilang | [ ] |
+| D6-PROD-VER-02 | Buka version Approved | Status, `ApprovedBy`, `ApprovedAt`, approval notes, output, UOM, dan steps tampil | [ ] |
+| D6-PROD-VER-03 | Buka version Historical | Version tetap bisa dibaca dan seluruh steps historis masih tersedia | [ ] |
+| D6-PROD-VER-04 | Buka version Pending Approval atau Needs Revision jika ada | Status dan metadata submission/rejection tampil sesuai data | [ ] |
+| D6-PROD-VER-05 | Periksa action pada Approved/Historical/Pending | UI tidak menawarkan edit/delete/reorder yang tidak sesuai status; jangan mengirim request mutasi | [ ] |
+| D6-PROD-VER-06 | Refresh halaman dan buka kembali version history | Data version, sequence, status, approver, dan timestamp tetap sama | [ ] |
 
-## Larangan production
+## Recipe Steps
 
-* Jangan membuat atau mengubah recipe/version tanpa change ticket.
-* Jangan submit, approve, reject, reorder, delete step, atau preview dengan data buatan di production.
-* Jangan menonaktifkan material/product/UOM untuk simulasi.
-* Jangan menyalin token, credential, atau `VITE_API_BASE_URL` ke tiket.
+Gunakan version production yang sudah ada. Jangan menambah atau menghapus step hanya untuk pengujian.
+
+| ID | Langkah read-only | Lolos jika | Hasil |
+| --- | --- | --- | --- |
+| D6-PROD-STP-01 | Buka builder/detail version Approved | Material step menampilkan material, target quantity, UOM, tolerance; tidak ada data kosong yang tidak diharapkan | [ ] |
+| D6-PROD-STP-02 | Periksa Process, Timer, dan Check step yang sudah ada | Instruction, timer duration, check items, dan sequence tampil sesuai recipe | [ ] |
+| D6-PROD-STP-03 | Periksa seluruh sequence dari atas ke bawah | Sequence berurutan, unique, dan tidak ada gap yang tidak disengaja | [ ] |
+| D6-PROD-STP-04 | Coba membuka URL builder dengan akun Viewer | Halaman tetap aman; kontrol edit/mutasi tersembunyi atau request mutasi ditolak permission | [ ] |
+
+## Approval Queue
+
+Jika production memang memiliki version Pending Approval yang ditugaskan untuk change ticket, gunakan test `D6-PROD-APR-04` sampai `D6-PROD-APR-06`. Jika tidak ada, tandai `N/A`.
+
+| ID | Langkah | Lolos jika | Hasil |
+| --- | --- | --- | --- |
+| D6-PROD-APR-01 | Dengan akun Viewer, buka approval queue | Akses ditolak/terbatas sesuai policy; tidak ada action approval | [ ] |
+| D6-PROD-APR-02 | Dengan akun Approver, buka `Recipe Approval Queue` | Hanya version Pending Approval yang tampil; recipe/product/submitted by/submitted at benar | [ ] |
+| D6-PROD-APR-03 | Buka item queue ke version detail | Detail version sama dengan item queue; steps dan output tidak berubah | [ ] |
+| D6-PROD-APR-04 | Dengan change ticket aktif, approve version yang memang ditugaskan | Status menjadi Approved; `ApprovedBy` dan `ApprovedAt` tercatat; audit approve ada | [ ] |
+| D6-PROD-APR-05 | Jika version sebelumnya Approved, setelah approval refresh history | Version baru Approved; version lama Historical; history dan audit historical tetap ada | [ ] |
+| D6-PROD-APR-06 | Dengan change ticket aktif, reject memakai reason yang disetujui | Status menjadi Needs Revision; reason tersimpan; audit reject ada | [ ] |
+| D6-PROD-APR-07 | Setelah approve/reject, refresh approval queue | Item hilang dari queue Pending Approval atau statusnya sesuai keputusan | [ ] |
+
+## Scaling Preview
+
+Scaling preview bersifat read-only, tetapi hanya lakukan pada version production yang disetujui dan target output operasional yang memang diperlukan. Jangan memakai target ekstrem atau data dummy.
+
+| ID | Langkah | Lolos jika | Hasil |
+| --- | --- | --- | --- |
+| D6-PROD-SCL-01 | Buka scaling preview dari version Approved | Preview tersedia tanpa mengubah recipe/version | [ ] |
+| D6-PROD-SCL-02 | Masukkan target output operasional yang disetujui | Scaling factor = target output / standard output | [ ] |
+| D6-PROD-SCL-03 | Periksa seluruh material | Setiap material ter-scale proporsional; decimal quantity tidak dibulatkan secara tidak semestinya; UOM benar | [ ] |
+| D6-PROD-SCL-04 | Refresh version setelah preview | Standard output, steps, status, dan version history tidak berubah | [ ] |
+
+## Frontend dan Responsive
+
+| ID | Langkah | Lolos jika | Hasil |
+| --- | --- | --- | --- |
+| D6-PROD-UI-01 | Test desktop 1440 px | List, detail, version history, queue, dan step detail terbaca; action tidak terpotong | [ ] |
+| D6-PROD-UI-02 | Test tablet 768 px | Filter dan card menumpuk rapi; tabel dapat di-scroll bila diperlukan | [ ] |
+| D6-PROD-UI-03 | Test mobile 375 px | Tidak ada horizontal overflow pada halaman; version/step detail tetap terbaca | [ ] |
+| D6-PROD-UI-04 | Buka DevTools Network selama read-only test | Tidak ada lookup request 403 yang tidak perlu; tidak ada POST/PUT/PATCH/DELETE tanpa aksi yang disetujui | [ ] |
+
+## Non-production Only
+
+Test berikut **tidak boleh dilakukan di production** dan hanya boleh dijalankan di `LOCAL_DISPOSABLE` atau `STAGING` dengan data yang disetujui:
+
+* Create Recipe dan Create Version.
+* Duplicate version number.
+* Add/update/delete/reorder step.
+* Submit Draft, reject tanpa reason, resubmit Needs Revision.
+* Material inactive, target quantity 0/negatif, tolerance negatif, Timer 0, dan instruction kosong.
+* Scaling 1x, 2.5x, 5x dengan material dummy atau target ekstrem.
+* Pengujian permission dengan mengubah role user production.
+
+## Production Prohibited
+
+* Jangan membuat recipe/version dummy.
+* Jangan mengubah recipe Approved/Historical/Pending tanpa change ticket.
+* Jangan melakukan submit, approve, reject, delete, reorder, atau save untuk sekadar mencoba UI.
+* Jangan menonaktifkan product, raw material, atau UOM untuk simulasi.
+* Jangan mengedit database langsung.
+* Jangan menyalin token, credential, payload sensitif, atau `VITE_API_BASE_URL` ke tiket.
 
 ## Sign-off
 
-| Tester | Tanggal | Environment | Browser/device | Hasil | Catatan FAIL |
-| --- | --- | --- | --- | --- | --- |
-|  |  |  |  | [ ] PASS [ ] FAIL |  |
+| Tester | Tanggal/waktu | User/role | Environment | Browser/device | Hasil | Catatan FAIL / traceId |
+| --- | --- | --- | --- | --- | --- | --- |
+|  |  |  | PRODUCTION |  | [ ] PASS [ ] FAIL |  |
