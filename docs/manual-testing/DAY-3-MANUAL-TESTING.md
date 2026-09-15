@@ -26,6 +26,26 @@ Tulis `PASS` / `FAIL` / `BLOCKED` / `N/A` di kolom Hasil. Setiap `FAIL` wajib sc
 
 Jangan decode JWT dari localStorage untuk keperluan selain verifikasi peran; jangan tulis password di tiket.
 
+## 0. Pra-syarat production (wajib sebelum sentuh Goods Receiving)
+
+Form `Warehouse > Goods Receiving > Create` hanya bisa disimpan bila 3 dropdown terisi: **Supplier + Warehouse + minimal 1 Raw Material aktif**. UOM terisi otomatis dari material. Dari screenshot Anda: Supplier ✓ (`PT Sumber Pangan`), Warehouse ✓ (`Gudang Bahan Baku`), **Raw Material ✗ kosong** — itu sebabnya dropdown `Pilih raw material aktif` tidak ada isinya. Isi dulu data di bawah, berurutan (relasi: UOM → Warehouse → Supplier → Raw Material → Product). Semua via UI prod dengan akun berhak `*.create`, data asli (bukan code `QA-*`/`DAY3-*`).
+
+| # | Cek di UI prod | Cara verifikasi | Bila kosong → isi apa (contoh, ganti data asli) |
+| --- | --- | --- | --- |
+| P0-1 | `Master Data > Units` | List ada minimal `KG` Active | Add: `KG` / Kilogram / kg; tambah `G`, `PCS` bila dipakai. Code unik, tersimpan `UPPER` |
+| P0-2 | `Master Data > Warehouses` | `Gudang Bahan Baku` Active ✓ (sudah ada) | Tambah bila kurang: `WH-FG` Gudang Barang Jadi; `WH-QC` Area Karantina QC |
+| P0-3 | `Master Data > Suppliers` | `PT Sumber Pangan` Active ✓ (sudah ada) | Tambah supplier asli lain bila perlu; cek duplicate `409` = sudah ada, jangan buat ganda |
+| P0-4 | `Master Data > Raw Materials` | **Wajib ada minimal 1 Active** (ini yang kosong) | Add: `RM-001` / nama asli / category dari dropdown / UOM `KG` (pilih dari list Active only) / HasExpiry sesuai kemasan (`No` → shelf-life kosong; `Yes` → isi hari, mis. 365) / Minimum Stock mis. 10 / Active. Ulangi untuk tiap bahan baku aktual |
+| P0-5 | `Master Data > Products` | Minimal 1 Active (untuk Day 2, tidak memblokir receiving) | Add: `PRD-001` / nama asli / UOM aktif / shelf-life / Active |
+
+Aturan mapping (jangan salah isi, kalau salah dropdown receiving ikut salah):
+
+* Dropdown receiving hanya menampilkan yang **Active** (`listOptions('ACTIVE')`). Data Inactive memang hilang dari pilihan — bukan bug.
+* UOM item mengikuti material (`UOM` read-only). Jadi bila material salah UOM, betulkan di `Raw Materials > Edit`, bukan di receiving.
+* `HasExpiry=false` → Expiry disabled + dipaksa `null`. `HasExpiry=true` → Expiry wajib + `production <= expiry`.
+* Setelah P0-4 terisi, kembali ke `Goods Receiving > Create`: dropdown Raw Material harus muncul. Bila masih kosong: pastikan status Active (filter Status=Active), refresh, cek `traceId` bila error.
+* Detail alur Day 2 (aturan panjang kode, shelf-life, dsb) ada di `DAY-2-MANUAL-TESTING.md` Bagian 8 — ikuti itu saat mengisi P0-1 s/d P0-5.
+
 ## 1. Regresi Master Data Frontend (sebagai A, local/staging tulis; prod baca)
 
 | ID | Scope | Langkah + data | Lolos jika | Hasil |
@@ -51,7 +71,7 @@ Siapkan (local/staging): supplier aktif + supplier yang lalu di-inactive-kan; wa
 | D3-GR-02 | SEMUA | pageSize, next page, filter Status=Draft | Pagination update | [ ] |
 | D3-GR-03 | SEMUA | Search nomor/supplier lowercase + kosongkan | Debounce 350ms; kosong → empty-state (search kini case-insensitive) | [ ] |
 | D3-GR-04 | SEMUA | Filter supplier + warehouse + `dateFrom <= dateTo` | Hasil sesuai; `dateFrom > dateTo` ditolak `400` | [ ] |
-| D3-GR-05 | SEMUA | Klik Create: cek dropdown supplier/warehouse/material | Hanya yang Active (inactive disembunyikan by-design) | [ ] |
+| D3-GR-05 | SEMUA | Klik Create: cek dropdown supplier/warehouse/material (prod: wajib lolos P0 dulu) | Hanya yang Active (inactive disembunyikan by-design). Prod: supplier + warehouse ada, material muncul setelah P0-4 diisi | [ ] |
 | D3-GR-06 | LOCAL/STAGING | Create draft valid: supplier+warehouse aktif, tanggal hari ini, 1 item material aktif qty 10 UOM cocok, supplier LOT kosong, production/expiry kosong (material non-expiry) → Save Draft | Toast draft dibuat → redirect detail → nomor `GR-yyyyMMdd-NNNN` otomatis; LOT masih `-` | [ ] |
 | D3-GR-07 | LOCAL/STAGING | Draft kedua hari sama | Nomor sekuens +1, unik (race nomor otomatis di-retry sekali, konflik boks `409 duplicate_receiving_number`) | [ ] |
 | D3-GR-08 | LOCAL/STAGING | Supplier kosong → Save | Error field `supplierId` (frontend) / `400` (API langsung) | [ ] |
