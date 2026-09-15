@@ -108,6 +108,10 @@ export function useGoodsReceivingForm(receivingId?: string) {
   }
 
   async function submit() {
+    if (isSubmitting || isPosting) {
+      return null
+    }
+
     const nextErrors = validateGoodsReceivingForm(formValues)
     setFormErrors(nextErrors)
     setFormError(null)

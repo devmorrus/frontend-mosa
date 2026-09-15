@@ -17,6 +17,7 @@ export function RawMaterialLotScannerPage() {
   const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const scannerRef = useRef<QrScanner | null>(null)
+  const isResolvingRef = useRef(false)
   const [manualInput, setManualInput] = useState('')
   const [isCameraOpen, setIsCameraOpen] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
@@ -39,10 +40,11 @@ export function RawMaterialLotScannerPage() {
     setScanResult(normalized)
     setScanError(parsed.error)
 
-    if (!parsed.token || isResolving) {
+    if (!parsed.token || isResolvingRef.current) {
       return
     }
 
+    isResolvingRef.current = true
     setIsResolving(true)
 
     try {
@@ -53,6 +55,7 @@ export function RawMaterialLotScannerPage() {
       const apiError = caughtError as ApiError
       setScanError(apiError.status === 404 ? 'LOT tidak ditemukan.' : apiError.message)
     } finally {
+      isResolvingRef.current = false
       setIsResolving(false)
     }
   }
@@ -81,7 +84,7 @@ export function RawMaterialLotScannerPage() {
       const scanner = new QrScanner(
         videoRef.current,
         (result) => {
-          if (isResolving) return
+          if (isResolvingRef.current) return
           void resolveScannedValue(result.data)
         },
         {

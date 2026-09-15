@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/common/Breadcrumb'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
+import { rawMaterialLotsApi } from '@/api/rawMaterialLots.api'
 import { suppliersApi } from '@/api/suppliers.api'
 import { warehousesApi } from '@/api/warehouses.api'
 import { Button } from '@/components/ui/button'
@@ -54,6 +55,19 @@ export function GoodsReceivingFormPage() {
   const [supplierOverride, setSupplierOverride] = useState<SupplierListItem | null>(null)
   const [warehouseOverride, setWarehouseOverride] = useState<WarehouseListItem | null>(null)
   const [materialOverrides, setMaterialOverrides] = useState<Record<string, RawMaterialListItem>>({})
+  const [resolvingLot, setResolvingLot] = useState<string | null>(null)
+
+  async function openLotDetail(internalLot: string) {
+    setResolvingLot(internalLot)
+    try {
+      const lot = await rawMaterialLotsApi.getByNumber(internalLot)
+      navigate(entityLinks.lotDetail(lot.id))
+    } catch {
+      navigate(entityLinks.lotList({ search: internalLot }))
+    } finally {
+      setResolvingLot(null)
+    }
+  }
 
   const canSave = id ? can('receiving.update') : can('receiving.create')
   const canPost = can('receiving.post')
@@ -395,22 +409,24 @@ export function GoodsReceivingFormPage() {
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               {generatedLots.map((item) => (
-                <Link
+                <button
                   key={item.id}
-                  to={entityLinks.lotList({ search: item.internalLot ?? '' })}
-                  className="rounded-2xl border border-ink/10 p-4 transition-colors hover:border-ink hover:bg-sand/30"
+                  type="button"
+                  onClick={() => void openLotDetail(item.internalLot ?? '')}
+                  disabled={resolvingLot === item.internalLot}
+                  className="rounded-2xl border border-ink/10 p-4 text-left transition-colors hover:border-ink hover:bg-sand/30 disabled:opacity-60"
                 >
                   <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     {item.rawMaterialCode} — {item.rawMaterialName}
                   </div>
                   <div className="mt-1 font-semibold text-ink underline underline-offset-4">
-                    {item.internalLot}
+                    {resolvingLot === item.internalLot ? 'Membuka...' : item.internalLot}
                   </div>
                   <div className="mt-1 text-xs text-slate-500">
                     Qty {item.quantity} {item.unitOfMeasureCode}
                     {item.supplierLot ? ` • Supplier LOT ${item.supplierLot}` : ''}
                   </div>
-                </Link>
+                </button>
               ))}
             </div>
           </CardContent>
