@@ -169,7 +169,6 @@ export function GoodsReceivingFormPage() {
     () => (form.detail?.items ?? []).filter((item) => item.internalLot),
     [form.detail],
   )
-  const isPosted = form.detail?.status === 'POSTED'
 
   async function handleSubmit() {
     const result = await form.submit()
@@ -414,11 +413,6 @@ export function GoodsReceivingFormPage() {
                 </Link>
               ))}
             </div>
-            {!isPosted ? (
-              <p className="text-xs text-slate-500">
-                Dokumen belum POSTED — daftar di atas adalah preview internal LOT yang akan dibuat.
-              </p>
-            ) : null}
           </CardContent>
         </Card>
       ) : null}
@@ -499,7 +493,7 @@ export function GoodsReceivingFormPage() {
       </div>
 
       <Dialog open={form.showPostConfirmation} onOpenChange={form.closePostConfirmation}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-xl max-h-[85dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Post Receiving</DialogTitle>
             <DialogDescription>

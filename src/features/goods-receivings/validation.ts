@@ -117,6 +117,12 @@ export function validateGoodsReceivingForm(
     if (item.hasExpiry && !item.expiryDate) {
       errors[`items[${index}].expiryDate`] = ['Expiry date wajib diisi untuk material ini.']
     }
+
+    if (item.productionDate && item.expiryDate && item.productionDate > item.expiryDate) {
+      errors[`items[${index}].productionDate`] = [
+        'Production date harus lebih awal atau sama dengan expiry date.',
+      ]
+    }
   })
 
   return errors
