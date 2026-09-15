@@ -4,12 +4,21 @@ import {
   STATUS_FILTER_OPTIONS,
 } from '@/features/master-data/utils'
 import type { ProductQueryState } from '@/features/products/types'
+import type { UnitOfMeasureOption } from '@/features/unit-of-measures/types'
+
+function buildUnitOptionLabel(option: UnitOfMeasureOption) {
+  return option.symbol
+    ? `${option.name} (${option.code} / ${option.symbol})`
+    : `${option.name} (${option.code})`
+}
 
 export function ProductToolbar({
   query,
   searchValue,
+  uomOptions,
   onSearchValueChange,
   onStatusChange,
+  onUnitOfMeasureChange,
   onPageSizeChange,
   onResetFilters,
   onCreate,
@@ -17,14 +26,17 @@ export function ProductToolbar({
 }: {
   query: ProductQueryState
   searchValue: string
+  uomOptions: UnitOfMeasureOption[]
   onSearchValueChange: (value: string) => void
   onStatusChange: (status: ProductQueryState['status']) => void
+  onUnitOfMeasureChange: (value: string) => void
   onPageSizeChange: (pageSize: number) => void
   onResetFilters: () => void
   onCreate: () => void
   canCreate: boolean
 }) {
-  const isFiltered = query.status !== 'ALL' || searchValue.trim().length > 0
+  const isFiltered =
+    query.status !== 'ALL' || searchValue.trim().length > 0 || query.unitOfMeasureId.length > 0
 
   return (
     <div className="overflow-hidden rounded-[24px] border border-white/80 bg-white/90 shadow-sm backdrop-blur-sm">
@@ -75,6 +87,28 @@ export function ProductToolbar({
             {STATUS_FILTER_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
+              </option>
+            ))}
+          </select>
+          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+            ▾
+          </span>
+        </div>
+
+        <div className="relative">
+          <select
+            value={query.unitOfMeasureId}
+            onChange={(event) => onUnitOfMeasureChange(event.target.value)}
+            className={`h-9 appearance-none rounded-xl border pl-3 pr-8 text-xs font-medium outline-none transition-all hover:border-slate-300 focus:ring-2 focus:ring-ink/10 ${
+              query.unitOfMeasureId
+                ? 'border-ink/20 bg-ink/5 text-ink focus:border-ink'
+                : 'border-slate-200 bg-white text-ink focus:border-ink'
+            }`}
+          >
+            <option value="">Semua UOM</option>
+            {uomOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {buildUnitOptionLabel(option)}
               </option>
             ))}
           </select>

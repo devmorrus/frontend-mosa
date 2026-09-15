@@ -21,4 +21,6 @@ export interface ProductFormValues {
   isActive: boolean
 }
 
-export interface ProductQueryState extends MasterDataQueryState {}
+export interface ProductQueryState extends MasterDataQueryState {
+  unitOfMeasureId: string
+}

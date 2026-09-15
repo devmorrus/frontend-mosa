@@ -18,7 +18,10 @@ export const productsApi = {
   list: (query: ProductQueryState) =>
     apiClient
       .get<ApiPaginatedResponse<ProductListItem>>('/products', {
-        params: buildMasterDataParams(query),
+        params: {
+          ...buildMasterDataParams(query),
+          unitOfMeasureId: query.unitOfMeasureId || undefined,
+        },
       })
       .then((response) => mapPaginatedResponse(response.data)),
 
@@ -35,7 +38,9 @@ export const productsApi = {
       .then((response) => response.data.items),
 
   getById: (id: string) =>
-    apiClient.get<ProductDetail>(`/products/${id}`).then((response) => response.data),
+    apiClient
+      .get<ProductDetail>(`/products/${id}`, { skipForbiddenRedirect: true })
+      .then((response) => response.data),
 
   create: (values: ProductFormValues) => {
     const normalized = normalizeProductFormValues(values)

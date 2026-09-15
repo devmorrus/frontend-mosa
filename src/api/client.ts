@@ -65,6 +65,7 @@ function normalizeError(error: AxiosError): ApiError {
         errors?: Record<string, string[]>
         code?: string
         errorCode?: string
+        traceId?: string
       }
     | undefined
 
@@ -83,6 +84,7 @@ function normalizeError(error: AxiosError): ApiError {
     message: resolveBusinessErrorMessage(code, rawMessage),
     errors: body?.errors,
     code,
+    traceId: body?.traceId,
   }
 }
 

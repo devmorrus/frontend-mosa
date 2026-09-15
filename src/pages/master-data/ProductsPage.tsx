@@ -18,6 +18,7 @@ import type {
   ProductDetail,
   ProductFormValues,
   ProductListItem,
+  ProductQueryState,
 } from '@/features/products/types'
 import {
   emptyProductFormValues,
@@ -25,6 +26,14 @@ import {
 } from '@/features/products/validation'
 import type { UnitOfMeasureOption } from '@/features/unit-of-measures/types'
 import type { ApiError } from '@/types/api'
+
+const DEFAULT_QUERY: ProductQueryState = {
+  search: '',
+  status: 'ALL',
+  unitOfMeasureId: '',
+  page: 1,
+  pageSize: 10,
+}
 
 function toFormValues(detail: ProductDetail): ProductFormValues {
   return {
@@ -54,7 +63,7 @@ export function ProductsPage() {
   const [isUomLoading, setIsUomLoading] = useState(true)
   const [uomError, setUomError] = useState<string | null>(null)
   const [formUnitOverride, setFormUnitOverride] = useState<UnitOfMeasureOption | null>(null)
-  const productModule = useMasterDataModule<ProductListItem, ProductDetail, ProductFormValues>({
+  const productModule = useMasterDataModule<ProductListItem, ProductDetail, ProductFormValues, ProductQueryState>({
     api: productsApi,
     permissions: {
       view: 'products.view',
@@ -65,6 +74,7 @@ export function ProductsPage() {
     toFormValues,
     validate: validateProductForm,
     entityName: 'Product',
+    initialQuery: DEFAULT_QUERY,
   })
 
   useEffect(() => {
@@ -178,8 +188,16 @@ export function ProductsPage() {
       <ProductToolbar
         query={productModule.query}
         searchValue={productModule.searchInput}
+        uomOptions={uomOptions}
         onSearchValueChange={productModule.setSearchInput}
         onStatusChange={productModule.handleStatusChange}
+        onUnitOfMeasureChange={(value) =>
+          productModule.setQuery((current) => ({
+            ...current,
+            unitOfMeasureId: value,
+            page: 1,
+          }))
+        }
         onPageSizeChange={productModule.handlePageSizeChange}
         onResetFilters={() => {
           productModule.setSearchInput('')
@@ -187,6 +205,7 @@ export function ProductsPage() {
             ...current,
             search: '',
             status: 'ALL',
+            unitOfMeasureId: '',
             page: 1,
           }))
         }}

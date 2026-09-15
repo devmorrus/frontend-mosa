@@ -24,4 +24,6 @@ export interface ApiError {
   /** Field-level validation errors, e.g. { email: ["already taken"] } */
   errors?: Record<string, string[]>
   code?: string
+  /** Backend ProblemDetails traceId for correlating FAIL reports. */
+  traceId?: string
 }

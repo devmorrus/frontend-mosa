@@ -28,11 +28,14 @@ export const unitOfMeasuresApi = {
           page: 1,
           pageSize: 100,
         },
+        skipForbiddenRedirect: true,
       })
       .then((response) => response.data.items),
 
   getById: (id: string) =>
-    apiClient.get<UnitOfMeasureDetail>(`/unit-of-measures/${id}`).then((response) => response.data),
+    apiClient
+      .get<UnitOfMeasureDetail>(`/unit-of-measures/${id}`, { skipForbiddenRedirect: true })
+      .then((response) => response.data),
 
   create: (values: UnitOfMeasureFormValues) => {
     const normalized = normalizeUnitOfMeasureFormValues(values)
