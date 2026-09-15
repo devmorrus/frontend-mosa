@@ -21,6 +21,7 @@ import type { ProductListItem } from '@/features/products/types'
 import type { RawMaterialListItem } from '@/features/raw-materials/types'
 import type { ApiError } from '@/types/api'
 import type { UnitOfMeasureOption } from '@/features/unit-of-measures/types'
+import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 
 function buildUnitLabel(option: UnitOfMeasureOption) {
   return option.symbol ? `${option.name} (${option.symbol})` : `${option.name} (${option.code})`
@@ -45,9 +46,9 @@ export function RecipeCreatePage() {
 
       try {
         const [productItems, rawMaterialItems, unitItems] = await Promise.all([
-          productsApi.listActiveOptions(),
-          rawMaterialsApi.listActiveOptions(),
-          unitOfMeasuresApi.listActiveOptions(),
+          fetchLookupIfAllowed('products.view', () => productsApi.listActiveOptions(), []),
+          fetchLookupIfAllowed('materials.view', () => rawMaterialsApi.listActiveOptions(), []),
+          fetchLookupIfAllowed('uoms.view', () => unitOfMeasuresApi.listActiveOptions(), []),
         ])
 
         setProducts(productItems)

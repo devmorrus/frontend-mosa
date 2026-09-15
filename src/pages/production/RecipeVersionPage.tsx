@@ -53,6 +53,7 @@ import type { ApiError } from '@/types/api'
 import type { UnitOfMeasureOption } from '@/features/unit-of-measures/types'
 import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/stores/uiStore'
+import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 
 function buildUnitLabel(option: UnitOfMeasureOption) {
   return option.symbol ? `${option.name} (${option.symbol})` : `${option.name} (${option.code})`
@@ -143,8 +144,8 @@ export function RecipeVersionPage() {
       try {
         const [versionResult, unitItems, materialItems] = await Promise.all([
           recipesApi.getVersionById(currentVersionId),
-          unitOfMeasuresApi.listActiveOptions(),
-          rawMaterialsApi.listActiveOptions(),
+          fetchLookupIfAllowed('uoms.view', () => unitOfMeasuresApi.listActiveOptions(), []),
+          fetchLookupIfAllowed('materials.view', () => rawMaterialsApi.listActiveOptions(), []),
         ])
 
         setVersion(versionResult)

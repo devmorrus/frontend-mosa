@@ -29,6 +29,7 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import type { ApiError } from '@/types/api'
 import type { UnitOfMeasureOption } from '@/features/unit-of-measures/types'
+import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 
 const DEFAULT_QUERY: RecipeVersionQueryState = {
   status: 'ALL',
@@ -92,7 +93,7 @@ export function RecipeDetailPage() {
   }, [id, query])
 
   useEffect(() => {
-    void unitOfMeasuresApi.listActiveOptions().then(setUomOptions).catch(() => setUomOptions([]))
+    void fetchLookupIfAllowed('uoms.view', () => unitOfMeasuresApi.listActiveOptions(), []).then(setUomOptions)
   }, [])
 
   useEffect(() => {
