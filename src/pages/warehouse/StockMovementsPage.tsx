@@ -100,7 +100,7 @@ export function StockMovementsPage() {
   useEffect(() => {
     async function reloadLots() {
       try {
-        const result = await rawMaterialLotsApi.list({
+        const result = await fetchLookupIfAllowed('lots.view', () => rawMaterialLotsApi.list({
           search: '',
           rawMaterialId: query.rawMaterialId,
           supplierId: '',
@@ -112,8 +112,10 @@ export function StockMovementsPage() {
           receivedDateTo: '',
           page: 1,
           pageSize: 100,
-        })
-        setLots(result.items)
+        }), null)
+        if (result) {
+          setLots(result.items)
+        }
       } catch {
         // keep last lot options
       }
