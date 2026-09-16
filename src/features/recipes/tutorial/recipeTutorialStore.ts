@@ -83,6 +83,8 @@ export const useRecipeTutorialStore = create<RecipeTutorialStore>((set, get) => 
   completeStep: (userId, stepId, totalSteps) => {
     const progress = get().progress
     if (!progress || progress.status !== 'IN_PROGRESS') return
+    // Going back is for review only; a completed step must not unlock another step again.
+    if (progress.completedStepIds.includes(stepId)) return
     const completed = [...new Set([...progress.completedStepIds, stepId])]
     const isFinal = progress.currentUnlockedStep >= totalSteps - 1
     persist(set, userId, { ...progress, completedStepIds: completed, currentUnlockedStep: isFinal ? progress.currentUnlockedStep : progress.currentUnlockedStep + 1, viewedStep: isFinal ? progress.currentUnlockedStep : progress.currentUnlockedStep + 1, status: isFinal ? 'FINALIZING' : 'IN_PROGRESS' })
