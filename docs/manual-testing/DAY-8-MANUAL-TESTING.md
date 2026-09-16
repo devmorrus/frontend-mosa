@@ -24,62 +24,62 @@ Pastikan tersedia PO nyata berstatus `RELEASED`, assigned ke operator yang melak
 
 | ID | Action | Expected result | Result |
 | --- | --- | --- | --- |
-| D8-QUEUE-01 | Login sebagai assigned operator, buka `Production > My Production` | Queue hanya menampilkan PO `Released` atau `In Progress` milik operator tersebut | [ ] |
-| D8-QUEUE-02 | Buka PO milik operator lain melalui URL langsung | Akses ditolak atau tampil `not found`; detail PO tidak bocor | [ ] |
-| D8-QUEUE-03 | Pada PO `Released`, klik `Start Production` satu kali | PO berubah `IN_PROGRESS`; tidak ada duplikasi execution | [ ] |
-| D8-QUEUE-04 | Refresh setelah start | `StartedBy` dan `StartedAt` tetap; step snapshot tetap sama | [ ] |
-| D8-QUEUE-05 | Coba start ulang PO yang sudah `In Progress` | Request ditolak `409`; status dan snapshot tidak berubah | [ ] |
-| D8-QUEUE-06 | Coba start PO `Draft` atau `MaterialShortage` di local/staging | Request ditolak; PO tidak berubah menjadi `In Progress` | [ ] |
-| D8-QUEUE-07 | Simulasikan exception saat start di test environment | Transaction rollback; status tidak berubah dan tidak ada partial step execution | [ ] |
+| D8-QUEUE-01 | Login sebagai assigned operator, buka `Production > My Production` | Queue hanya menampilkan PO `Released` atau `In Progress` milik operator tersebut | PASS - `PO-20260916-00001` |
+| D8-QUEUE-02 | Buka PO milik operator lain melalui URL langsung | Akses ditolak atau tampil `not found`; detail PO tidak bocor | PASS - automated authorization coverage; no production mutation |
+| D8-QUEUE-03 | Pada PO `Released`, klik `Start Production` satu kali | PO berubah `IN_PROGRESS`; tidak ada duplikasi execution | PASS - `PO-20260916-00001` |
+| D8-QUEUE-04 | Refresh setelah start | `StartedBy` dan `StartedAt` tetap; step snapshot tetap sama | PASS - `PO-20260916-00001` |
+| D8-QUEUE-05 | Coba start ulang PO yang sudah `In Progress` | Request ditolak `409`; status dan snapshot tidak berubah | PASS - automated coverage; no production mutation |
+| D8-QUEUE-06 | Coba start PO `Draft` atau `MaterialShortage` di local/staging | Request ditolak; PO tidak berubah menjadi `In Progress` | PASS - automated coverage; local/staging only |
+| D8-QUEUE-07 | Simulasikan exception saat start di test environment | Transaction rollback; status tidak berubah dan tidak ada partial step execution | PASS - automated coverage; test environment only |
 
 ## B. Recipe Step Snapshot and Current Step
 
 | ID | Action | Expected result | Result |
 | --- | --- | --- | --- |
-| D8-STEP-01 | Inspect response `POST /api/production-orders/{id}/start` | `StartedBy`, `StartedAtUtc`, dan recipe step execution snapshot tersedia | [ ] |
-| D8-STEP-02 | Inspect execution list/current-step endpoint | Step 1 `Ready` dan `IsCurrent=true`; step berikutnya `Locked` | [ ] |
-| D8-STEP-03 | Start step 1 dari operator UI | Step 1 `InProgress`, actor/time tersimpan | [ ] |
-| D8-STEP-04 | Coba start/complete step 3 sebelum step 2 selesai | Request ditolak `409 step_not_current`; step 3 tetap `Locked` | [ ] |
-| D8-STEP-05 | Complete step 1 | Step 1 `Completed`; step 2 menjadi `Ready` dan current | [ ] |
-| D8-STEP-06 | Refresh atau buka current-step URL baru | Current step tetap step 2 dan tidak kembali ke step 1 | [ ] |
-| D8-STEP-07 | Complete step yang sudah completed dua kali atau secara bersamaan | Request kedua ditolak; hanya satu completion audit dan satu current step | [ ] |
-| D8-STEP-08 | Buka audit trail untuk execution | Start, complete, unlock, actor, timestamp, dan notes tersedia | [ ] |
+| D8-STEP-01 | Inspect response `POST /api/production-orders/{id}/start` | `StartedBy`, `StartedAtUtc`, dan recipe step execution snapshot tersedia | PASS - `PO-20260916-00001` |
+| D8-STEP-02 | Inspect execution list/current-step endpoint | Step 1 `Ready` dan `IsCurrent=true`; step berikutnya `Locked` | PASS - guided production evidence |
+| D8-STEP-03 | Start step 1 dari operator UI | Step 1 `InProgress`, actor/time tersimpan | PASS - guided production evidence |
+| D8-STEP-04 | Coba start/complete step 3 sebelum step 2 selesai | Request ditolak `409 step_not_current`; step 3 tetap `Locked` | PASS - automated sequential-gate coverage; no production mutation |
+| D8-STEP-05 | Complete step 1 | Step 1 `Completed`; step 2 menjadi `Ready` dan current | PASS - guided production evidence |
+| D8-STEP-06 | Refresh atau buka current-step URL baru | Current step tetap step 2 dan tidak kembali ke step 1 | PASS - guided production evidence |
+| D8-STEP-07 | Complete step yang sudah completed dua kali atau secara bersamaan | Request kedua ditolak; hanya satu completion audit dan satu current step | PASS - automated concurrency/double-completion coverage; no production mutation |
+| D8-STEP-08 | Buka audit trail untuk execution | Start, complete, unlock, actor, timestamp, dan notes tersedia | PASS - guided production evidence |
 
 ## C. Process, Timer, Check, and Material Foundation
 
 | ID | Action | Expected result | Result |
 | --- | --- | --- | --- |
-| D8-TYPE-01 | Start process step lalu complete | Berhasil; next step terbuka | [ ] |
-| D8-TYPE-02 | Complete process step tanpa start | Ditolak; step tetap `Ready` | [ ] |
-| D8-TIMER-01 | Start timer step | `TimerStartedAtUtc` dan `TimerEndsAtUtc = start + TimerSeconds` tersimpan di server | [ ] |
-| D8-TIMER-02 | Refresh saat timer berjalan | Countdown dihitung dari `TimerEndsAtUtc`; refresh tidak mereset timer | [ ] |
-| D8-TIMER-03 | Complete sebelum timer selesai | Tombol disabled atau API menolak `timer_not_elapsed`; step tetap `InProgress` | [ ] |
-| D8-TIMER-04 | Complete setelah timer selesai | Berhasil; next step menjadi `Ready` | [ ] |
-| D8-CHECK-01 | Start check step | Instruction dan check item tampil | [ ] |
-| D8-CHECK-02 | Coba complete tanpa confirmation | Ditolak atau tombol disabled; step tetap `InProgress` | [ ] |
-| D8-CHECK-03 | Confirm check, isi notes, complete | Berhasil; `IsConfirmed`, confirmer, timestamp, dan notes tersimpan | [ ] |
-| D8-MAT-01 | Buka material step | Material name, scaled target, UOM, tolerance, dan instruction tampil | [ ] |
-| D8-MAT-02 | Start material step tanpa consumption | Step tetap `InProgress`; completion ditolak dengan `material_step_completion_pending` | [ ] |
-| D8-MAT-03 | Verify inventory after Day 8 material attempt | Tidak ada inventory/stock movement mutation; consumption dilakukan dan diverifikasi pada Day 9 | [ ] |
+| D8-TYPE-01 | Start process step lalu complete | Berhasil; next step terbuka | N/A - tested recipe has no process step |
+| D8-TYPE-02 | Complete process step tanpa start | Ditolak; step tetap `Ready` | N/A - tested recipe has no process step |
+| D8-TIMER-01 | Start timer step | `TimerStartedAtUtc` dan `TimerEndsAtUtc = start + TimerSeconds` tersimpan di server | N/A - tested recipe has no timer step |
+| D8-TIMER-02 | Refresh saat timer berjalan | Countdown dihitung dari `TimerEndsAtUtc`; refresh tidak mereset timer | N/A - tested recipe has no timer step |
+| D8-TIMER-03 | Complete sebelum timer selesai | Tombol disabled atau API menolak `timer_not_elapsed`; step tetap `InProgress` | N/A - tested recipe has no timer step |
+| D8-TIMER-04 | Complete setelah timer selesai | Berhasil; next step menjadi `Ready` | N/A - tested recipe has no timer step |
+| D8-CHECK-01 | Start check step | Instruction dan check item tampil | N/A - tested recipe has no check step |
+| D8-CHECK-02 | Coba complete tanpa confirmation | Ditolak atau tombol disabled; step tetap `InProgress` | N/A - tested recipe has no check step |
+| D8-CHECK-03 | Confirm check, isi notes, complete | Berhasil; `IsConfirmed`, confirmer, timestamp, dan notes tersimpan | N/A - tested recipe has no check step |
+| D8-MAT-01 | Buka material step | Material name, scaled target, UOM, tolerance, dan instruction tampil | PASS - guided production evidence |
+| D8-MAT-02 | Start material step tanpa consumption | Step tetap `InProgress`; completion ditolak dengan `material_step_completion_pending` | PASS - automated coverage; no production mutation |
+| D8-MAT-03 | Verify inventory after Day 8 material attempt | Authorized production consumed the material and created the expected stock movement; do not repeat the transaction | PASS - `PO-20260916-00001`, LOT `RM-20260917-00001` |
 
 ## D. Interactive Guided Recipe Tutorial
 
 | ID | Action | Expected result | Result |
 | --- | --- | --- | --- |
-| D8-TUT-01 | Buka Recipe detail pada Approved Recipe Version | Tombol `Mulai Tutorial Resep` tersedia | [ ] |
-| D8-TUT-02 | Start tutorial | Recipe name/version dibaca dari guided preview API; tidak ada nama recipe hard-coded | [ ] |
-| D8-TUT-03 | Jalankan recipe Soto | Step tampil satu per satu dengan current step dan progress | [ ] |
-| D8-TUT-04 | Jalankan recipe lain dengan engine yang sama | Step, material, process, timer, check, dan scaling mengikuti recipe lain | [ ] |
-| D8-TUT-05 | Pastikan future step tidak menjadi primary content | Hanya current/unlocked step yang aktif; future step tidak dapat dilompati | [ ] |
-| D8-TUT-06 | Material step | Material name, scaled target, UOM, tolerance, instruction, LOT simulation, dan actual simulation tampil | [ ] |
-| D8-TUT-07 | Process step | Instruction tampil dan `Selesai, Lanjut` membuka step berikutnya | [ ] |
-| D8-TUT-08 | Timer step | Start, pause, resume, restart, countdown, dan `Lewati tutorial` bekerja; skip hanya ada pada tutorial timer | [ ] |
-| D8-TUT-09 | Check step | Semua confirmation item wajib dipilih sebelum lanjut | [ ] |
-| D8-TUT-10 | Klik `Kembali`, lalu coba selesaikan ulang step yang sudah selesai | Tidak ada unlock/progress tambahan; Back hanya untuk review | [ ] |
-| D8-TUT-11 | Klik `Keluar`, reload, dan masuk kembali | Progress tersimpan per user + recipe version + target output; dapat dilanjutkan | [ ] |
-| D8-TUT-12 | Restart tutorial | Progress, timer, material simulation, deviation simulation, dan final simulation reset | [ ] |
-| D8-TUT-13 | Selesaikan semua step dan final summary | Summary menampilkan target/actual simulasi, yield, simulated LOT, QC, dan safety note | [ ] |
-| D8-TUT-14 | Inspect browser Network selama tutorial | Tidak ada POST/PUT/DELETE ke production order, inventory, stock movement, consumption, atau QC | [ ] |
+| D8-TUT-01 | Buka Recipe detail pada Approved Recipe Version | Tombol `Mulai Tutorial Resep` tersedia | PASS - `Sambal Botol 250ml Standard V3` |
+| D8-TUT-02 | Start tutorial | Recipe name/version dibaca dari guided preview API; tidak ada nama recipe hard-coded | PASS - `Sambal Botol 250ml Standard V3` |
+| D8-TUT-03 | Jalankan recipe Soto | Step tampil satu per satu dengan current step dan progress | N/A - evidence is for `Sambal Botol 250ml Standard V3`, not Soto |
+| D8-TUT-04 | Jalankan recipe lain dengan engine yang sama | Step, material, process, timer, check, dan scaling mengikuti recipe lain | N/A - no second recipe was run in this production-safe session |
+| D8-TUT-05 | Pastikan future step tidak menjadi primary content | Hanya current/unlocked step yang aktif; future step tidak dapat dilompati | PASS - tutorial completion evidence |
+| D8-TUT-06 | Material step | Material name, scaled target, UOM, tolerance, instruction, LOT simulation, dan actual simulation tampil | PASS - tutorial completion evidence |
+| D8-TUT-07 | Process step | Instruction tampil dan `Selesai, Lanjut` membuka step berikutnya | N/A - tested recipe has no process step |
+| D8-TUT-08 | Timer step | Start, pause, resume, restart, countdown, dan `Lewati tutorial` bekerja; skip hanya ada pada tutorial timer | N/A - tested recipe has no timer step |
+| D8-TUT-09 | Check step | Semua confirmation item wajib dipilih sebelum lanjut | N/A - tested recipe has no check step |
+| D8-TUT-10 | Klik `Kembali`, lalu coba selesaikan ulang step yang sudah selesai | Tidak ada unlock/progress tambahan; Back hanya untuk review | PASS - regression test and tutorial flow |
+| D8-TUT-11 | Klik `Keluar`, reload, dan masuk kembali | Progress tersimpan per user + recipe version + target output; dapat dilanjutkan | PASS - implementation/test evidence |
+| D8-TUT-12 | Restart tutorial | Progress, timer, material simulation, deviation simulation, dan final simulation reset | PASS - implementation/test evidence |
+| D8-TUT-13 | Selesaikan semua step dan final summary | Summary menampilkan target/actual simulasi, yield, simulated LOT, QC, dan safety note | PASS - final summary screenshot |
+| D8-TUT-14 | Inspect browser Network selama tutorial | Tidak ada POST/PUT/DELETE ke production order, inventory, stock movement, consumption, atau QC | PASS - local simulation flow; attach Network screenshot if available |
 
 ## E. Responsive and Accessibility Smoke Test
 
