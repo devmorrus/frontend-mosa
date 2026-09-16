@@ -47,6 +47,7 @@ import type { ProductListItem } from '@/features/products/types'
 import type { WarehouseListItem } from '@/features/warehouses/types'
 import type { UserListItem } from '@/features/users/types'
 import type { ApiError } from '@/types/api'
+import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 
 export function ProductionOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -85,7 +86,9 @@ export function ProductionOrderDetailPage() {
   const isReady = order?.status === ProductionOrderStatus.Ready
   const isReleased = order?.status === ProductionOrderStatus.Released
   const isCancelled = order?.status === ProductionOrderStatus.Cancelled
-  const canEdit = (isDraft || isMaterialShortage) && can('production-orders.update')
+  // Backend only allows editing Draft orders (UpdateDraft rejects anything else
+  // with 409), so the edit action must not be offered on MaterialShortage.
+  const canEdit = isDraft && can('production-orders.update')
   const canCancel = (isDraft || isMaterialShortage || isReady) && can('production-orders.cancel')
   const canCheckMaterials = (isDraft || isMaterialShortage) && can('production-orders.release')
   const canRelease = isReady && can('production-orders.release')
@@ -120,20 +123,20 @@ export function ProductionOrderDetailPage() {
     async function loadEditLookups() {
       try {
         const [productList, warehouseList, userList] = await Promise.all([
-          productionOrdersApi.listActiveProducts(),
-          productionOrdersApi.listActiveWarehouses(),
-          productionOrdersApi.listActiveUsers(),
+          fetchLookupIfAllowed('products.view', () => productionOrdersApi.listActiveProducts(), []),
+          fetchLookupIfAllowed('warehouses.view', () => productionOrdersApi.listActiveWarehouses(), []),
+          fetchLookupIfAllowed('users.view', () => productionOrdersApi.listActiveUsers(), []),
         ])
         setProducts(productList)
         setWarehouses(warehouseList)
         setUsers(userList)
 
         if (order) {
-          const recipeList = await productionOrdersApi.listRecipesByProduct(order.product.id)
+          const recipeList = await fetchLookupIfAllowed('recipes.view', () => productionOrdersApi.listRecipesByProduct(order.product.id), [])
           setRecipes(recipeList)
 
           if (order.recipeVersion.recipeId) {
-            const versions = await productionOrdersApi.listApprovedRecipeVersions(order.recipeVersion.recipeId)
+            const versions = await fetchLookupIfAllowed('recipes.view', () => productionOrdersApi.listApprovedRecipeVersions(order.recipeVersion.recipeId), [])
             setRecipeVersions(versions)
           }
         }
@@ -183,7 +186,7 @@ export function ProductionOrderDetailPage() {
     if (recipeId) {
       setIsLoadingVersions(true)
       try {
-        const versions = await productionOrdersApi.listApprovedRecipeVersions(recipeId)
+        const versions = await fetchLookupIfAllowed('recipes.view', () => productionOrdersApi.listApprovedRecipeVersions(recipeId), [])
         setRecipeVersions(versions)
         if (versions.length === 1) {
           updateEditField('recipeVersionId', versions[0].id)

@@ -26,6 +26,7 @@ import type { ProductListItem } from '@/features/products/types'
 import type { WarehouseListItem } from '@/features/warehouses/types'
 import type { UserListItem } from '@/features/users/types'
 import type { ApiError } from '@/types/api'
+import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 
 export function ProductionOrderCreatePage() {
   const navigate = useNavigate()
@@ -53,9 +54,9 @@ export function ProductionOrderCreatePage() {
     async function loadLookups() {
       try {
         const [productList, warehouseList, userList] = await Promise.all([
-          productionOrdersApi.listActiveProducts(),
-          productionOrdersApi.listActiveWarehouses(),
-          productionOrdersApi.listActiveUsers(),
+          fetchLookupIfAllowed('products.view', () => productionOrdersApi.listActiveProducts(), []),
+          fetchLookupIfAllowed('warehouses.view', () => productionOrdersApi.listActiveWarehouses(), []),
+          fetchLookupIfAllowed('users.view', () => productionOrdersApi.listActiveUsers(), []),
         ])
         setProducts(productList)
         setWarehouses(warehouseList)
@@ -82,7 +83,7 @@ export function ProductionOrderCreatePage() {
     async function loadRecipes() {
       setIsLoadingRecipes(true)
       try {
-        const recipeList = await productionOrdersApi.listRecipesByProduct(values.productId)
+        const recipeList = await fetchLookupIfAllowed('recipes.view', () => productionOrdersApi.listRecipesByProduct(values.productId), [])
         const approvedRecipes = recipeList.filter(
           (r) => r.status === 3 && r.currentVersion !== null,
         )
@@ -95,8 +96,12 @@ export function ProductionOrderCreatePage() {
           updateField('unitOfMeasureId', '')
         } else {
           setIsLoadingVersions(true)
-          const allVersionResults = await Promise.all(
-            approvedRecipes.map((r) => productionOrdersApi.listApprovedRecipeVersions(r.id)),
+          const allVersionResults = await fetchLookupIfAllowed(
+            'recipes.view',
+            () => Promise.all(
+              approvedRecipes.map((r) => productionOrdersApi.listApprovedRecipeVersions(r.id)),
+            ),
+            [],
           )
           const allVersions = allVersionResults.flat()
           setRecipeVersions(allVersions)
@@ -126,7 +131,7 @@ export function ProductionOrderCreatePage() {
   async function loadRecipeVersions(recipeId: string) {
     setIsLoadingVersions(true)
     try {
-      const versions = await productionOrdersApi.listApprovedRecipeVersions(recipeId)
+      const versions = await fetchLookupIfAllowed('recipes.view', () => productionOrdersApi.listApprovedRecipeVersions(recipeId), [])
       setRecipeVersions(versions)
       if (versions.length === 0) {
         setNoApprovedRecipe(true)
