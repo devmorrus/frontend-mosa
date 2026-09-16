@@ -1,6 +1,6 @@
 # Day 6 Production Manual Testing
 
-Checklist ini khusus verifikasi production untuk Recipe Builder, versioning, approval, dan scaling. Default pengujian production adalah **read-only**. Tulis `PASS` / `FAIL` / `BLOCKED` / `N/A`; setiap `FAIL` wajib menyertakan screenshot, waktu kejadian, user, dan `traceId`.
+Checklist ini khusus verifikasi production untuk Recipe Builder, versioning, approval, dan scaling. Pengujian dilakukan langsung di production dan defaultnya adalah **read-only**; tidak ada local/staging. Tulis `PASS` / `FAIL` / `BLOCKED` / `N/A`; setiap `FAIL` wajib menyertakan screenshot, waktu kejadian, user, dan `traceId`.
 
 ## Safety Gate
 
@@ -88,9 +88,9 @@ Scaling preview bersifat read-only, tetapi hanya lakukan pada version production
 | D6-PROD-UI-03 | Test mobile 375 px | Tidak ada horizontal overflow pada halaman; version/step detail tetap terbaca | [ ] |
 | D6-PROD-UI-04 | Buka DevTools Network selama read-only test | Tidak ada lookup request 403 yang tidak perlu; tidak ada POST/PUT/PATCH/DELETE tanpa aksi yang disetujui | [ ] |
 
-## Non-production Only
+## Non-production Only → `N/A` (production-only testing)
 
-Test berikut **tidak boleh dilakukan di production** dan hanya boleh dijalankan di `LOCAL_DISPOSABLE` atau `STAGING` dengan data yang disetujui:
+Test berikut **tidak dilakukan** karena tidak ada local/staging dan dilarang di production. Kasus-kasus ini dicakup automated tests (backend unit + frontend unit) sebagai evidence pendukung:
 
 * Create Recipe dan Create Version.
 * Duplicate version number.

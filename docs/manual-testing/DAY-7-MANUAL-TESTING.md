@@ -1,6 +1,6 @@
 # Day 7 Production Manual Testing
 
-Panduan langkah demi langkah dari **pembuatan production order pertama** sampai release, plus verifikasi tutorial interaktif. Ditulis untuk kondisi production yang datanya masih kosong. Tulis `PASS` / `FAIL` / `BLOCKED` / `N/A`; setiap `FAIL` wajib menyertakan screenshot, waktu kejadian, user, dan `traceId`.
+Panduan langkah demi langkah dari **pembuatan production order pertama** sampai release, plus verifikasi tutorial interaktif. Ditulis untuk kondisi production yang datanya masih kosong. Pengujian dilakukan langsung di production; tidak ada local/staging. Tulis `PASS` / `FAIL` / `BLOCKED` / `N/A`; setiap `FAIL` wajib menyertakan screenshot, waktu kejadian, user, dan `traceId`.
 
 ## Safety Gate
 
@@ -121,9 +121,9 @@ Tutorial bersifat panduan dan aman dijalankan; yang dilarang adalah menyelesaika
 | D7-PROD-UI-02 | Ulangi pada 768 px dan 375 px | Layout menumpuk rapi; tabel scroll horizontal; tidak ada overflow halaman | [ ] |
 | D7-PROD-UI-03 | Buka DevTools Network selama verifikasi read-only | Tidak ada lookup request 403 yang tidak perlu; tidak ada POST/PUT/PATCH/DELETE tanpa aksi yang disetujui | [ ] |
 
-## Non-production Only
+## Non-production Only → `N/A` (production-only testing)
 
-Test berikut **tidak boleh dilakukan di production** dan hanya boleh dijalankan di `LOCAL_DISPOSABLE` atau `STAGING` dengan data yang disetujui:
+Test berikut **tidak dilakukan** karena tidak ada local/staging dan dilarang di production. Kasus-kasus ini dicakup automated tests (backend unit + frontend unit) sebagai evidence pendukung:
 
 * Create PO dengan product inactive, recipe non-approved, warehouse inactive, target output 0/negatif, operator inactive.
 * Update target output lalu verifikasi recalculation requirement dan snapshot immutability terhadap perubahan recipe.

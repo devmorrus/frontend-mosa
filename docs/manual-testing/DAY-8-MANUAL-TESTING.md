@@ -1,13 +1,13 @@
 # Day 8 Guided Production and Guided Recipe Tutorial
 
-Checklist ini mencakup eksekusi Production Order oleh operator dan tutorial resep interaktif. Tandai setiap item `PASS`, `FAIL`, `BLOCKED`, atau `N/A`. Untuk `FAIL`, catat timestamp, user, URL, screenshot, response status, dan `traceId`.
+Checklist ini mencakup eksekusi Production Order oleh operator dan tutorial resep interaktif. Pengujian dilakukan langsung di production; tidak ada local/staging. Tandai setiap item `PASS`, `FAIL`, `BLOCKED`, atau `N/A`. Untuk `FAIL`, catat timestamp, user, URL, screenshot, response status, dan `traceId`.
 
 ## Safety Gate
 
 1. Gunakan production hanya untuk PO yang benar-benar dijadwalkan dan operator yang benar-benar ditugaskan.
 2. Jangan membuat PO, receiving, consumption, deviation, atau finished-goods lot dummy hanya untuk test.
 3. Jangan menjalankan `Complete Production`, consumption, atau approval tanpa otorisasi operasional.
-4. Negative case dan concurrency wajib diuji di local/staging dengan fixture atau test suite, bukan dengan memodifikasi data production.
+4. Negative case dan concurrency dilarang diuji di production — item tersebut memakai evidence automated tests (backend unit + frontend unit) dengan catatan eksplisit, bukan dengan memodifikasi data production.
 5. Guided Recipe Tutorial aman dijalankan karena seluruh material, timer, QC, dan final output adalah simulasi lokal; pastikan tidak ada request mutasi ke endpoint produksi/inventory.
 
 ## Accounts and Preconditions
@@ -29,7 +29,7 @@ Pastikan tersedia PO nyata berstatus `RELEASED`, assigned ke operator yang melak
 | D8-QUEUE-03 | Pada PO `Released`, klik `Start Production` satu kali | PO berubah `IN_PROGRESS`; tidak ada duplikasi execution | PASS - `PO-20260916-00001` |
 | D8-QUEUE-04 | Refresh setelah start | `StartedBy` dan `StartedAt` tetap; step snapshot tetap sama | PASS - `PO-20260916-00001` |
 | D8-QUEUE-05 | Coba start ulang PO yang sudah `In Progress` | Request ditolak `409`; status dan snapshot tidak berubah | PASS - automated coverage; no production mutation |
-| D8-QUEUE-06 | Coba start PO `Draft` atau `MaterialShortage` di local/staging | Request ditolak; PO tidak berubah menjadi `In Progress` | PASS - automated coverage; local/staging only |
+| D8-QUEUE-06 | Coba start PO `Draft` atau `MaterialShortage` | Request ditolak; PO tidak berubah menjadi `In Progress` | PASS - automated coverage; no production mutation |
 | D8-QUEUE-07 | Simulasikan exception saat start di test environment | Transaction rollback; status tidak berubah dan tidak ada partial step execution | PASS - automated coverage; test environment only |
 
 ## B. Recipe Step Snapshot and Current Step

@@ -6,9 +6,7 @@ Tulis `PASS` / `FAIL` / `BLOCKED` / `N/A` di kolom Hasil. Setiap `FAIL` wajib sc
 
 | Run | Aturan |
 | --- | --- |
-| `LOCAL_DISPOSABLE` | Docker dev, data boleh hilang. Satu-satunya tempat untuk uji batas (qty 0, expired, blocked, spillover multi-LOT, required > total) dengan data dummy |
-| `SHARED_QA` / `STAGING` | Data tidak boleh hilang. Boleh tambah LOT dummy via receiving yang disetujui + cleanup via alur resmi |
-| `PRODUCTION` | **Read-only.** Tidak ada adjustment/opname/consumption coba-coba. LOT `RM-20260916-00001` (10 KG, expiry 31 Okt 2026) adalah bahan uji yang cukup |
+| `PRODUCTION` | **Satu-satunya environment yang dipakai. Read-only.** Tidak ada adjustment/opname/consumption coba-coba dan tidak ada LOT dummy. LOT `RM-20260916-00001` (10 KG, expiry 31 Okt 2026) adalah bahan uji yang cukup. Uji batas dicakup automated tests |
 
 ## Persiapan
 
@@ -22,7 +20,7 @@ Tulis `PASS` / `FAIL` / `BLOCKED` / `N/A` di kolom Hasil. Setiap `FAIL` wajib sc
 | D5-INV-01 | SEMUA | `Warehouse > Inventory`: cari `gula` | Total 10, Available 10, 1 LOT | [ ] |
 | D5-INV-02 | SEMUA | Expand breakdown material | 1 LOT `RM-20260916-00001`, qty, expiry, status AVAILABLE | [ ] |
 | D5-INV-03 | SEMUA | Filter warehouse `Gudang Bahan Baku` + Status=Available | Tetap muncul (belum expired). Catatan: filter Available kini mengecualikan LOT yang tanggal expirynya lewat walau status DB masih Available | [ ] |
-| D5-INV-04 | LOCAL/STAGING | Buat LOT qty-0 / blocked / expired / depleted via alur resmi, cek inventory | Qty-0 tak terlihat; blocked/depleted/expired di luar angka Available | [ ] |
+| D5-INV-04 | N/A | Buat LOT qty-0/blocked/expired/depleted coba-coba dilarang di prod. | — | N/A - production-only; exclusion rule dicakup automated tests |
 | D5-INV-05 | SEMUA | Pastikan tidak ada tombol edit stok | Mutasi hanya via receiving/adjustment/opname/consumption | [ ] |
 
 ## 2. Stock Movement (semua: baca)
@@ -40,9 +38,9 @@ Catatan: ref konsumsi produksi kini tampil nomor order (`PO-...`), bukan GUID. R
 | ID | Scope | Langkah | Lolos jika | Hasil |
 | --- | --- | --- | --- | --- |
 | D5-FEFO-01 | SEMUA | Expand LOT `Gula Pasir` (single warehouse) | Kartu `Recommended LOT (FEFO)` menunjuk `RM-20260916-00001` sebagai Recommended First | [ ] |
-| D5-FEFO-02 | LOCAL/STAGING | Tambah LOT kedua expiry lebih dekat + required melebihi LOT pertama | Urutan expiry terdekat dulu; spillover ke LOT berikut; total = min(required, available) | [ ] |
+| D5-FEFO-02 | N/A | Tambah LOT dummy coba-coba dilarang di prod. | — | N/A - production-only; FEFO spillover dicakup automated tests |
 | D5-FEFO-03 | SEMUA | Catat: kartu menulis rekomendasi tidak mengurangi stok | Tidak ada perubahan qty setelah lihat rekomendasi | [ ] |
-| D5-AVL-01 | LOCAL/STAGING | Cek availability required di bawah/sama/atas total | `>=` sufficient, `<` insufficient | [ ] |
+| D5-AVL-01 | N/A | Uji batas availability coba-coba dilarang di prod. | — | N/A - production-only; availability rule dicakup automated tests |
 
 Catatan: tanpa filter warehouse + multi-warehouse, rekomendasi disembunyikan (`Pilih warehouse...`) — itu pengaman, bukan FAIL.
 

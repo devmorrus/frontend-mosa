@@ -6,9 +6,7 @@ Tulis `PASS` / `FAIL` / `BLOCKED` / `N/A` di kolom Hasil. Setiap `FAIL` wajib sc
 
 | Run | Aturan |
 | --- | --- |
-| `LOCAL_DISPOSABLE` | Docker dev, data boleh hilang. Satu-satunya tempat untuk scan-test berulang, print-test, post 2-tab, token invalid sengaja |
-| `SHARED_QA` / `STAGING` | Data tidak boleh hilang. Boleh 1 receiving uji + posting yang disetujui; label test langsung dibuang |
-| `PRODUCTION` | **Read-only + verifikasi LOT nyata** (LOT `RM-20260916-00001` sudah ada dari Day 3). Dilarang create/posting coba-coba, print massal, dan scan dari URL tebakan |
+| `PRODUCTION` | **Satu-satunya environment yang dipakai. Read-only + verifikasi LOT nyata** (LOT `RM-20260916-00001` sudah ada dari Day 3). Dilarang create/posting coba-coba, print massal, scan dari URL tebakan, dan token invalid sengaja. Kasus negatif dicakup automated tests |
 
 ## Persiapan
 
@@ -34,19 +32,19 @@ Tulis `PASS` / `FAIL` / `BLOCKED` / `N/A` di kolom Hasil. Setiap `FAIL` wajib sc
 | --- | --- | --- | --- | --- |
 | D4-QR-01 | SEMUA | Detail LOT: token tampil, buka ulang halaman | Token sama (stabil, tidak regenerate); LOT berbeda token berbeda | [ ] |
 | D4-QR-02 | SEMUA | `Warehouse > Lots > Scan`: scan label `RM-20260916-00001` (atau paste payload) | Membuka LOT yang tepat | [ ] |
-| D4-QR-03 | LOCAL/STAGING | Scan QR rusak/acak | Error terkontrol (`400` format / `404` tidak ditemukan), app tidak crash | [ ] |
-| D4-QR-04 | SEMUA | Print 1 label → Reprint 1 label | Label berisi material/internal-LOT/supplier-LOT/warehouse/receiving-date/expiry; reprint token sama, tanpa LOT baru | [ ] |
+| D4-QR-03 | N/A | Scan QR rusak/acak sengaja dilarang di prod. | — | N/A - production-only; error handling dicakup automated tests |
+| D4-QR-04 | SEMUA | Print 1 label LOT nyata → Reprint 1 label (bukan print massal/test) | Label berisi material/internal-LOT/supplier-LOT/warehouse/receiving-date/expiry; reprint token sama, tanpa LOT baru | [ ] |
 | D4-QR-05 | SEMUA | Tolak izin kamera di browser | Pesan ramah + pencarian manual tetap tersedia, tanpa crash | [ ] |
 
 Catatan: payload QR hanya token (`<host>/q/rm/<token>`), tanpa info stok — stok selalu dibaca dari server. Token spasi/newline dari scanner dinormalisasi sebelum resolve.
 
-## 3. Frontend Receiving (tulis: local/staging; prod: baca + 1 nyata)
+## 3. Frontend Receiving (tulis: hanya receiving nyata; prod baca)
 
 | ID | Scope | Langkah | Lolos jika | Hasil |
 | --- | --- | --- | --- | --- |
 | D4-GR-01 | SEMUA | List + search + filter + pagination | Sesuai Day 3 | [ ] |
-| D4-GR-02 | LOCAL/STAGING | Create draft multi-item + remove 1 item + Save | Toast sukses; double-click Save tidak membuat dokumen ganda (guard) | [ ] |
-| D4-GR-03 | LOCAL/STAGING | Edit draft + detail + Post confirm | Dialog menyebut LOT+stok; Post sukses; double-click Post diblokir UI + backend 1-sukses-1-gagal | [ ] |
+| D4-GR-02 | N/A | Create draft coba-coba + double-click Save sengaja dilarang di prod (draft nyata hanya via Day 3 Bagian 6). | — | N/A - production-only; guard dicakup automated tests |
+| D4-GR-03 | N/A | Edit/post coba-coba + double-click Post sengaja dilarang di prod (posting nyata hanya via Day 3 Bagian 6). | — | N/A - production-only; guard dicakup automated tests |
 | D4-GR-04 | SEMUA | Dokumen POSTED | Read-only (banner, form disabled, Save/Post hidden); LOT per item bisa diklik langsung ke detail (`Membuka...` → `/lots/:id`, fallback list bila gagal) | [ ] |
 | D4-GR-05 | SEMUA | 1440 / 768 / 375 list + form + dialog Post | Dialog scroll; sticky Save/Post terlihat; tanpa scroll horizontal | [ ] |
 
