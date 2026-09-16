@@ -2,11 +2,21 @@ import { RecipeToleranceType } from '@/features/recipes/types'
 import type { ValidatedMaterialLot } from '@/features/operator-production/types'
 
 export function evaluateTolerance(total: number, target: number, type: RecipeToleranceType | null, value: number | null) {
+  if (!type || type === RecipeToleranceType.None) {
+    return { total, variance: total - target, lowerLimit: null, upperLimit: null, isWithinTolerance: true }
+  }
   const tolerance = value ?? 0
-  const lowerLimit = !type || type === RecipeToleranceType.None ? target : type === RecipeToleranceType.PlusMinus ? target - tolerance : null
-  const upperLimit = !type || type === RecipeToleranceType.None ? target : type === RecipeToleranceType.PlusMinus ? target + tolerance : type === RecipeToleranceType.Max ? target + tolerance : null
-  const isWithinTolerance = !type || type === RecipeToleranceType.None ? total === target : type === RecipeToleranceType.PlusMinus ? total >= target - tolerance && total <= target + tolerance : type === RecipeToleranceType.Min ? total >= target + tolerance : total <= target + tolerance
+  const lowerLimit = type === RecipeToleranceType.PlusMinus || type === RecipeToleranceType.Min ? target - tolerance : null
+  const upperLimit = type === RecipeToleranceType.PlusMinus || type === RecipeToleranceType.Max ? target + tolerance : null
+  const isWithinTolerance = (lowerLimit === null || total >= lowerLimit) && (upperLimit === null || total <= upperLimit)
   return { total, variance: total - target, lowerLimit, upperLimit, isWithinTolerance }
+}
+
+export function formatAllowedRange(lowerLimit: number | null, upperLimit: number | null, uom: string) {
+  if (lowerLimit !== null && upperLimit !== null) return `${lowerLimit} - ${upperLimit} ${uom}`
+  if (lowerLimit !== null) return `>= ${lowerLimit} ${uom}`
+  if (upperLimit !== null) return `<= ${upperLimit} ${uom}`
+  return 'Tidak ada batas tolerance'
 }
 
 export function validateReason(value: string) {

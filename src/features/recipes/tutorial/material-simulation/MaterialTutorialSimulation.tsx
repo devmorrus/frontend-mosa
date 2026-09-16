@@ -9,9 +9,10 @@ import { RecipeToleranceType, type GuidedRecipeTutorialStep } from '@/features/r
 import { useRecipeTutorialStore } from '@/features/recipes/tutorial/recipeTutorialStore'
 
 function toleranceLabel(type: RecipeToleranceType | null, value: number | null, uom: string) {
-  if (!type || type === RecipeToleranceType.None || value === null) return 'Total Actual harus tepat sama dengan target.'
+  if (!type || type === RecipeToleranceType.None) return 'Tidak ada batas tolerance backend. Total Actual apapun diterima.'
+  if (value === null) return 'Total Actual harus tepat sama dengan target.'
   if (type === RecipeToleranceType.PlusMinus) return `Total Actual harus berada dalam ±${value} ${uom}.`
-  return type === RecipeToleranceType.Min ? `Total Actual minimal target + ${value} ${uom}.` : `Total Actual maksimal target + ${value} ${uom}.`
+  return type === RecipeToleranceType.Min ? `Total Actual minimal target - ${value} ${uom}.` : `Total Actual maksimal target + ${value} ${uom}.`
 }
 
 export function MaterialTutorialSimulation({ step, userId }: { step: GuidedRecipeTutorialStep; userId: string }) {

@@ -16,10 +16,10 @@ function parseActualQuantity(value: string) {
 }
 
 function isWithinTolerance(total: number, target: number, type: RecipeToleranceType | null, value: number | null) {
-  if (!type || type === RecipeToleranceType.None) return total === target
+  if (!type || type === RecipeToleranceType.None) return true
   const tolerance = value ?? 0
   if (type === RecipeToleranceType.PlusMinus) return total >= target - tolerance && total <= target + tolerance
-  if (type === RecipeToleranceType.Min) return total >= target + tolerance
+  if (type === RecipeToleranceType.Min) return total >= target - tolerance
   return total <= target + tolerance
 }
 

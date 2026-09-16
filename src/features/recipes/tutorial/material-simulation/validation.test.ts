@@ -25,6 +25,21 @@ describe('validateMaterialSimulation', () => {
     expect(validateMaterialSimulation(state('2.1'), 2, RecipeToleranceType.PlusMinus, 0.2).isReady).toBe(true)
   })
 
+  it('accepts minimum tolerance using target minus tolerance', () => {
+    expect(validateMaterialSimulation(state('1.8'), 2, RecipeToleranceType.Min, 0.2).isReady).toBe(true)
+    expect(validateMaterialSimulation(state('1.7'), 2, RecipeToleranceType.Min, 0.2).isReady).toBe(false)
+  })
+
+  it('accepts maximum tolerance using target plus tolerance', () => {
+    expect(validateMaterialSimulation(state('2.2'), 2, RecipeToleranceType.Max, 0.2).isReady).toBe(true)
+    expect(validateMaterialSimulation(state('2.3'), 2, RecipeToleranceType.Max, 0.2).isReady).toBe(false)
+  })
+
+  it('matches backend None tolerance as always within tolerance', () => {
+    expect(validateMaterialSimulation(state('5'), 2, RecipeToleranceType.None, null).isReady).toBe(true)
+    expect(validateMaterialSimulation(state('1'), 2, null, null).isReady).toBe(true)
+  })
+
   it('creates local pagination metadata', () => {
     const result = validateMaterialSimulation({ ...state('2'), lots: Array.from({ length: 6 }, (_, index) => ({ ...state('2').lots[0], id: `lot-${index}`, lotCode: `SIM-${index}` })) }, 12, RecipeToleranceType.None, null)
     expect(result.pagination.totalPages).toBe(2)
