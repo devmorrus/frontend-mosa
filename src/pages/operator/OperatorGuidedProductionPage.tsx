@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, CheckCircle2, Clock3, Factory, LoaderCircle, Play, TimerReset } from 'lucide-react'
 import { productionOrdersApi } from '@/api/productionOrders.api'
@@ -48,6 +48,7 @@ export function OperatorGuidedProductionPage() {
   const [notes, setNotes] = useState('')
   const [confirmed, setConfirmed] = useState(false)
   const [now, setNow] = useState(() => Date.now())
+  const completingRef = useRef(false)
 
   async function loadDetail(background = false) {
     if (!id) return
@@ -113,6 +114,8 @@ export function OperatorGuidedProductionPage() {
 
   async function completeProduction(actualOutput: number) {
     if (!detail) throw new Error('Production order tidak ditemukan.')
+    if (completingRef.current) throw new Error('Complete production sedang diproses.')
+    completingRef.current = true
     setIsSubmitting(true)
     setActionError(null)
     try {
@@ -122,6 +125,7 @@ export function OperatorGuidedProductionPage() {
       setActionError(message)
       throw caughtError
     } finally {
+      completingRef.current = false
       setIsSubmitting(false)
     }
   }
@@ -131,7 +135,9 @@ export function OperatorGuidedProductionPage() {
       const label = await productionOrdersApi.getFinishedGoodsLabel(fgLotId)
       const printWindow = window.open('', '_blank', 'noopener,noreferrer')
       if (!printWindow) throw new Error('Popup print diblokir browser.')
-      printWindow.document.write(`<html><head><title>${label.finishedGoodsLotNumber}</title></head><body style="font-family:Arial;padding:24px"><h1>${label.productName}</h1><p><b>FG LOT:</b> ${label.finishedGoodsLotNumber}</p><p>Actual: ${label.actualOutput} ${label.unitOfMeasureSymbol}</p><p>QC: ${label.qcStatus}</p><img width="220" src="data:image/png;base64,${label.qrImageBase64}" /></body></html>`)
+      const productionDate = new Date(label.productionDate).toLocaleDateString('id-ID')
+      const expiry = label.expiryDate ? new Date(label.expiryDate).toLocaleDateString('id-ID') : '-'
+      printWindow.document.write(`<html><head><title>${label.finishedGoodsLotNumber}</title></head><body style="font-family:Arial;padding:24px"><h1>${label.productName}</h1><p><b>FG LOT:</b> ${label.finishedGoodsLotNumber}</p><p><b>PO:</b> ${label.productionOrderNumber} · <b>Warehouse:</b> ${label.warehouseCode}</p><p>Actual: ${label.actualOutput} ${label.unitOfMeasureSymbol}</p><p>Production Date: ${productionDate} · Expiry: ${expiry}</p><p>QC: ${label.qcStatus}</p><img width="220" src="data:image/png;base64,${label.qrImageBase64}" /></body></html>`)
       printWindow.document.close(); printWindow.focus(); printWindow.print()
     } catch (caughtError) { setActionError((caughtError as ApiError).message) }
   }
@@ -170,6 +176,7 @@ export function OperatorGuidedProductionPage() {
       onConsume={(lots, reason) => void runAction(() => reason ? productionOrdersApi.createDeviationRequest(detail.id, step.id, { lots: lots.map((lot) => ({ rawMaterialLotId: lot.lotId, actualQuantity: Number(lot.actualQuantity.replace(',', '.')) })), reason }, crypto.randomUUID()) : productionOrdersApi.consumeMaterial(detail.id, step.id, { lots: lots.map((lot) => ({ rawMaterialLotId: lot.lotId, actualQuantity: Number(lot.actualQuantity.replace(',', '.')) })) }, crypto.randomUUID()))}
     /> : null}
     {!step && detail.status === ProductionOrderStatus.InProgress && detail.progress.totalSteps > 0 && detail.progress.completedSteps === detail.progress.totalSteps ? <div data-tour="guided-complete-info"><ProductionCompletionCard detail={detail} isSubmitting={isSubmitting} error={actionError} onComplete={completeProduction} onLoadLabel={productionOrdersApi.getFinishedGoodsLabel} onViewFg={(fgLotId) => navigate(`/production/finished-goods-lots/${fgLotId}`)} onPrint={(fgLotId) => void printFinishedGoodsLabel(fgLotId)} onBack={() => navigate('/operator/production')} /></div> : null}
+    {!step && (detail.status === ProductionOrderStatus.WaitingQc || detail.status === ProductionOrderStatus.Completed) ? <Card><CardContent className="space-y-4 p-7 text-center"><CheckCircle2 className="mx-auto text-emerald-600" size={36} /><h2 className="font-display text-2xl font-semibold text-ink">Production selesai</h2><p className="mx-auto max-w-md text-sm text-slate-500">Finished Goods LOT sudah dibuat dan menunggu QC. Buka halaman QC atau detail production untuk melihat FG LOT dan statusnya.</p><div className="flex flex-wrap justify-center gap-3"><Button onClick={() => navigate('/quality-control')}>Buka QC Queue</Button><Button variant="secondary" onClick={() => navigate('/operator/production')}>Back to Production</Button></div></CardContent></Card> : null}
   </div>
 }
 
