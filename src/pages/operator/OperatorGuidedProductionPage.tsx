@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { AlertTriangle, ArrowLeft, CheckCircle2, Clock3, Factory, LoaderCircle, Play, TimerReset } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, CheckCircle2, Clock3, Factory, LoaderCircle, Play, TimerReset, Volume2, VolumeX } from 'lucide-react'
 import { productionOrdersApi } from '@/api/productionOrders.api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,7 @@ import {
 import { ProductionOrderStatus } from '@/features/production-orders/types'
 import { ProductionStepExecutionStatus, type OperatorProductionDetail } from '@/features/operator-production/types'
 import { MaterialConsumptionPanel } from '@/features/operator-production/deviation/MaterialConsumptionPanel'
+import { buildStepVoiceInstruction, getVoiceGuidanceSessionKey, isVoiceGuidanceSupported, speakStepInstruction, stopVoiceGuidance, VOICE_GUIDANCE_ENABLED_KEY } from '@/features/operator-production/voiceGuidance'
 import { formatAllowedRange } from '@/features/operator-production/deviation/validation'
 import { ProductionCompletionCard } from '@/features/operator-production/completion/ProductionCompletionCard'
 import { buildQrSvgDataUri } from '@/features/raw-material-lots/utils'
@@ -50,7 +51,9 @@ export function OperatorGuidedProductionPage() {
   const [notes, setNotes] = useState('')
   const [confirmed, setConfirmed] = useState(false)
   const [now, setNow] = useState(() => Date.now())
+  const [voiceEnabled, setVoiceEnabled] = useState(() => localStorage.getItem(VOICE_GUIDANCE_ENABLED_KEY) !== 'false')
   const completingRef = useRef(false)
+  const lastSpokenStepRef = useRef<string | null>(null)
 
   async function loadDetail(background = false) {
     if (!id) return
@@ -107,6 +110,31 @@ export function OperatorGuidedProductionPage() {
     return () => window.clearInterval(interval)
   }, [detail?.currentDeviation?.id, detail?.currentDeviation?.status])
 
+  useEffect(() => {
+    return () => stopVoiceGuidance()
+  }, [])
+
+  useEffect(() => {
+    if (!id || !detail?.currentStep || !voiceEnabled || !isVoiceGuidanceSupported()) return
+
+    const step = detail.currentStep
+    const sessionKey = getVoiceGuidanceSessionKey(id)
+    const shouldSpeakFromNavigation = sessionStorage.getItem(sessionKey) === '1'
+    const isNewStep = lastSpokenStepRef.current !== null && lastSpokenStepRef.current !== step.id
+
+    if (!shouldSpeakFromNavigation && !isNewStep) {
+      lastSpokenStepRef.current = step.id
+      return
+    }
+
+    const text = buildStepVoiceInstruction(step)
+    if (!text) return
+
+    speakStepInstruction(text)
+    lastSpokenStepRef.current = step.id
+    sessionStorage.removeItem(sessionKey)
+  }, [id, detail?.currentStep?.id, voiceEnabled])
+
   async function runAction(action: () => Promise<unknown>) {
     setIsSubmitting(true)
     setActionError(null)
@@ -150,6 +178,18 @@ export function OperatorGuidedProductionPage() {
     } catch (caughtError) { setActionError((caughtError as ApiError).message) }
   }
 
+  function toggleVoiceGuidance() {
+    const next = !voiceEnabled
+    setVoiceEnabled(next)
+    localStorage.setItem(VOICE_GUIDANCE_ENABLED_KEY, String(next))
+    if (!next) stopVoiceGuidance()
+  }
+
+  function replayStepInstruction() {
+    const text = buildStepVoiceInstruction(detail?.currentStep)
+    if (text) speakStepInstruction(text)
+  }
+
   if (isLoading) return <MasterDataLoadingState description="Memuat langkah produksi saat ini." />
   if (error || !detail) return <MasterDataErrorState description={error ?? 'Production order tidak ditemukan.'} traceId={errorTraceId} onRetry={() => void loadDetail()} />
 
@@ -158,6 +198,7 @@ export function OperatorGuidedProductionPage() {
   const remaining = step?.timerEndsAtUtc
     ? getRemainingSeconds(step.timerEndsAtUtc, now)
     : step?.timerSeconds ?? 0
+  const voiceSupported = isVoiceGuidanceSupported()
 
   return <div className="mx-auto max-w-4xl space-y-6 pb-24">
     <button type="button" onClick={() => navigate('/operator/production')} className="inline-flex min-h-12 items-center gap-2 text-sm font-semibold text-slate-600 hover:text-ink"><ArrowLeft size={18} /> Kembali ke My Production</button>
@@ -165,6 +206,11 @@ export function OperatorGuidedProductionPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(232,163,61,0.24),transparent_55%)]" />
       <div className="relative"><div className="flex flex-wrap items-center justify-between gap-3"><div><div className="text-xs font-semibold uppercase tracking-[0.18em] text-paper/62">{detail.productionOrderNumber}</div><h1 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">{detail.productName}</h1></div><Badge variant="subtle">Recipe v{detail.recipeVersionNumber}</Badge></div><div className="mt-6 grid gap-3 text-sm sm:grid-cols-3"><div><span className="text-paper/52">Target output</span><p className="mt-1 font-semibold">{detail.targetOutput} {detail.unitOfMeasureSymbol ?? detail.unitOfMeasureCode}</p></div><div><span className="text-paper/52">Operator</span><p className="mt-1 font-semibold">{detail.operatorName}</p></div><div><span className="text-paper/52">Progress</span><p className="mt-1 font-semibold">Step {step?.sequence ?? detail.progress.totalSteps} of {detail.progress.totalSteps} · {progress}%</p></div></div></div>
     </section>
+
+    {voiceSupported ? <div className="flex flex-wrap justify-end gap-2 rounded-2xl border border-ink/8 bg-white/70 p-3">
+      <Button variant="secondary" size="sm" onClick={toggleVoiceGuidance}>{voiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}{voiceEnabled ? 'Suara aktif' : 'Suara mati'}</Button>
+      <Button variant="secondary" size="sm" disabled={!voiceEnabled || !step} onClick={replayStepInstruction}><Volume2 size={16} /> Ulangi instruksi</Button>
+    </div> : null}
 
     {detail.status === ProductionOrderStatus.Released && !step ? <Card><CardContent className="p-7 text-center"><CheckCircle2 className="mx-auto text-signal" size={36} /><h2 className="mt-4 font-display text-2xl font-semibold text-ink">Siap memulai produksi</h2><p className="mt-2 text-sm text-slate-500">Mulai production order untuk membuka langkah pertama dari backend.</p><div className="mt-6"><Button size="lg" className="h-12" disabled={isSubmitting} onClick={() => void runAction(() => productionOrdersApi.startProduction(detail.id))}><Play size={18} fill="currentColor" /> Start Production</Button></div></CardContent></Card> : null}
 

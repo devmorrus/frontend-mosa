@@ -12,6 +12,7 @@ import {
 } from '@/features/master-data/components/MasterDataStates'
 import { EMPTY_PAGINATION } from '@/features/master-data/utils'
 import type { OperatorProductionQueueItem } from '@/features/operator-production/types'
+import { getVoiceGuidanceSessionKey } from '@/features/operator-production/voiceGuidance'
 import { ProductionOrderStatus } from '@/features/production-orders/types'
 import type { MasterDataPagination } from '@/features/master-data/types'
 import type { ApiError } from '@/types/api'
@@ -90,6 +91,12 @@ export function OperatorProductionQueuePage() {
     }
   }
 
+  function continueProduction(item: OperatorProductionQueueItem, isReleased: boolean) {
+    sessionStorage.setItem(getVoiceGuidanceSessionKey(item.id), '1')
+    if (isReleased) void startProduction(item.id)
+    else navigate(`/operator/production/${item.id}`)
+  }
+
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-8">
       <section className="relative overflow-hidden rounded-[30px] bg-ink px-6 py-8 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8">
@@ -128,7 +135,7 @@ export function OperatorProductionQueuePage() {
                   <p className="mt-1 text-sm text-slate-500">{item.targetOutput} {uom} target output · Recipe v{item.recipeVersionNumber}</p>
                   <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-600"><span className="inline-flex items-center gap-2"><CalendarDays size={16} />{formatSchedule(item.scheduledDate)}</span><span>Step {item.progress.currentStepSequence ?? item.progress.totalSteps} of {item.progress.totalSteps} · {progress}%</span></div>
                 </div>
-                <Button size="lg" className="h-12 min-w-[164px]" disabled={startingId === item.id} onClick={() => isReleased ? void startProduction(item.id) : navigate(`/operator/production/${item.id}`)}><Play size={18} fill="currentColor" />{startingId === item.id ? 'Memulai...' : isReleased ? 'Start Production' : 'Continue'}</Button>
+                <Button size="lg" className="h-12 min-w-[164px]" disabled={startingId === item.id} onClick={() => continueProduction(item, isReleased)}><Play size={18} fill="currentColor" />{startingId === item.id ? 'Memulai...' : isReleased ? 'Start Production' : 'Continue'}</Button>
               </CardContent>
             </Card>
           })}
