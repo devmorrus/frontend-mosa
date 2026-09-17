@@ -13,6 +13,7 @@ import {
 import { ProductionOrderStatus } from '@/features/production-orders/types'
 import { ProductionStepExecutionStatus, type OperatorProductionDetail } from '@/features/operator-production/types'
 import { MaterialConsumptionPanel } from '@/features/operator-production/deviation/MaterialConsumptionPanel'
+import { parseRawMaterialLotQrToken } from '@/features/raw-material-lots/utils'
 import { buildStepVoiceInstruction, getVoiceGuidanceSessionKey, isVoiceGuidanceSupported, speakStepInstruction, stopVoiceGuidance, VOICE_GUIDANCE_ENABLED_KEY } from '@/features/operator-production/voiceGuidance'
 import { formatAllowedRange } from '@/features/operator-production/deviation/validation'
 import { ProductionCompletionCard } from '@/features/operator-production/completion/ProductionCompletionCard'
@@ -226,7 +227,12 @@ export function OperatorGuidedProductionPage() {
       onStart={() => void runAction(() => productionOrdersApi.startStep(detail.id, step.id))}
       onStartTimer={() => void runAction(() => productionOrdersApi.startTimer(detail.id, step.id))}
       onComplete={() => void runAction(() => productionOrdersApi.completeStep(detail.id, step.id, step.stepType === RecipeStepType.Check ? { confirmed: true, notes } : {}))}
-      onValidateLot={(value) => productionOrdersApi.validateMaterialLot(detail.id, step.id, /^[0-9a-f-]{36}$/i.test(value.trim()) ? { rawMaterialLotId: value.trim() } : { qrToken: value.trim() })}
+      onValidateLot={(value) => {
+        const trimmed = value.trim()
+        if (/^[0-9a-f-]{36}$/i.test(trimmed)) return productionOrdersApi.validateMaterialLot(detail.id, step.id, { rawMaterialLotId: trimmed })
+        const parsed = parseRawMaterialLotQrToken(trimmed)
+        return productionOrdersApi.validateMaterialLot(detail.id, step.id, { qrToken: parsed.token ?? trimmed })
+      }}
       onConsume={(lots, reason) => void runAction(() => reason ? productionOrdersApi.createDeviationRequest(detail.id, step.id, { lots: lots.map((lot) => ({ rawMaterialLotId: lot.lotId, actualQuantity: Number(lot.actualQuantity.replace(',', '.')) })), reason }, crypto.randomUUID()) : productionOrdersApi.consumeMaterial(detail.id, step.id, { lots: lots.map((lot) => ({ rawMaterialLotId: lot.lotId, actualQuantity: Number(lot.actualQuantity.replace(',', '.')) })) }, crypto.randomUUID()))}
     /> : null}
     {!step && detail.status === ProductionOrderStatus.InProgress && detail.progress.totalSteps > 0 && detail.progress.completedSteps === detail.progress.totalSteps ? <div data-tour="guided-complete-info"><ProductionCompletionCard detail={detail} isSubmitting={isSubmitting} error={actionError} onComplete={completeProduction} onLoadLabel={productionOrdersApi.getFinishedGoodsLabel} onViewFg={(fgLotId) => navigate(`/production/finished-goods-lots/${fgLotId}`)} onPrint={(fgLotId) => void printFinishedGoodsLabel(fgLotId)} onBack={() => navigate('/operator/production')} /></div> : null}
