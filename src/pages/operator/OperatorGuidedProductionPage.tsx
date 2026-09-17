@@ -44,6 +44,7 @@ export function OperatorGuidedProductionPage() {
   const [detail, setDetail] = useState<OperatorProductionDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [errorTraceId, setErrorTraceId] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [notes, setNotes] = useState('')
@@ -55,13 +56,16 @@ export function OperatorGuidedProductionPage() {
     if (!id) return
     if (!background) setIsLoading(true)
     setError(null)
+    setErrorTraceId(null)
     try {
       const next = await productionOrdersApi.getMyQueueDetail(id)
       setDetail(next)
       setConfirmed(next.currentStep?.isConfirmed ?? false)
       setNotes('')
     } catch (caughtError) {
-      setError((caughtError as ApiError).message)
+      const apiError = caughtError as ApiError
+      setError(apiError.message)
+      setErrorTraceId(apiError.traceId ?? null)
     } finally {
       setIsLoading(false)
     }
@@ -74,12 +78,15 @@ export function OperatorGuidedProductionPage() {
     async function fetchInitialDetail() {
       setIsLoading(true)
       setError(null)
+      setErrorTraceId(null)
       try {
         const next = await productionOrdersApi.getMyQueueDetail(productionOrderId)
         setDetail(next)
         setConfirmed(next.currentStep?.isConfirmed ?? false)
       } catch (caughtError) {
-        setError((caughtError as ApiError).message)
+        const apiError = caughtError as ApiError
+        setError(apiError.message)
+        setErrorTraceId(apiError.traceId ?? null)
       } finally {
         setIsLoading(false)
       }
@@ -144,7 +151,7 @@ export function OperatorGuidedProductionPage() {
   }
 
   if (isLoading) return <MasterDataLoadingState description="Memuat langkah produksi saat ini." />
-  if (error || !detail) return <MasterDataErrorState description={error ?? 'Production order tidak ditemukan.'} onRetry={() => void loadDetail()} />
+  if (error || !detail) return <MasterDataErrorState description={error ?? 'Production order tidak ditemukan.'} traceId={errorTraceId} onRetry={() => void loadDetail()} />
 
   const step = detail.currentStep
   const progress = detail.progress.totalSteps === 0 ? 0 : Math.round((detail.progress.completedSteps / detail.progress.totalSteps) * 100)

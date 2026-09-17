@@ -21,10 +21,12 @@ export function MasterDataLoadingState({
 export function MasterDataErrorState({
   title = 'Terjadi kendala saat memuat data',
   description,
+  traceId,
   onRetry,
 }: {
   title?: string
   description: string
+  traceId?: string | null
   onRetry: () => void
 }) {
   return (
@@ -32,6 +34,7 @@ export function MasterDataErrorState({
       <AlertTriangle className="mx-auto h-9 w-9 text-red-500" />
       <h3 className="mt-4 font-display text-xl font-semibold text-ink">{title}</h3>
       <p className="mt-2 text-sm text-slate-500">{description}</p>
+      {traceId ? <p className="mt-2 font-mono text-xs text-slate-400">Trace ID: {traceId}</p> : null}
       <Button onClick={onRetry} variant="secondary" className="mt-5">
         <RefreshCcw size={16} />
         Coba lagi
