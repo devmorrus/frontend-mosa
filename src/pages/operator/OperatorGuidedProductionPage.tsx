@@ -15,6 +15,7 @@ import { ProductionStepExecutionStatus, type OperatorProductionDetail } from '@/
 import { MaterialConsumptionPanel } from '@/features/operator-production/deviation/MaterialConsumptionPanel'
 import { formatAllowedRange } from '@/features/operator-production/deviation/validation'
 import { ProductionCompletionCard } from '@/features/operator-production/completion/ProductionCompletionCard'
+import { buildQrSvgDataUri } from '@/features/raw-material-lots/utils'
 import { RecipeStepType, RecipeToleranceType } from '@/features/recipes/types'
 import type { ApiError } from '@/types/api'
 
@@ -137,7 +138,7 @@ export function OperatorGuidedProductionPage() {
       if (!printWindow) throw new Error('Popup print diblokir browser.')
       const productionDate = new Date(label.productionDate).toLocaleDateString('id-ID')
       const expiry = label.expiryDate ? new Date(label.expiryDate).toLocaleDateString('id-ID') : '-'
-      printWindow.document.write(`<html><head><title>${label.finishedGoodsLotNumber}</title></head><body style="font-family:Arial;padding:24px"><h1>${label.productName}</h1><p><b>FG LOT:</b> ${label.finishedGoodsLotNumber}</p><p><b>PO:</b> ${label.productionOrderNumber} · <b>Warehouse:</b> ${label.warehouseCode}</p><p>Actual: ${label.actualOutput} ${label.unitOfMeasureSymbol}</p><p>Production Date: ${productionDate} · Expiry: ${expiry}</p><p>QC: ${label.qcStatus}</p><img width="220" src="data:image/png;base64,${label.qrImageBase64}" /></body></html>`)
+      printWindow.document.write(`<html><head><title>${label.finishedGoodsLotNumber}</title></head><body style="font-family:Arial;padding:24px"><h1>${label.productName}</h1><p><b>FG LOT:</b> ${label.finishedGoodsLotNumber}</p><p><b>PO:</b> ${label.productionOrderNumber} · <b>Warehouse:</b> ${label.warehouseCode}</p><p>Actual: ${label.actualOutput} ${label.unitOfMeasureSymbol}</p><p>Production Date: ${productionDate} · Expiry: ${expiry}</p><p>QC: ${label.qcStatus}</p><img width="220" src="${buildQrSvgDataUri(atob(label.qrImageBase64))}" /></body></html>`)
       printWindow.document.close(); printWindow.focus(); printWindow.print()
     } catch (caughtError) { setActionError((caughtError as ApiError).message) }
   }
