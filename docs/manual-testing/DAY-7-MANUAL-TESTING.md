@@ -68,8 +68,8 @@ Operator:         operator yang ditugaskan (opsional)
 | --- | --- | --- | --- |
 | D7-PROD-PO-01 | Setelah save, pastikan detail order tampil | Nomor PO, product, recipe V3, warehouse, target output, UOM, scheduled date, operator, status `Draft` | [ ] |
 | D7-PROD-PO-02 | Buka `Production > Production Orders`, cari nomor PO tersebut | Order muncul di list; search + filter status + pagination konsisten | [ ] |
-| D7-PROD-MAT-01 | Pada detail order, buka Recipe Information | Standard output `100 pcs`, target output, scaling factor tampil (`target / 100`) | [ ] |
-| D7-PROD-MAT-02 | Buka tabel Material Requirements | Setiap baris menampilkan material, recipe qty, required (scaled), available, shortage, status Sufficient/Shortage | [ ] |
+| D7-PROD-MAT-01 | Pada detail order, buka Recipe Information | Standard output `100 pcs`, target output, scaling factor tampil (`target / 100`), dan catatan bahwa recipe qty dihitung berdasarkan standard output tampil | [ ] |
+| D7-PROD-MAT-02 | Buka tabel Material Requirements | Header membedakan `Recipe Qty / Standard Output` dan `Required for This Order`; setiap baris menampilkan material, recipe qty, required (scaled), available, shortage, status Sufficient/Shortage | [ ] |
 | D7-PROD-MAT-03 | Verifikasi hitung manual satu baris | `required = recipe qty × scaling factor`; `shortage = max(0, required − available)` | [ ] |
 | D7-PROD-MAT-04 | Refresh halaman | Requirement, status order, dan angka tidak berubah (snapshot tersimpan) | [ ] |
 

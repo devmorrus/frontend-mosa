@@ -112,14 +112,14 @@ export function OperatorGuidedProductionPage() {
     }
   }
 
-  async function completeProduction(actualOutput: number) {
+  async function completeProduction(actualOutput: number, productionNotes?: string) {
     if (!detail) throw new Error('Production order tidak ditemukan.')
     if (completingRef.current) throw new Error('Complete production sedang diproses.')
     completingRef.current = true
     setIsSubmitting(true)
     setActionError(null)
     try {
-      return await productionOrdersApi.completeProduction(detail.id, { actualOutput })
+      return await productionOrdersApi.completeProduction(detail.id, { actualOutput, productionNotes })
     } catch (caughtError) {
       const message = (caughtError as ApiError).message
       setActionError(message)

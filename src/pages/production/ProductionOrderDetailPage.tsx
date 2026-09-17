@@ -662,6 +662,9 @@ export function ProductionOrderDetailPage() {
                     </Badge>
                   </DetailItem>
                 </div>
+                <p className="mt-4 rounded-2xl bg-sand/35 p-4 text-sm text-slate-600">
+                  Recipe quantity adalah kebutuhan bahan untuk Standard Output. Required di bawah dihitung ulang untuk Target Output Production Order ini.
+                </p>
               </CardContent>
             </Card>
 
@@ -675,7 +678,7 @@ export function ProductionOrderDetailPage() {
                     <table className="min-w-full border-separate border-spacing-0">
                       <thead>
                         <tr className="bg-slate-50/80 text-left">
-                          {['Material', 'Recipe Qty', 'Required', 'Available', 'Shortage', 'Status'].map(
+                          {['Material', `Recipe Qty / ${standardOutput} ${order.unitOfMeasure.code}`, 'Required for This Order', 'Available', 'Shortage', 'Status'].map(
                             (header) => (
                               <th
                                 key={header}

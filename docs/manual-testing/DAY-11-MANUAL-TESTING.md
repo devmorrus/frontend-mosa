@@ -15,28 +15,34 @@ Checklist ini mencakup production completion nyata, Finished Goods LOT/QR, QC pa
 
 | Account | Required permission | Purpose |
 | --- | --- | --- |
-| Assigned Operator | `production-orders.execute` | Complete production, input actual output, lihat FG LOT/QR |
+| Assigned Operator | `production-orders.execute` | Complete production, input Actual Good Output, isi alasan variance bila perlu, lihat FG LOT/QR |
 | QC Inspector | `qc.view`, `qc.inspect` | Membuka queue, mengisi QC parameters, save inspection |
 | QC Decider/Supervisor | `qc.decide` | PASS, HOLD, REJECT |
 | Unauthorized User | Tanpa permission QC/completion atau tanpa assignment | Memastikan akses ditolak |
 | Admin/Auditor | Read-only production, FG LOT, QC, inventory, audit permission sesuai policy | Verifikasi audit dan stock movement |
 
-Pastikan tersedia PO `IN_PROGRESS` dengan semua step `Completed`, tanpa pending approval/deviation, recipe Approved, dan product memiliki QC parameter aktif bila skenario membutuhkannya.
+Pastikan tersedia PO `IN_PROGRESS` dengan semua step `Completed`, semua material consumption `Posted`, tanpa pending approval/deviation, recipe Approved, dan product memiliki QC parameter aktif bila skenario membutuhkannya.
+
+Catatan istilah: `Actual Good Output` adalah jumlah produk jadi baik yang benar-benar dihasilkan. Jangan mencampurnya dengan actual material consumption, karena material consumption adalah bahan baku yang dipakai per material/LOT.
 
 ## A. Production Completion
 
 | ID | Action | Expected result | Result |
 | --- | --- | --- | --- |
-| D11-COMP-01 | Complete production dengan semua step Completed authorized | Production selesai; FG LOT terbentuk | [ ] |
+| D11-COMP-01 | Complete production dengan semua step Completed authorized, material consumption Posted, Actual Good Output sesuai target | Production selesai; FG LOT terbentuk | [ ] |
 | D11-COMP-02 | Complete production dengan step belum selesai di local/staging | Ditolak; FG LOT tidak dibuat | [ ] |
 | D11-COMP-03 | Complete production saat ada pending approval di local/staging | Ditolak; pending approval memblokir completion | [ ] |
-| D11-COMP-04 | Complete tanpa actual output di local/staging | Ditolak; actual output wajib | [ ] |
-| D11-COMP-05 | Complete dengan actual output `0` di local/staging | Ditolak | [ ] |
-| D11-COMP-06 | Complete dengan negative actual output di local/staging | Ditolak | [ ] |
+| D11-COMP-04 | Complete tanpa Actual Good Output di local/staging | Ditolak; Actual Good Output wajib | [ ] |
+| D11-COMP-05 | Complete dengan Actual Good Output `0` di local/staging | Ditolak | [ ] |
+| D11-COMP-06 | Complete dengan negative Actual Good Output di local/staging | Ditolak | [ ] |
 | D11-COMP-07 | Complete production yang sama dua kali di local/staging | Duplicate ditolak; FG LOT kedua tidak terbentuk | [ ] |
 | D11-COMP-08 | Inspect completed production | `CompletedBy` tercatat | [ ] |
 | D11-COMP-09 | Inspect completed production | `CompletedAt` tercatat | [ ] |
 | D11-COMP-10 | Force transaction failure saat completion di test environment | Semua perubahan rollback; tidak ada orphan FG LOT/order state setengah | [ ] |
+| D11-COMP-11 | Complete dengan Actual Good Output berbeda dari Target tanpa alasan di local/staging | Ditolak dengan error reason/production notes wajib; FG LOT tidak dibuat | [ ] |
+| D11-COMP-12 | Complete dengan Actual Good Output berbeda dari Target dan alasan terisi | Completion berjalan jika output didukung material consumption; audit completion menyimpan alasan | [ ] |
+| D11-COMP-13 | Complete dengan Actual Good Output melebihi material-supported output di local/staging | Ditolak; error `production_output_exceeds_material_support`; FG LOT tidak dibuat | [ ] |
+| D11-COMP-14 | Complete dengan Actual Good Output lebih rendah dari Target tetapi masih didukung material consumption | Completion berjalan dengan yield/variance sesuai input dan alasan wajib | [ ] |
 
 ## B. Finished Goods LOT
 
@@ -48,8 +54,8 @@ Pastikan tersedia PO `IN_PROGRESS` dengan semua step `Completed`, tanpa pending 
 | D11-FG-04 | Inspect FG LOT | Production Order relation benar | [ ] |
 | D11-FG-05 | Inspect FG LOT | Recipe Version relation benar | [ ] |
 | D11-FG-06 | Inspect FG LOT | Target Output tersimpan sesuai PO | [ ] |
-| D11-FG-07 | Inspect FG LOT | Actual Output tersimpan sesuai input completion | [ ] |
-| D11-FG-08 | Inspect FG LOT | Yield benar sesuai agreed formula (`actual/target*100`, 2 desimal) | [ ] |
+| D11-FG-07 | Inspect FG LOT | Actual Good Output tersimpan sesuai input completion | [ ] |
+| D11-FG-08 | Inspect FG LOT | Yield benar sesuai formula (`actual good output/target output*100`, 2 desimal) | [ ] |
 | D11-FG-09 | Inspect FG LOT | QC Status awal `WAITING_QC` | [ ] |
 | D11-FG-10 | Inspect FG LOT | Inventory Status awal `BLOCKED`/`NOT_AVAILABLE` | [ ] |
 | D11-FG-11 | Inspect available stock sebelum QC PASS | FG belum masuk Available Stock | [ ] |
@@ -67,7 +73,7 @@ Pastikan tersedia PO `IN_PROGRESS` dengan semua step `Completed`, tanpa pending 
 | D11-QR-07 | Inspect label | Product tampil pada label | [ ] |
 | D11-QR-08 | Inspect label | FG LOT tampil | [ ] |
 | D11-QR-09 | Inspect label | Production Date tampil | [ ] |
-| D11-QR-10 | Inspect label | Actual Output tampil | [ ] |
+| D11-QR-10 | Inspect label | Actual Good Output tampil | [ ] |
 | D11-QR-11 | Inspect label produk dengan shelf life | Expiry tampil; tanpa shelf life tampil `-` | [ ] |
 | D11-QR-12 | Inspect label | QC Status tampil | [ ] |
 | D11-QR-13 | Reprint label | Reprint berjalan | [ ] |
@@ -141,18 +147,21 @@ Pastikan tersedia PO `IN_PROGRESS` dengan semua step `Completed`, tanpa pending 
 | ID | Action | Expected result | Result |
 | --- | --- | --- | --- |
 | D11-FEC-01 | Selesaikan semua step | All Steps Completed state tampil | [ ] |
-| D11-FEC-02 | Lihat completion card | Actual Output field tersedia dengan validasi angka > 0, maks 4 desimal | [ ] |
-| D11-FEC-03 | Klik Complete Production | Completion confirmation tampil | [ ] |
-| D11-FEC-04 | Konfirmasi completion | Complete Production berjalan | [ ] |
-| D11-FEC-05 | Double-click tombol confirm | Double submit dicegah; satu request diproses | [ ] |
-| D11-FEC-06 | Simulasikan backend failure di local/staging | Error tampil di dalam dialog; dialog tetap terbuka untuk retry | [ ] |
-| D11-FEC-07 | Setelah success | FG LOT tampil | [ ] |
-| D11-FEC-08 | Setelah success | Yield tampil dari backend | [ ] |
-| D11-FEC-09 | Setelah success | QR Preview tampil (atau pesan jelas bila label gagal dimuat) | [ ] |
-| D11-FEC-10 | Klik Print Label | Print Label berjalan dengan PO, warehouse, production/expiry date, QC | [ ] |
-| D11-FEC-11 | Setelah success | QC Status tampil dari backend via badge | [ ] |
-| D11-FEC-12 | Setelah success | Inventory Status tampil dari backend via badge | [ ] |
-| D11-FEC-13 | Refresh halaman setelah completion | State "Production selesai" tetap tampil dengan link QC Queue (tidak blank) | [ ] |
+| D11-FEC-02 | Lihat completion card | Field `Actual Good Output` default ke Target Output, editable, validasi angka > 0, maks 4 desimal | [ ] |
+| D11-FEC-03 | Lihat material consumption summary | Tampil per material: Actual / Required + UOM; tidak ada total lintas material yang ambigu | [ ] |
+| D11-FEC-04 | Ubah Actual Good Output berbeda dari Target | Yield Preview dan Output Variance berubah; Reason for Output Variance wajib tampil | [ ] |
+| D11-FEC-05 | Klik Complete Production tanpa reason saat variance ada | Tombol disabled atau backend menolak; user mendapat pesan alasan wajib | [ ] |
+| D11-FEC-06 | Isi reason lalu klik Complete Production | Completion confirmation tampil dengan actual good output, yield, dan variance | [ ] |
+| D11-FEC-07 | Konfirmasi completion | Complete Production berjalan | [ ] |
+| D11-FEC-08 | Double-click tombol confirm | Double submit dicegah; satu request diproses | [ ] |
+| D11-FEC-09 | Simulasikan backend failure di local/staging | Error tampil di dalam dialog; dialog tetap terbuka untuk retry | [ ] |
+| D11-FEC-10 | Setelah success | FG LOT tampil | [ ] |
+| D11-FEC-11 | Setelah success | Yield dan Output Variance tampil dari backend | [ ] |
+| D11-FEC-12 | Setelah success | QR Preview tampil (atau pesan jelas bila label gagal dimuat) | [ ] |
+| D11-FEC-13 | Klik Print Label | Print Label berjalan dengan PO, warehouse, production/expiry date, QC | [ ] |
+| D11-FEC-14 | Setelah success | QC Status tampil dari backend via badge | [ ] |
+| D11-FEC-15 | Setelah success | Inventory Status tampil dari backend via badge | [ ] |
+| D11-FEC-16 | Refresh halaman setelah completion | State "Production selesai" tetap tampil dengan link QC Queue (tidak blank) | [ ] |
 
 ## J. Frontend QC
 
@@ -180,7 +189,7 @@ Pastikan tersedia PO `IN_PROGRESS` dengan semua step `Completed`, tanpa pending 
 | ID | Action | Expected result | Result |
 | --- | --- | --- | --- |
 | D11-TUT-01 | Jalankan tutorial sampai akhir | Tutorial mencapai final Recipe Step | [ ] |
-| D11-TUT-02 | Isi actual output simulation | Actual Output simulation tersedia | [ ] |
+| D11-TUT-02 | Isi actual output simulation | Actual Output simulation tersedia; catatan bahwa simulasi tidak membuat FG LOT nyata tetap jelas | [ ] |
 | D11-TUT-03 | Lihat yield simulation | Yield simulation tampil | [ ] |
 | D11-TUT-04 | Simulasikan complete production | Simulated FG LOT tampil | [ ] |
 | D11-TUT-05 | Lihat QC section | Waiting QC dijelaskan (WAITING QC = belum available) | [ ] |
@@ -197,13 +206,13 @@ Pastikan tersedia PO `IN_PROGRESS` dengan semua step `Completed`, tanpa pending 
 
 ## Automated Evidence
 
-- Backend unit/integration tests should cover completion gates (steps, pending approval, actual output, duplicate), FG LOT creation (unique number, relations, yield, initial statuses), QR token (unique, resolve valid/invalid/case-insensitive), QC required params, PASS/HOLD/REJECT transitions, double decision rejection, release movement, and transaction rollback.
-- Frontend tests should cover completion validation, double-submit guard, dialog error state, label loading/error state, QC filters, required validation, confirmations, inline error preservation, and tutorial completion/QC simulation.
+- Backend unit/integration tests should cover completion gates (steps, pending approval, actual good output, reason required for output variance, material-supported output guard, duplicate), FG LOT creation (unique number, relations, yield, initial statuses), QR token (unique, resolve valid/invalid/case-insensitive), QC required params, PASS/HOLD/REJECT transitions, double decision rejection, release movement, and transaction rollback.
+- Frontend tests should cover completion validation, Actual Good Output default/variance preview, reason-required behavior, material consumption per-material summary, double-submit guard, dialog error state, label loading/error state, QC filters, required validation, confirmations, inline error preservation, and tutorial completion/QC simulation.
 - Production evidence should include only authorized operational completions and QC decisions, with PO number, FG LOT number, QR token, inspector, stock movement ID, and audit timestamps.
 
 ## Current Automated Status
 
-- Backend unit: `233/233 PASS` (termasuk `FinishedGoodsLot_ShouldNormalizeQrTokenToUppercase`).
-- Frontend tests: `47/47 PASS`.
+- Backend unit: `235/235 PASS` (termasuk `ProductionOutputSupportCalculatorTests` dan `FinishedGoodsLot_ShouldNormalizeQrTokenToUppercase`).
+- Frontend tests: not rerun for this update; `npm run build` PASS.
 - Frontend `npm run build`: PASS (chunk size warning lama).
 - Integration tests terfilter Day 11 tidak dijalankan (butuh DB/docker, timeout di environment ini).
