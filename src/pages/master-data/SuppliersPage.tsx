@@ -52,7 +52,7 @@ export function SuppliersPage() {
             </h1>
             <p className="mt-3 max-w-xl text-sm leading-7 text-paper/68 sm:text-base">
               Gunakan daftar ini untuk mengelola data pemasok secara konsisten, lengkap dengan
-              pencarian, pagination backend, dan kontrol status Active / Inactive.
+              pencarian, pagination otomatis, dan kontrol status Active / Inactive.
             </p>
           </div>
 
@@ -105,7 +105,7 @@ export function SuppliersPage() {
 
       {/* ── Table area ── */}
       {supplierModule.isLoading ? (
-        <MasterDataLoadingState description="Daftar supplier sedang dimuat dari backend." />
+        <MasterDataLoadingState description="Daftar supplier sedang dimuat." />
       ) : supplierModule.error ? (
         <MasterDataErrorState description={supplierModule.error} onRetry={supplierModule.reload} />
       ) : supplierModule.items.length === 0 ? (
