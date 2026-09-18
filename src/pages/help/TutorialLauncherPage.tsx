@@ -38,7 +38,7 @@ export function TutorialLauncherPage() {
     switch (status) {
       case 'COMPLETED':
         return (
-          <Badge className="bg-emerald-500/20 text-emerald-700 border-emerald-500/30">
+          <Badge className="bg-blue-500/20 text-blue-700 border-blue-500/30">
             <CheckCircle size={12} className="mr-1" /> Selesai
           </Badge>
         )
@@ -70,7 +70,7 @@ export function TutorialLauncherPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <Badge variant="subtle" className="bg-signal/15 text-signal font-semibold">
+              <Badge variant="subtle" className="bg-signal/20 text-signal-deep font-semibold">
                 Interactive Onboarding
               </Badge>
             </div>
@@ -82,7 +82,7 @@ export function TutorialLauncherPage() {
               sesuai role dan hak akses Anda.
             </p>
           </div>
-          <div className="flex shrink-0 items-center justify-center rounded-2xl bg-signal/10 p-4 text-signal">
+          <div className="flex shrink-0 items-center justify-center rounded-2xl bg-signal/20 p-4 text-signal-deep">
             <BookOpen size={40} />
           </div>
         </div>
@@ -148,7 +148,7 @@ export function TutorialLauncherPage() {
                   {status === 'IN_PROGRESS' ? (
                     <Button
                       type="button"
-                      className="w-full bg-signal text-paper hover:bg-signal/90"
+                      className="w-full bg-signal text-ink hover:bg-signal/90"
                       size="sm"
                       onClick={() => startTutorial(tutorial.id, false)}
                     >

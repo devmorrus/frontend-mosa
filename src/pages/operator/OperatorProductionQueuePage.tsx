@@ -99,8 +99,8 @@ export function OperatorProductionQueuePage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-8">
-      <section className="relative overflow-hidden rounded-[30px] bg-ink px-6 py-8 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(232,163,61,0.24),transparent_52%)]" />
+      <section className="relative overflow-hidden rounded-[30px] bg-ink px-6 py-8 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,201,40,0.24),transparent_52%)]" />
         <div className="relative">
           <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-paper/65">
             <Factory size={16} className="text-signal" /> My Production

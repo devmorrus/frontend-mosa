@@ -151,7 +151,7 @@ export function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.18)] sm:px-8">
+      <section className="rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.18)] sm:px-8">
         <Badge variant="subtle" className="gap-2 px-4 py-1.5"><FileSpreadsheet size={14} className="text-signal" />Report Center</Badge>
         <h1 className="mt-5 font-display text-3xl font-semibold sm:text-4xl">Reporting Center MOSA</h1>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-paper/68">Satu pusat untuk RPT-01 sampai RPT-10, lengkap dengan filter, pagination, dan export sesuai filter aktif.</p>
@@ -178,7 +178,7 @@ export function ReportsPage() {
         <div className="min-w-0 space-y-5">
           <Card className="min-w-0">
             <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="min-w-0"><div className="text-xs font-semibold uppercase tracking-[0.16em] text-signal">{activeReport.rpt}</div><CardTitle className="mt-2">{activeReport.name}</CardTitle><CardDescription className="mt-2">{activeReport.description}</CardDescription><p className="mt-2 text-xs text-slate-400">Last Generated/Loaded: {loadedAt ?? '-'}</p></div>
+              <div className="min-w-0"><div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">{activeReport.rpt}</div><CardTitle className="mt-2">{activeReport.name}</CardTitle><CardDescription className="mt-2">{activeReport.description}</CardDescription><p className="mt-2 text-xs text-slate-400">Last Generated/Loaded: {loadedAt ?? '-'}</p></div>
               <div data-tour="reports-export" className="flex flex-wrap gap-2">
                 <Button variant="secondary" onClick={() => void exportReport('csv')} disabled={Boolean(isExporting)}><Download size={16} />{isExporting === 'csv' ? 'Exporting...' : 'CSV'}</Button>
                 <Button onClick={() => void exportReport('xlsx')} disabled={Boolean(isExporting)}><Download size={16} />{isExporting === 'xlsx' ? 'Exporting...' : 'Excel'}</Button>

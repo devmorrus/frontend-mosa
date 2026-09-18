@@ -48,7 +48,7 @@ export function formatLotQuantity(value: number, unitOfMeasureCode: string) {
 export function getLotStatusTone(status: string) {
   switch (status.toUpperCase()) {
     case 'AVAILABLE':
-      return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+      return 'border-blue-200 bg-blue-50 text-blue-700'
     case 'BLOCKED':
       return 'border-amber-200 bg-amber-50 text-amber-700'
     case 'CONSUMED':
@@ -97,9 +97,9 @@ export function buildRawMaterialLotLabelHtml(label: RawMaterialLotLabel) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LOT Label ${escapeHtml(label.internalLotNumber)}</title>
     <style>
-      body { font-family: Arial, sans-serif; margin: 0; padding: 24px; color: #12302e; background: #f7f7f3; }
+      body { font-family: Arial, sans-serif; margin: 0; padding: 24px; color: #063b8c; background: #f5f9ff; }
       .sheet { width: 420px; margin: 0 auto; }
-      .label { background: white; border: 2px solid #12302e; border-radius: 16px; padding: 20px; }
+      .label { background: white; border: 2px solid #063b8c; border-radius: 16px; padding: 20px; }
       .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: #64748b; }
       h1 { margin: 8px 0 18px; font-size: 24px; }
       .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
@@ -209,8 +209,8 @@ export function prepareRawMaterialLotPrintWindow() {
         place-items: center;
         min-height: 100vh;
         margin: 0;
-        color: #12302e;
-        background: #f7f7f3;
+        color: #063b8c;
+        background: #f5f9ff;
       }
       .card {
         border: 1px solid #cbd5e1;

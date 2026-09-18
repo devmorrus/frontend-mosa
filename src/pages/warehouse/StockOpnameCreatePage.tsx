@@ -51,7 +51,7 @@ export function StockOpnameCreatePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <Button asChild variant="ghost" className="text-slate-500"><Link to="/warehouse/stock-opname"><ArrowLeft size={16} />Kembali</Link></Button>
-      <section className="rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8">
+      <section className="rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8">
         <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72"><ClipboardCheck size={14} className="text-signal" />Create Stock Opname</div>
         <h1 className="mt-5 font-display text-3xl font-semibold">Ambil snapshot LOT inventory</h1>
         <p className="mt-3 text-sm leading-7 text-paper/68">Setelah dibuat, backend akan mengambil LOT aktif pada warehouse sebagai dasar physical counting.</p>

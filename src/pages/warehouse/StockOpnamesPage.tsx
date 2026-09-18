@@ -25,7 +25,7 @@ function formatDate(value: string | null) {
 
 function StatusBadge({ status }: { status: StockOpnameStatus }) {
   const className = status === 'POSTED'
-    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+    ? 'bg-blue-50 text-blue-700 border-blue-200'
     : status === 'CANCELLED'
       ? 'bg-slate-100 text-slate-500 border-slate-200'
       : status === 'READYTOPOST'
@@ -81,7 +81,7 @@ export function StockOpnamesPage() {
 
   return (
     <div className="space-y-6" data-tour="opname-queue">
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8">
+      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8">
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">

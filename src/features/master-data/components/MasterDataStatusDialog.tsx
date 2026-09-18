@@ -29,7 +29,7 @@ export function MasterDataStatusDialog({
         <div
           className={`h-1 w-full ${
             toActive
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
+              ? 'bg-gradient-to-r from-blue-500 to-blue-400'
               : 'bg-gradient-to-r from-amber-500 to-orange-400'
           }`}
         />
@@ -39,7 +39,7 @@ export function MasterDataStatusDialog({
           {/* Icon circle */}
           <div
             className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${
-              toActive ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+              toActive ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'
             }`}
           >
             <RotateCcw size={24} />
@@ -62,13 +62,13 @@ export function MasterDataStatusDialog({
           <span
             className={`mt-2 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold ${
               toActive
-                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200'
+                ? 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200'
                 : 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200'
             }`}
           >
             <span
               className={`h-2 w-2 rounded-full ${
-                toActive ? 'bg-emerald-500' : 'bg-amber-500'
+                toActive ? 'bg-blue-500' : 'bg-amber-500'
               }`}
             />
             {nextStatusLabel}
@@ -97,7 +97,7 @@ export function MasterDataStatusDialog({
             disabled={submitting}
             className={
               toActive
-                ? 'bg-emerald-700 shadow-emerald-200 hover:bg-emerald-800'
+                ? 'bg-blue-700 shadow-blue-200 hover:bg-blue-800'
                 : 'bg-amber-600 shadow-amber-200 hover:bg-amber-700'
             }
           >

@@ -9,7 +9,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-ink text-paper shadow-[0_14px_32px_rgba(18,48,46,0.22)] hover:bg-ink-light hover:shadow-[0_18px_36px_rgba(18,48,46,0.26)]',
+          'bg-ink text-paper shadow-[0_14px_32px_rgba(6,59,140,0.22)] hover:bg-ink-light hover:shadow-[0_18px_36px_rgba(6,59,140,0.26)]',
         secondary:
           'border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50',
         ghost: 'text-paper/70 hover:bg-paper/8 hover:text-paper',

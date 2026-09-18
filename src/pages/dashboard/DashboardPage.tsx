@@ -53,7 +53,7 @@ function formatPercent(value: number) {
 
 function getDeviationTone(value: number) {
   if (value < 0) return 'text-red-600'
-  if (value > 0) return 'text-emerald-700'
+  if (value > 0) return 'text-blue-700'
   return 'text-slate-600'
 }
 
@@ -78,14 +78,14 @@ interface KpiCardProps {
 function KpiCard({ label, value, caption, icon: Icon, to, tone = 'default' }: KpiCardProps) {
   const toneClass = {
     default: 'border-slate-200 bg-white text-ink',
-    success: 'border-emerald-100 bg-emerald-50/80 text-emerald-800',
+    success: 'border-blue-100 bg-blue-50/80 text-blue-800',
     warning: 'border-amber-100 bg-amber-50/85 text-amber-800',
     danger: 'border-red-100 bg-red-50/85 text-red-700',
-    signal: 'border-signal/20 bg-[#fff7e9] text-ink',
+    signal: 'border-signal/20 bg-[#fff8d6] text-ink',
   }[tone]
 
   const content = (
-    <Card className={cn('h-full rounded-[24px] border shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(18,48,46,0.11)]', toneClass)}>
+    <Card className={cn('h-full rounded-[24px] border shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(6,59,140,0.11)]', toneClass)}>
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -217,9 +217,9 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.18)] sm:px-8 sm:py-8">
+      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.18)] sm:px-8 sm:py-8">
         <div className="pointer-events-none absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)', backgroundSize: '34px 34px' }} />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-[radial-gradient(circle_at_top_left,rgba(232,163,61,0.24),transparent_58%)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.24),transparent_58%)]" />
         <div className="relative flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-3xl">
             <Badge variant="subtle" className="gap-2 px-4 py-1.5">
@@ -333,7 +333,7 @@ function DashboardContent({
           </div>
         </div>
 
-        <Card className="overflow-hidden border-ink/8 bg-[linear-gradient(180deg,#f2ede1_0%,#f7f6f2_100%)]">
+        <Card className="overflow-hidden border-ink/8 bg-[linear-gradient(180deg,#dbeafe_0%,#ffffff_100%)]">
           <CardHeader>
             <Badge variant="default" className="w-fit">Performance</Badge>
             <CardTitle className="mt-2">Output vs target</CardTitle>
@@ -351,7 +351,7 @@ function DashboardContent({
                   <div className="mt-2 font-display text-4xl font-semibold text-ink">{formatPercent(summary.performance.overallYield)}</div>
                   <p className="mt-2 text-sm text-slate-500">Average yield: {formatPercent(summary.performance.averageYield)}</p>
                 </div>
-                <TrendingUp className="text-signal" size={28} />
+                <TrendingUp className="text-blue-600" size={28} />
               </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">

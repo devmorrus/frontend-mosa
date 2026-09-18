@@ -6,15 +6,17 @@
   --font-display: "Space Grotesk", "Plus Jakarta Sans", ui-sans-serif, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
-  /* MOSA brand tokens — a deep production-floor teal paired with a single
-     restrained amber "checkpoint" accent, kept outside Tailwind's default
-     slate/teal scale so the brand doesn't read as an unstyled default. */
-  --color-ink: #12302e;
-  --color-ink-light: #1c433f;
-  --color-ink-line: #2a5850;
-  --color-paper: #f7f6f2;
-  --color-canvas: #ece9e1;
-  --color-signal: #e8a33d;
+  /* MOSA brand tokens: deep blue foundation, bright yellow checkpoint accent.
+     60% blue / light blue, 25% white, 10% yellow, 5% navy text. */
+  --color-ink: #063b8c;
+  --color-ink-light: #0b5ed7;
+  --color-ink-line: #2c70c9;
+  --color-paper: #ffffff;
+  --color-canvas: #eaf3ff;
+  --color-signal: #ffc928;
+  --color-signal-deep: #8a6d00;
+  --color-signal-soft: #fff4c2;
+  --color-sand: #e8f2ff;
 }
 
 html,
@@ -26,8 +28,8 @@ body,
 body {
   font-family: var(--font-sans);
   background:
-    radial-gradient(circle at top left, rgba(232, 163, 61, 0.09), transparent 26%),
-    radial-gradient(circle at right 18%, rgba(18, 48, 46, 0.08), transparent 28%),
+    radial-gradient(circle at top left, rgba(255, 201, 40, 0.14), transparent 26%),
+    radial-gradient(circle at right 18%, rgba(11, 94, 215, 0.09), transparent 28%),
     var(--color-canvas);
   -webkit-font-smoothing: antialiased;
 }

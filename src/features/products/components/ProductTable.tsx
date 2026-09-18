@@ -20,14 +20,14 @@ import type { MasterDataPagination as PaginationMeta } from '@/features/master-d
 import type { ProductListItem } from '@/features/products/types'
 
 const AVATAR_GRADIENTS: [string, string][] = [
-  ['#12302e', '#1c433f'],
+  ['#063b8c', '#0b5ed7'],
   ['#0f4c81', '#1a6fb5'],
   ['#6b21a8', '#9333ea'],
   ['#b45309', '#d97706'],
-  ['#0f766e', '#0d9488'],
+  ['#0b5ed7', '#2c70c9'],
   ['#be123c', '#e11d48'],
   ['#1d4ed8', '#3b82f6'],
-  ['#166534', '#16a34a'],
+  ['#052e6d', '#174a9a'],
 ]
 
 function getAvatarGradient(name: string): [string, string] {
@@ -58,7 +58,7 @@ function ProductAvatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md'
   const dims = size === 'sm' ? 'h-8 w-8 text-[10px]' : 'h-10 w-10 text-xs'
   return (
     <div
-      className={`relative flex ${dims} shrink-0 items-center justify-center rounded-2xl font-bold tracking-wide text-white ring-2 ring-white shadow-[0_4px_12px_rgba(18,48,46,0.18)]`}
+      className={`relative flex ${dims} shrink-0 items-center justify-center rounded-2xl font-bold tracking-wide text-white ring-2 ring-white shadow-[0_4px_12px_rgba(6,59,140,0.18)]`}
       style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
     >
       {getInitials(name)}
@@ -71,16 +71,16 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
     <span
       className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
         isActive
-          ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200'
+          ? 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200'
           : 'bg-slate-100 text-slate-500 ring-1 ring-inset ring-slate-200'
       }`}
     >
       <span className="relative flex h-2 w-2">
         {isActive && (
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-60" />
         )}
         <span
-          className={`relative inline-flex h-2 w-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}
+          className={`relative inline-flex h-2 w-2 rounded-full ${isActive ? 'bg-blue-500' : 'bg-slate-400'}`}
         />
       </span>
       {isActive ? 'Active' : 'Inactive'}
@@ -228,8 +228,8 @@ export function ProductTable({
           </div>
           <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-blue-400" />
             </span>
             Live data
           </div>

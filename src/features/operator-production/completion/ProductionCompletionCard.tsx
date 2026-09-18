@@ -67,7 +67,7 @@ export function ProductionCompletionCard({ detail, isSubmitting, error, onComple
     <Card className="border-signal/35">
       <CardContent className="space-y-6 p-6 sm:p-8">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">All steps completed</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">All steps completed</div>
           <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Production Summary</h2>
           <p className="mt-2 text-sm text-slate-600">Review hasil produksi sebelum Finished Goods LOT dibuat.</p>
         </div>
@@ -144,12 +144,12 @@ function CompletedProductionCard({ result, label, labelLoading, labelError, onVi
   const uom = fg.unitOfMeasure.symbol ?? fg.unitOfMeasure.code
 
   return (
-    <Card className="overflow-hidden border-emerald-200">
+    <Card className="overflow-hidden border-blue-200">
       <CardContent className="space-y-6 p-6 sm:p-8">
         <div className="flex gap-3">
-          <CheckCircle2 className="text-emerald-600" size={32} />
+          <CheckCircle2 className="text-blue-600" size={32} />
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Production Completed</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Production Completed</div>
             <h2 className="mt-2 font-display text-3xl font-semibold text-ink">{fg.finishedGoodsLotNumber}</h2>
             <div className="mt-3 flex flex-wrap gap-2"><StatusBadge domain="fg-qc" value={fg.qcStatus} /><StatusBadge domain="fg-inventory" value={fg.inventoryStatus} /></div>
           </div>

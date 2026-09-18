@@ -28,7 +28,7 @@ export function BrandPanel() {
           backgroundSize: '32px 32px',
         }}
       />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_left,rgba(232,163,61,0.22),transparent_60%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.24),transparent_60%)]" />
       <div className="pointer-events-none absolute -bottom-24 left-10 h-56 w-56 rounded-full bg-signal/10 blur-3xl" />
 
       <div className="relative space-y-5">
@@ -70,7 +70,7 @@ export function BrandPanel() {
                   className={[
                     'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border font-mono text-[10px]',
                     isCheckpoint
-                      ? 'border-signal bg-signal/15 text-signal shadow-[0_0_0_6px_rgba(232,163,61,0.08)]'
+                      ? 'border-signal bg-signal/15 text-signal shadow-[0_0_0_6px_rgba(255,201,40,0.08)]'
                       : 'border-ink-line bg-paper/6 text-paper/70',
                   ].join(' ')}
                 >

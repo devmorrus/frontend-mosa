@@ -22,7 +22,7 @@ function formatDate(value: string | null) {
 }
 
 function statusClass(status: StockOpnameStatus) {
-  if (status === 'POSTED') return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+  if (status === 'POSTED') return 'border-blue-200 bg-blue-50 text-blue-700'
   if (status === 'CANCELLED') return 'border-slate-200 bg-slate-100 text-slate-500'
   if (status === 'READYTOPOST') return 'border-amber-200 bg-amber-50 text-amber-700'
   return 'border-blue-200 bg-blue-50 text-blue-700'
@@ -30,7 +30,7 @@ function statusClass(status: StockOpnameStatus) {
 
 function varianceClass(value: number | null) {
   if (value === null) return 'border-slate-200 bg-slate-50 text-slate-500'
-  if (value === 0) return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+  if (value === 0) return 'border-blue-200 bg-blue-50 text-blue-700'
   if (value > 0) return 'border-blue-200 bg-blue-50 text-blue-700'
   return 'border-red-200 bg-red-50 text-red-700'
 }
@@ -117,7 +117,7 @@ export function StockOpnameDetailPage() {
   return (
     <div className="space-y-6">
       <Button asChild variant="ghost" className="text-slate-500"><Link to="/warehouse/stock-opname"><ArrowLeft size={16} />Kembali</Link></Button>
-      <section className="rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8">
+      <section className="rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72"><ClipboardCheck size={14} className="text-signal" />{detail.stockOpnameNumber}</div>
@@ -133,7 +133,7 @@ export function StockOpnameDetailPage() {
 
       <div className="grid gap-4 lg:grid-cols-5" data-tour="opname-variance">
         <Card className="rounded-[24px]"><CardContent className="p-4"><div className="text-xs uppercase text-slate-400">Total LOT Counted</div><div className="mt-2 text-2xl font-semibold">{summary.totalLotCounted}/{detail.items.length}</div></CardContent></Card>
-        <Card className="rounded-[24px]"><CardContent className="p-4"><div className="text-xs uppercase text-slate-400">Matching LOT</div><div className="mt-2 text-2xl font-semibold text-emerald-700">{summary.matchingLot}</div></CardContent></Card>
+        <Card className="rounded-[24px]"><CardContent className="p-4"><div className="text-xs uppercase text-slate-400">Matching LOT</div><div className="mt-2 text-2xl font-semibold text-blue-700">{summary.matchingLot}</div></CardContent></Card>
         <Card className="rounded-[24px]"><CardContent className="p-4"><div className="text-xs uppercase text-slate-400">Positive Variance</div><div className="mt-2 text-2xl font-semibold text-blue-700">{summary.positiveVariance}</div></CardContent></Card>
         <Card className="rounded-[24px]"><CardContent className="p-4"><div className="text-xs uppercase text-slate-400">Negative Variance</div><div className="mt-2 text-2xl font-semibold text-red-700">{summary.negativeVariance}</div></CardContent></Card>
         <Card className="rounded-[24px]"><CardContent className="p-4"><div className="text-xs uppercase text-slate-400">Total Correction</div><div className="mt-2 text-2xl font-semibold">{formatQuantity(summary.totalCorrection)}</div><div className="text-xs text-slate-400">Net {formatQuantity(summary.netVariance)}</div></CardContent></Card>

@@ -49,7 +49,7 @@ export function AuditTrailDetailPage() {
       </Button>
 
       <section className="relative overflow-hidden rounded-[30px] bg-ink px-6 py-7 text-paper sm:px-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(232,163,61,0.22),transparent_55%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
         <div className="relative flex flex-col gap-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
             <ShieldEllipsis size={14} className="text-signal" /> Audit Detail

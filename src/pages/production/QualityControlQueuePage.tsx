@@ -68,7 +68,7 @@ export function QualityControlQueuePage() {
   return (
     <div className="space-y-6" data-tour="qc-queue">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div><div className="text-xs font-semibold uppercase tracking-[.16em] text-signal">Quality Control</div><h1 className="mt-2 font-display text-3xl font-semibold text-ink">QC Queue</h1></div>
+        <div><div className="text-xs font-semibold uppercase tracking-[.16em] text-blue-700">Quality Control</div><h1 className="mt-2 font-display text-3xl font-semibold text-ink">QC Queue</h1></div>
         <div className="flex flex-wrap items-center gap-3">
           {lastUpdatedAt ? <span className="text-xs text-slate-500">Terakhir diperbarui {lastUpdatedAt} · auto-refresh 15 detik</span> : null}
           <Button variant="secondary" disabled={isRefreshing} onClick={() => void loadQueue(true)}>{isRefreshing ? 'Menyegarkan...' : 'Refresh queue'}</Button>

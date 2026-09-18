@@ -297,8 +297,8 @@ export function ProductionOrderDetailPage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={breadcrumbs.productionOrderDetail(order.productionOrderNumber)} />
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(232,163,61,0.22),transparent_55%)]" />
+      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <button
@@ -355,7 +355,7 @@ export function ProductionOrderDetailPage() {
                 data-tour="po-release-btn"
                 onClick={() => setIsReleaseDialogOpen(true)}
                 disabled={isReleasing || isCheckingMaterials}
-                className="bg-emerald-600 text-white hover:bg-emerald-700"
+                className="bg-blue-600 text-white hover:bg-blue-700"
               >
                 {isReleasing ? (
                   <LoaderCircle size={14} className="mr-2 animate-spin" />
@@ -728,7 +728,7 @@ export function ProductionOrderDetailPage() {
                               </td>
                               <td className="px-6 py-4 text-sm">
                                 {req.isSufficient ? (
-                                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
                                     <CheckCircle2 size={12} />
                                     Sufficient
                                   </span>

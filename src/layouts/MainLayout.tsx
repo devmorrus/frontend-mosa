@@ -14,7 +14,7 @@ import { TutorialController } from '@/components/tutorial/TutorialController'
  */
 export function MainLayout() {
   return (
-    <div className="flex h-dvh w-full bg-[linear-gradient(180deg,#f7f6f2_0%,#f3f0e8_100%)]">
+    <div className="flex h-dvh w-full bg-[linear-gradient(180deg,#ffffff_0%,#eaf3ff_100%)]">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />

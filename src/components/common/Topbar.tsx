@@ -91,7 +91,7 @@ export function Topbar() {
               onClick={handleStartPageTutorial}
               disabled={!canStartPageTutorial}
               title={canStartPageTutorial ? 'Tutorial Halaman Ini' : 'Tutorial tidak tersedia untuk role Anda'}
-              className="hidden sm:flex items-center gap-1.5 bg-signal/10 text-signal hover:bg-signal/20 font-medium text-xs rounded-xl disabled:opacity-40"
+              className="hidden sm:flex items-center gap-1.5 bg-signal/20 text-signal-deep hover:bg-signal/30 font-medium text-xs rounded-xl disabled:opacity-40"
             >
               <HelpCircle size={15} />
               <span className="hidden lg:inline">Tutorial Halaman Ini</span>
@@ -104,7 +104,7 @@ export function Topbar() {
               disabled={!canStartPageTutorial}
               aria-label="Tutorial Halaman Ini"
               title={canStartPageTutorial ? 'Tutorial Halaman Ini' : 'Tutorial tidak tersedia untuk role Anda'}
-              className="sm:hidden text-signal disabled:opacity-40"
+              className="sm:hidden text-signal-deep disabled:opacity-40"
             >
               <HelpCircle size={18} />
             </Button>

@@ -23,7 +23,7 @@ import type { ApiError } from '@/types/api'
 
 function formatDate(value: string | null) { return value ? new Date(value).toLocaleString('id-ID') : '-' }
 function qty(value: number) { return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 4 }).format(value) }
-function TypeBadge({ type }: { type: 'IN' | 'OUT' }) { return <Badge className={type === 'IN' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'}>{type}</Badge> }
+function TypeBadge({ type }: { type: 'IN' | 'OUT' }) { return <Badge className={type === 'IN' ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-red-200 bg-red-50 text-red-700'}>{type}</Badge> }
 
 export function StockAdjustmentsPage() {
   const { can } = useAuth()
@@ -73,7 +73,7 @@ export function StockAdjustmentsPage() {
   }, [JSON.stringify(query)])
 
   return <div className="space-y-6" data-tour="adjustment-queue">
-    <section className="rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(18,48,46,0.16)] sm:px-8">
+    <section className="rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"><div><div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72"><SlidersHorizontal size={14} className="text-signal" />Stock Adjustments</div><h1 className="mt-5 font-display text-3xl font-semibold">Correction langsung per LOT</h1><p className="mt-3 max-w-xl text-sm leading-7 text-paper/68">Adjustment IN/OUT langsung memengaruhi inventory setelah konfirmasi.</p></div>{canCreateAdjustment ? <Button asChild className="bg-signal text-ink hover:bg-signal/90"><Link to="/warehouse/stock-adjustments/create" data-tour="adjustment-create-btn"><Plus size={16} />Create Adjustment</Link></Button> : null}</div>
     </section>
 

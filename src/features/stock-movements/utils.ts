@@ -43,7 +43,7 @@ export function formatStockMovementQuantity(value: number) {
 export function getStockMovementDirectionTone(direction: string) {
   return direction.toUpperCase() === 'OUT'
     ? 'text-rose-700 bg-rose-50 border-rose-200'
-    : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+    : 'text-blue-700 bg-blue-50 border-blue-200'
 }
 
 export function getStockMovementDisplayLabel(item: StockMovementListItem) {

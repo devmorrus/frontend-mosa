@@ -7,7 +7,7 @@
 const toneBase = 'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ring-inset'
 
 const tones: Record<string, string> = {
-  emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+  blue: 'bg-blue-50 text-blue-700 ring-blue-200',
   amber: 'bg-amber-50 text-amber-800 ring-amber-200',
   sky: 'bg-sky-50 text-sky-700 ring-sky-200',
   violet: 'bg-violet-50 text-violet-700 ring-violet-200',
@@ -15,7 +15,6 @@ const tones: Record<string, string> = {
   rose: 'bg-rose-50 text-rose-700 ring-rose-200',
   slate: 'bg-slate-100 text-slate-500 ring-slate-200',
   stone: 'bg-stone-100 text-stone-500 ring-stone-200',
-  blue: 'bg-blue-50 text-blue-700 ring-blue-200',
   red: 'bg-red-50 text-red-700 ring-red-200',
 }
 
@@ -78,24 +77,24 @@ function resolveSpec(domain: string, value: string | number): StatusSpec {
 
   if (d === 'active') {
     const isActive = key === 'TRUE' || key === 'ACTIVE' || key === '1'
-    return { label: isActive ? 'Active' : 'Inactive', tone: isActive ? 'emerald' : 'slate' }
+    return { label: isActive ? 'Active' : 'Inactive', tone: isActive ? 'blue' : 'slate' }
   }
 
   const common: Record<string, StatusSpec> = {
     DRAFT: { label: 'Draft', tone: 'slate' },
     PENDING_APPROVAL: { label: 'Pending Approval', tone: 'amber' },
     PENDING: { label: 'Pending', tone: 'amber' },
-    APPROVED: { label: 'Approved', tone: 'emerald' },
-    PASSED: { label: 'Passed', tone: 'emerald' },
-    PASS: { label: 'Passed', tone: 'emerald' },
+    APPROVED: { label: 'Approved', tone: 'blue' },
+    PASSED: { label: 'Passed', tone: 'blue' },
+    PASS: { label: 'Passed', tone: 'blue' },
     REJECTED: { label: 'Rejected', tone: 'rose' },
     REJECT: { label: 'Rejected', tone: 'rose' },
     CANCELLED: { label: 'Cancelled', tone: 'stone' },
     CANCELED: { label: 'Cancelled', tone: 'stone' },
-    POSTED: { label: 'Posted', tone: 'emerald' },
-    ACTIVE: { label: 'Active', tone: 'emerald' },
+    POSTED: { label: 'Posted', tone: 'blue' },
+    ACTIVE: { label: 'Active', tone: 'blue' },
     INACTIVE: { label: 'Inactive', tone: 'slate' },
-    AVAILABLE: { label: 'Available', tone: 'emerald' },
+    AVAILABLE: { label: 'Available', tone: 'blue' },
     BLOCKED: { label: 'Blocked', tone: 'amber' },
     NOT_AVAILABLE: { label: 'Blocked', tone: 'amber' },
     EXPIRED: { label: 'Expired', tone: 'rose' },
@@ -108,18 +107,18 @@ function resolveSpec(domain: string, value: string | number): StatusSpec {
     WAITING: { label: 'Waiting QC', tone: 'orange' },
     IN_PROGRESS: { label: 'In Progress', tone: 'amber' },
     INPROGRESS: { label: 'In Progress', tone: 'amber' },
-    READY: { label: 'Ready', tone: 'emerald' },
+    READY: { label: 'Ready', tone: 'blue' },
     READYTOPOST: { label: 'Ready to Post', tone: 'amber' },
     READY_TO_POST: { label: 'Ready to Post', tone: 'amber' },
     RELEASED: { label: 'Released', tone: 'violet' },
-    COMPLETED: { label: 'Completed', tone: 'emerald' },
+    COMPLETED: { label: 'Completed', tone: 'blue' },
     SCHEDULED: { label: 'Scheduled', tone: 'sky' },
     MATERIAL_SHORTAGE: { label: 'Material Shortage', tone: 'rose' },
     WAITING_APPROVAL: { label: 'Waiting Approval', tone: 'amber' },
     LOCKED: { label: 'Locked', tone: 'slate' },
     NEEDS_REVISION: { label: 'Needs Revision', tone: 'rose' },
     HISTORICAL: { label: 'Historical', tone: 'stone' },
-    IN: { label: 'In', tone: 'emerald' },
+    IN: { label: 'In', tone: 'blue' },
     OUT: { label: 'Out', tone: 'rose' },
   }
 

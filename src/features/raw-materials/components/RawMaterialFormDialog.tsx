@@ -50,7 +50,7 @@ function AccentBar({ mode }: { mode: 'create' | 'edit' }) {
     <div
       className={`absolute inset-x-0 top-0 h-1 rounded-t-[28px] ${
         mode === 'create'
-          ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
+          ? 'bg-gradient-to-r from-blue-500 to-blue-400'
           : 'bg-gradient-to-r from-amber-500 to-orange-400'
       }`}
     />
@@ -61,7 +61,7 @@ function HeaderIcon({ mode }: { mode: 'create' | 'edit' }) {
   return (
     <div
       className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
-        mode === 'create' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+        mode === 'create' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'
       }`}
     >
       {mode === 'create' ? <Boxes size={20} /> : <PencilLine size={20} />}
@@ -74,7 +74,7 @@ function ModeBadge({ mode }: { mode: 'create' | 'edit' }) {
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
         mode === 'create'
-          ? 'bg-emerald-100 text-emerald-700'
+          ? 'bg-blue-100 text-blue-700'
           : 'bg-amber-100 text-amber-700'
       }`}
     >
@@ -144,7 +144,7 @@ function StatusToggle({
         onClick={() => onChange(true)}
         className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-150 ${
           value
-            ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-200'
+            ? 'bg-blue-600 text-white shadow-sm shadow-blue-200'
             : 'text-slate-400 hover:text-slate-600'
         }`}
       >
@@ -174,14 +174,14 @@ function StatusToggle({
 }
 
 const AVATAR_GRADIENTS: [string, string][] = [
-  ['#12302e', '#1c433f'],
+  ['#063b8c', '#0b5ed7'],
   ['#0f4c81', '#1a6fb5'],
   ['#6b21a8', '#9333ea'],
   ['#b45309', '#d97706'],
-  ['#0f766e', '#0d9488'],
+  ['#0b5ed7', '#2c70c9'],
   ['#be123c', '#e11d48'],
   ['#1d4ed8', '#3b82f6'],
-  ['#166534', '#16a34a'],
+  ['#052e6d', '#174a9a'],
 ]
 
 function getAvatarGradient(name: string): [string, string] {
@@ -225,7 +225,7 @@ function RawMaterialPreview({
     <div className="rounded-2xl border border-slate-100 bg-slate-50/70 px-4 py-3.5">
       <div className="flex items-center gap-3">
         <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-xs font-bold tracking-wide text-white ring-2 ring-white shadow-[0_4px_12px_rgba(18,48,46,0.18)]"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-xs font-bold tracking-wide text-white ring-2 ring-white shadow-[0_4px_12px_rgba(6,59,140,0.18)]"
           style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
         >
           {getInitials(displayName)}
@@ -244,12 +244,12 @@ function RawMaterialPreview({
             </span>
             <span
               className={`inline-flex items-center gap-1 text-[11px] font-semibold ${
-                values.isActive ? 'text-emerald-600' : 'text-slate-400'
+                values.isActive ? 'text-blue-600' : 'text-slate-400'
               }`}
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  values.isActive ? 'bg-emerald-500' : 'bg-slate-400'
+                  values.isActive ? 'bg-blue-500' : 'bg-slate-400'
                 }`}
               />
               {values.isActive ? 'Active' : 'Inactive'}
@@ -547,7 +547,7 @@ export function RawMaterialFormDialog({
             disabled={submitting || isDetailLoading}
             className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-semibold text-paper shadow-md transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 ${
               mode === 'create'
-                ? 'bg-emerald-700 shadow-emerald-200 hover:bg-emerald-800'
+                ? 'bg-blue-700 shadow-blue-200 hover:bg-blue-800'
                 : 'bg-ink shadow-ink/20 hover:bg-ink-light'
             }`}
           >

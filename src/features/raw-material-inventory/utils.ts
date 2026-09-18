@@ -62,7 +62,7 @@ export function getInventoryLotStatusTone(lot: InventoryRawMaterialLot) {
 
   switch (lot.status.toUpperCase()) {
     case 'AVAILABLE':
-      return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+      return 'border-blue-200 bg-blue-50 text-blue-700'
     case 'BLOCKED':
       return 'border-amber-200 bg-amber-50 text-amber-700'
     case 'CONSUMED':
@@ -100,7 +100,7 @@ export function getInventoryAggregateStatus(item: InventoryRawMaterialListItem) 
 export function getInventoryAggregateStatusTone(status: string) {
   switch (status) {
     case 'AVAILABLE':
-      return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+      return 'border-blue-200 bg-blue-50 text-blue-700'
     case 'BLOCKED':
       return 'border-amber-200 bg-amber-50 text-amber-700'
     case 'EXPIRED':
@@ -137,7 +137,7 @@ export function getInventoryFefoStatusTone(lot: FefoRecommendedLot) {
 
   switch (lot.status.toUpperCase()) {
     case 'AVAILABLE':
-      return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+      return 'border-blue-200 bg-blue-50 text-blue-700'
     case 'BLOCKED':
       return 'border-amber-200 bg-amber-50 text-amber-700'
     case 'CONSUMED':

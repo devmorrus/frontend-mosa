@@ -280,7 +280,7 @@ function SidebarContent() {
           cn(
             'group relative flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200',
             isActive
-              ? 'bg-signal/20 text-signal shadow-[inset_0_0_0_1px_rgba(232,163,61,0.2)]'
+              ? 'bg-signal/20 text-signal shadow-[inset_0_0_0_1px_rgba(255,201,40,0.2)]'
               : 'text-paper/80 hover:bg-paper/8 hover:text-paper',
           )
         }
@@ -325,7 +325,7 @@ function SidebarShell({
   return (
     <div className="flex h-full flex-col overflow-hidden bg-ink text-paper">
       <div className="relative px-6 py-6">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(232,163,61,0.14),transparent_50%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.14),transparent_50%)]" />
         <div className="relative flex items-center gap-3">
           <div className="h-3 w-3 rounded-full bg-signal" />
           <span className="font-display text-2xl font-semibold tracking-[0.18em] text-paper">

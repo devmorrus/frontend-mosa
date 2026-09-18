@@ -51,8 +51,8 @@ export function MenusPage() {
   return (
     <div className="space-y-6">
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(12,28,26,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(232,163,61,0.22),transparent_55%)]" />
+      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
         <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
@@ -82,7 +82,7 @@ export function MenusPage() {
             <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
               <CardContent className="p-5">
                 <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">Active</div>
-                <div className="mt-2 font-display text-3xl font-semibold text-emerald-400">
+                <div className="mt-2 font-display text-3xl font-semibold text-blue-400">
                   {menusModule.isTreeLoading ? '—' : countActive(menusModule.menuTree)}
                 </div>
                 <p className="mt-1 text-sm text-paper/60">Siap ditampilkan</p>
