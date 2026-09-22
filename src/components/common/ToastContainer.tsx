@@ -58,8 +58,11 @@ export function ToastContainer() {
 
   if (toasts.length === 0) return null
 
+  // z-[100]: toasts must paint above every overlay (dialog/sheet/dropdown
+  // all sit at z-50 and Radix portals mount after this container in the DOM,
+  // which previously hid validation warnings behind open modals).
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex flex-col items-center gap-2 p-4 sm:inset-x-auto sm:right-4 sm:items-end">
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex flex-col items-center gap-2 p-4 sm:inset-x-auto sm:right-4 sm:items-end">
       {toasts.map((toast) => (
         <div key={toast.id} className="pointer-events-auto w-full sm:w-96">
           <ToastItem toast={toast} />

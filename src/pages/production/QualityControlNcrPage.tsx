@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertOctagon, ClipboardPlus, LoaderCircle, Pencil, Plus, Search } from 'lucide-react'
+import { AlertOctagon, ClipboardPlus, LoaderCircle, Pencil, Plus, RotateCcw, Search } from 'lucide-react'
 import { qcApi } from '@/api/qc.api'
 import { AppPagination } from '@/components/common/AppPagination'
 import { Button } from '@/components/ui/button'
@@ -36,6 +36,13 @@ const statusOptions = [
 
 const statusLabel = (status: number) =>
   statusOptions.find((item) => item.value === String(status))?.label ?? String(status)
+
+const statusBadge: Record<number, string> = {
+  1: 'bg-rose-50 text-rose-700',
+  2: 'bg-amber-50 text-amber-700',
+  3: 'bg-blue-50 text-blue-700',
+  4: 'bg-slate-100 text-slate-500',
+}
 
 interface NcrFormValues {
   finishedGoodsLotId: string
@@ -74,6 +81,9 @@ export function QualityControlNcrPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [rejectedLots, setRejectedLots] = useState<QcQueueItem[]>([])
   const [lotsLoading, setLotsLoading] = useState(false)
+  const [reopening, setReopening] = useState<QcNcr | null>(null)
+  const [reopenReason, setReopenReason] = useState('')
+  const [reopeningSaving, setReopeningSaving] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -130,6 +140,8 @@ export function QualityControlNcrPage() {
   }
 
   function openEdit(item: QcNcr) {
+    // Closed NCR is a sealed archive — it can only be continued via Reopen.
+    if (item.status === 4) return
     setEditing(item)
     setForm({
       finishedGoodsLotId: item.finishedGoodsLotId,
@@ -145,10 +157,40 @@ export function QualityControlNcrPage() {
     setOpen(true)
   }
 
+  const isClosing = editing !== null && form.status === 4
+
+  function openReopen(item: QcNcr) {
+    setReopening(item)
+    setReopenReason('')
+  }
+
+  async function submitReopen() {
+    if (!reopening) return
+    if (reopenReason.trim().length < 10) {
+      pushToast('warning', 'Alasan reopen wajib diisi minimal 10 karakter.')
+      return
+    }
+    setReopeningSaving(true)
+    try {
+      await qcApi.reopenNcr(reopening.id, reopenReason)
+      pushToast('success', 'NCR dibuka kembali ke In Progress.')
+      setReopening(null)
+      await load()
+    } catch {
+      // error sudah ditampilkan oleh client terpusat
+    } finally {
+      setReopeningSaving(false)
+    }
+  }
+
   async function submit() {
     if (editing) {
       if (!form.title.trim() || !form.description.trim()) {
         pushToast('warning', 'Title dan description wajib diisi.')
+        return
+      }
+      if (form.status === 4 && (!form.rootCause.trim() || !form.correctiveAction.trim())) {
+        pushToast('warning', 'Root Cause dan Corrective Action wajib diisi sebelum NCR ditutup.')
         return
       }
     } else if (!form.finishedGoodsLotId.trim() || !form.title.trim() || !form.description.trim()) {
@@ -274,20 +316,34 @@ export function QualityControlNcrPage() {
                       {item.dueDate ? new Date(item.dueDate).toLocaleDateString('id-ID') : '-'}
                     </td>
                     <td className="px-5 py-4">
-                      <span className="rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadge[item.status] ?? 'bg-slate-100 text-slate-600'}`}
+                      >
                         {statusLabel(item.status)}
                       </span>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex justify-end">
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          onClick={() => openEdit(item)}
-                          aria-label="Edit NCR"
-                        >
-                          <Pencil size={16} />
-                        </Button>
+                        {item.status === 4 ? (
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            onClick={() => openReopen(item)}
+                            aria-label="Buka kembali NCR"
+                            title="Buka kembali (Reopen)"
+                          >
+                            <RotateCcw size={16} />
+                          </Button>
+                        ) : (
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            onClick={() => openEdit(item)}
+                            aria-label="Edit NCR"
+                          >
+                            <Pencil size={16} />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -356,15 +412,20 @@ export function QualityControlNcrPage() {
             {editing && (
               <>
                 <label className="text-sm font-semibold text-slate-600">
-                  Root Cause
+                  Root Cause{isClosing && <span className="text-red-400"> *</span>}
                   <textarea
                     value={form.rootCause}
                     onChange={(event) => setForm({ ...form, rootCause: event.target.value })}
                     className="mt-1 min-h-20 w-full rounded-2xl border border-slate-200 p-4 text-sm outline-none focus:border-ink"
                   />
+                  {isClosing && !form.rootCause.trim() && (
+                    <span className="mt-1 block text-xs font-normal text-red-500">
+                      Wajib diisi untuk menutup NCR.
+                    </span>
+                  )}
                 </label>
                 <label className="text-sm font-semibold text-slate-600">
-                  Corrective Action
+                  Corrective Action{isClosing && <span className="text-red-400"> *</span>}
                   <textarea
                     value={form.correctiveAction}
                     onChange={(event) =>
@@ -372,6 +433,11 @@ export function QualityControlNcrPage() {
                     }
                     className="mt-1 min-h-20 w-full rounded-2xl border border-slate-200 p-4 text-sm outline-none focus:border-ink"
                   />
+                  {isClosing && !form.correctiveAction.trim() && (
+                    <span className="mt-1 block text-xs font-normal text-red-500">
+                      Wajib diisi untuk menutup NCR.
+                    </span>
+                  )}
                 </label>
                 <label className="text-sm font-semibold text-slate-600">
                   Preventive Action
@@ -430,6 +496,41 @@ export function QualityControlNcrPage() {
             <Button onClick={() => void submit()} disabled={saving}>
               <ClipboardPlus size={16} />
               {saving ? 'Menyimpan...' : 'Simpan'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={reopening !== null} onOpenChange={(value) => !value && setReopening(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Buka Kembali NCR</DialogTitle>
+            <DialogDescription>
+              {reopening
+                ? `${reopening.ncrNumber} akan kembali ke In Progress. Tindakan ini tercatat di audit trail dan tidak menghapus analisis CAPA yang sudah ada.`
+                : 'Buka kembali NCR yang sudah Closed.'}
+            </DialogDescription>
+          </DialogHeader>
+          <label className="text-sm font-semibold text-slate-600">
+            Alasan reopen <span className="text-red-400">*</span>
+            <textarea
+              value={reopenReason}
+              onChange={(event) => setReopenReason(event.target.value)}
+              placeholder="Contoh: ditemukan ketidaksesuaian berulang pada LOT berikutnya, perlu investigasi lanjutan"
+              className="mt-1 min-h-24 w-full rounded-2xl border border-slate-200 p-4 text-sm font-normal outline-none focus:border-ink"
+            />
+          </label>
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setReopening(null)}
+              disabled={reopeningSaving}
+            >
+              Batal
+            </Button>
+            <Button onClick={() => void submitReopen()} disabled={reopeningSaving}>
+              <RotateCcw size={16} />
+              {reopeningSaving ? 'Membuka...' : 'Reopen'}
             </Button>
           </DialogFooter>
         </DialogContent>
