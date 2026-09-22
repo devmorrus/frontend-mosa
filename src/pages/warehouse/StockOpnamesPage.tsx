@@ -1,9 +1,10 @@
 import { useDeferredValue, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CalendarDays, ClipboardCheck, Eye, Filter, Layers3, LoaderCircle, Plus, RotateCcw, Search, TrendingUp } from 'lucide-react'
+import { CalendarDays, ClipboardCheck, Eye, Filter, LoaderCircle, Plus, RotateCcw, Search } from 'lucide-react'
 import { stockOpnamesApi } from '@/api/stockOpnames.api'
 import { warehousesApi } from '@/api/warehouses.api'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -32,11 +33,6 @@ function formatNumber(value: number | null) {
 
 function StatusBadge({ status }: { status: StockOpnameStatus }) {
   return <Badge className={getStockOpnameStatusTone(status)}>{getStockOpnameStatusLabel(status)}</Badge>
-}
-
-function Metric({ icon, label, value, note, tone = 'slate' }: { icon: React.ReactNode; label: string; value: string | number; note: string; tone?: 'slate' | 'blue' | 'amber' }) {
-  const toneClass = tone === 'blue' ? 'border-blue-200 bg-blue-50 text-[#063b8c]' : tone === 'amber' ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-slate-200 bg-slate-50 text-ink'
-  return <div className={`rounded-2xl border px-3 py-3 ${toneClass}`}><div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] opacity-70">{icon}{label}</div><p className="mt-1 font-display text-lg font-semibold sm:text-xl">{value}</p><p className="text-[10px] opacity-60">{note}</p></div>
 }
 
 export function StockOpnamesPage() {
@@ -101,16 +97,19 @@ export function StockOpnamesPage() {
   return (
     <div className="space-y-6" data-tour="opname-queue">
       <Breadcrumb items={breadcrumbs.stockOpnameList()} />
-      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#063b8c]"><ClipboardCheck size={23} /></div>
-            <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0b5ed7]">Warehouse / Stock Opname</p><h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">Stock Opname</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Kelola physical counting, review variance, dan posting correction inventory raw material.</p></div>
-          </div>
-          {canCreateOpname ? <Button asChild className="bg-[#063b8c] text-white hover:bg-[#052f70]" data-tour="opname-create-btn"><Link to={`${canonicalRoutes.stockOpname}/create`}><Plus size={16} />Create Opname</Link></Button> : null}
-        </div>
-        <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3 xl:max-w-2xl"><Metric icon={<Layers3 size={15} />} label="Documents" value={pagination.totalItems} note="hasil filter" /><Metric icon={<TrendingUp size={15} />} label="In progress" value={inProgressCount} note="page aktif" tone="blue" /><Metric icon={<ClipboardCheck size={15} />} label="Variance lines" value={varianceLineCount} note="page aktif" tone="amber" /><Metric icon={<ClipboardCheck size={15} />} label="Ready to post" value={readyCount} note="page aktif" /></div>
-      </section>
+      <ModuleHero
+        eyebrow="Warehouse • Stock Opname"
+        title="Stock Opname"
+        description="Kelola physical counting, review variance, dan posting correction inventory raw material."
+        icon={<ClipboardCheck size={13} className="text-signal" />}
+        metrics={[
+          { label: 'Documents', value: pagination.totalItems, sub: 'Hasil filter' },
+          { label: 'In Progress', value: inProgressCount, sub: 'Page aktif', tone: 'success' },
+          { label: 'Variance', value: varianceLineCount, sub: 'Page aktif' },
+          { label: 'Ready', value: readyCount, sub: 'Page aktif' },
+        ]}
+        actions={canCreateOpname ? <Button asChild className="bg-white text-[#062f75] hover:bg-blue-50" data-tour="opname-create-btn"><Link to={`${canonicalRoutes.stockOpname}/create`}><Plus size={16} />Create Opname</Link></Button> : undefined}
+      />
 
       <Card className="border-slate-200 bg-white shadow-sm"><CardContent className="p-4 sm:p-5">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><div className="flex items-center gap-2"><Filter size={17} className="text-[#0b5ed7]" /><h2 className="text-sm font-semibold text-ink">Filter Stock Opname</h2></div><p className="mt-1 text-xs text-slate-500">Persempit dokumen berdasarkan nomor, warehouse, status, dan tanggal.</p></div><Button type="button" variant="secondary" size="sm" onClick={resetFilters} className="w-fit gap-1.5 text-slate-500"><RotateCcw size={13} />Reset filter</Button></div>

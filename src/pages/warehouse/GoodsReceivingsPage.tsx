@@ -14,6 +14,7 @@ import {
 import { Link } from 'react-router-dom'
 import { AppPagination } from '@/components/common/AppPagination'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 import { goodsReceivingsApi } from '@/api/goodsReceivings.api'
@@ -133,27 +134,13 @@ export function GoodsReceivingsPage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={breadcrumbs.receivingList()} />
-      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#063b8c]">
-              <PackageSearch size={23} />
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0b5ed7]">Warehouse / Receiving</p>
-              <h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">Goods Receiving</h1>
-              <p className="mt-1 max-w-2xl text-sm text-slate-500">Catat penerimaan bahan baku, kelola draft, dan lanjutkan posting saat data siap.</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 lg:min-w-[180px]">
-            <ClipboardList size={20} className="text-[#0b5ed7]" />
-            <div>
-              <p className="text-xs font-medium text-slate-500">Total dokumen</p>
-              <p className="font-display text-2xl font-semibold text-ink">{pagination.totalItems}</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <ModuleHero
+        eyebrow="Warehouse • Receiving"
+        title="Goods Receiving"
+        description="Catat penerimaan bahan baku, kelola draft, dan lanjutkan posting saat data siap."
+        icon={<PackageSearch size={13} className="text-signal" />}
+        metrics={[{ label: 'Total', value: pagination.totalItems, sub: 'Dokumen' }]}
+      />
 
       <div className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

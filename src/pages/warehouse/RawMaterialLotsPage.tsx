@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { breadcrumbs } from '@/routes/canonicalRoutes'
 import { rawMaterialLotsApi } from '@/api/rawMaterialLots.api'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
@@ -171,23 +172,17 @@ export function RawMaterialLotsPage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={breadcrumbs.lotList()} />
-      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#063b8c]"><Tags size={23} /></div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0b5ed7]">Warehouse / Lots</p>
-              <h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">Raw Material LOT</h1>
-              <p className="mt-1 max-w-2xl text-sm text-slate-500">Pantau LOT bahan baku, sisa stok, expiry, QR label, dan akses cepat ke detail traceability.</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-2 sm:min-w-[300px] sm:gap-3">
-            <Metric label="Total" value={pagination.totalItems} />
-            <Metric label="Available" value={availableOnPage} tone="blue" />
-            <Metric label="Attention" value={attentionOnPage} tone="amber" />
-          </div>
-        </div>
-      </section>
+      <ModuleHero
+        eyebrow="Warehouse • Lots"
+        title="Raw Material LOT"
+        description="Pantau LOT bahan baku, sisa stok, expiry, QR label, dan akses cepat ke detail traceability."
+        icon={<Tags size={13} className="text-signal" />}
+        metrics={[
+          { label: 'Total', value: pagination.totalItems, sub: 'Terdaftar' },
+          { label: 'Available', value: availableOnPage, sub: 'Halaman ini', tone: 'success' },
+          { label: 'Attention', value: attentionOnPage, sub: 'Halaman ini' },
+        ]}
+      />
 
       <RawMaterialLotsFilterBar
         query={query}
@@ -250,14 +245,4 @@ export function RawMaterialLotsPage() {
       ) : null}
     </div>
   )
-}
-
-function Metric({ label, value, tone = 'slate' }: { label: string; value: number; tone?: 'slate' | 'blue' | 'amber' }) {
-  const toneClass =
-    tone === 'blue'
-      ? 'border border-blue-200 bg-blue-100 text-[#063b8c]'
-      : tone === 'amber'
-        ? 'border border-amber-200 bg-amber-100 text-amber-900'
-        : 'border border-slate-200 bg-slate-100 text-ink'
-  return <div className={`rounded-2xl px-3 py-3 ${toneClass}`}><p className="text-[10px] font-semibold uppercase tracking-[0.14em] opacity-70">{label}</p><p className="mt-1 font-display text-xl font-semibold">{value}</p></div>
 }

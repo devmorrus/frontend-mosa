@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, Camera, CheckCircle2, Info, LoaderCircle, QrCode, ScanLine, Search, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, Camera, CheckCircle2, Info, LoaderCircle, QrCode, ScanLine, Search } from 'lucide-react'
 import QrScanner from 'qr-scanner'
 import qrScannerWorkerPath from 'qr-scanner/qr-scanner-worker.min?url'
 import { Link, useNavigate } from 'react-router-dom'
 import { rawMaterialLotsApi } from '@/api/rawMaterialLots.api'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -110,32 +111,26 @@ export function RawMaterialLotScannerPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl">
-            <Button asChild variant="ghost" className="-ml-3 h-auto px-3 py-1.5 text-slate-500 hover:text-[#063b8c]">
-              <Link to="/lots">
-                <ArrowLeft size={16} />
-                Kembali ke LOT list
-              </Link>
-            </Button>
-            <div className="mt-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#0b5ed7]">
-              <ScanLine size={15} />
-              QR Scan Test
-            </div>
-            <h1 className="mt-2 font-display text-2xl font-semibold leading-tight text-ink sm:text-3xl">
-              Scan QR LOT via browser camera
-            </h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
-              Arahkan kamera ke label QR LOT atau tempel token manual untuk membuka detail LOT.
-            </p>
-          </div>
-          <div className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm ${isCameraOpen ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-50 text-slate-600'}`}>
-            {isCameraOpen ? <CheckCircle2 size={19} /> : <ShieldCheck size={19} className="text-[#0b5ed7]" />}
-            <div><p className="text-xs font-medium opacity-70">Camera status</p><p className="font-semibold">{isCameraOpen ? 'Active' : 'Manual available'}</p></div>
-          </div>
-        </div>
-      </section>
+      <Button asChild variant="secondary" className="w-fit text-slate-600">
+        <Link to="/lots">
+          <ArrowLeft size={16} />
+          Kembali ke LOT list
+        </Link>
+      </Button>
+      <ModuleHero
+        eyebrow="Warehouse • QR Scan"
+        title="Scan QR LOT via browser camera"
+        description="Arahkan kamera ke label QR LOT atau tempel token manual untuk membuka detail LOT."
+        icon={<ScanLine size={13} className="text-signal" />}
+        metrics={[
+          {
+            label: 'Camera',
+            value: isCameraOpen ? 'Active' : 'Manual',
+            sub: isCameraOpen ? 'Scanner aktif' : 'Manual tersedia',
+            tone: isCameraOpen ? 'success' : 'default',
+          },
+        ]}
+      />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
         <Card className="rounded-[28px] border border-slate-200 bg-white shadow-sm">

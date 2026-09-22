@@ -5,6 +5,7 @@ import { AlertTriangle, ArrowLeft, Check, ClipboardCheck, LoaderCircle } from 'l
 import { stockOpnamesApi } from '@/api/stockOpnames.api'
 import { warehousesApi } from '@/api/warehouses.api'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
@@ -49,7 +50,7 @@ export function StockOpnameCreatePage() {
     }
   }
 
-  return <div className="space-y-6"><Breadcrumb items={breadcrumbs.stockOpnameCreate()} /><Button asChild variant="secondary" className="text-slate-600"><Link to={canonicalRoutes.stockOpname}><ArrowLeft size={16} />Kembali ke Stock Opname</Link></Button><section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7"><div className="flex items-start gap-4"><div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#063b8c]"><ClipboardCheck size={23} /></div><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0b5ed7]">Warehouse / Stock Opname</p><h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">Create Stock Opname</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Ambil snapshot LOT aktif untuk memulai physical counting dan review variance.</p></div></div></section>
+  return <div className="space-y-6"><Breadcrumb items={breadcrumbs.stockOpnameCreate()} /><Button asChild variant="secondary" className="text-slate-600"><Link to={canonicalRoutes.stockOpname}><ArrowLeft size={16} />Kembali ke Stock Opname</Link></Button><ModuleHero eyebrow="Warehouse • Stock Opname" title="Create Stock Opname" description="Ambil snapshot LOT aktif untuk memulai physical counting dan review variance." icon={<ClipboardCheck size={13} className="text-signal" />} />
 
     <Card className="border-slate-200 bg-white shadow-sm"><CardContent className="p-4 sm:p-6"><div className="grid gap-3 sm:grid-cols-5">{['Pilih warehouse', 'Snapshot LOT', 'Physical count', 'Review variance', 'Post correction'].map((step, index) => <div key={step} className="flex items-center gap-3 sm:block"><div className={`flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${index === 0 ? 'bg-[#063b8c] text-white' : 'bg-slate-100 text-slate-400'}`}>{index === 0 ? <Check size={16} /> : index + 1}</div><p className={`text-sm sm:mt-2 ${index === 0 ? 'font-semibold text-ink' : 'text-slate-500'}`}>{step}</p></div>)}</div></CardContent></Card>
 

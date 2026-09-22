@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, CheckCircle2, ClipboardCheck, Layers3, LoaderCircle, Save } from 'lucide-react'
 import { stockOpnamesApi } from '@/api/stockOpnames.api'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -105,7 +106,46 @@ export function StockOpnameDetailPage() {
   if (isLoading) return <MasterDataLoadingState description="Detail stock opname sedang dimuat." />
   if (error || !detail) return <MasterDataErrorState description={error ?? 'Stock opname tidak ditemukan.'} onRetry={() => void loadData()} />
 
-  return <div className="space-y-6"><Breadcrumb items={breadcrumbs.stockOpnameDetail(detail.stockOpnameNumber)} /><Button asChild variant="secondary" className="text-slate-600"><Link to={canonicalRoutes.stockOpname}><ArrowLeft size={16} />Kembali ke Stock Opname</Link></Button><section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7"><div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between"><div className="flex items-start gap-4"><div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#063b8c]"><ClipboardCheck size={23} /></div><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0b5ed7]">Warehouse / Stock Opname</p><h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">{detail.stockOpnameNumber}</h1><p className="mt-2 text-sm text-slate-500">{detail.warehouseName} ({detail.warehouseCode}) · {formatDate(detail.opnameDate)}</p><p className="mt-1 text-xs text-slate-400">Created by {detail.createdBy ?? '-'} · Updated {formatDate(detail.updatedAtUtc)}</p></div></div><Badge className={getStockOpnameStatusTone(detail.status)}>{getStockOpnameStatusLabel(detail.status)}</Badge></div><div className="mt-6 grid gap-2 sm:grid-cols-4">{workflow.map((status, index) => { const currentIndex = workflow.indexOf(detail.status as typeof workflow[number]); const completed = currentIndex >= index; return <div key={status} className={`rounded-2xl border px-3 py-3 ${completed ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-slate-50'}`}><div className="flex items-center gap-2"><span className={`flex size-6 items-center justify-center rounded-full text-xs font-semibold ${completed ? 'bg-[#063b8c] text-white' : 'bg-slate-200 text-slate-500'}`}>{completed ? <CheckCircle2 size={14} /> : index + 1}</span><span className={`text-xs font-semibold ${completed ? 'text-[#063b8c]' : 'text-slate-500'}`}>{getStockOpnameStatusLabel(status)}</span></div></div> })}</div></section>
+  return (
+    <div className="space-y-6">
+      <Breadcrumb items={breadcrumbs.stockOpnameDetail(detail.stockOpnameNumber)} />
+      <Button asChild variant="secondary" className="text-slate-600">
+        <Link to={canonicalRoutes.stockOpname}>
+          <ArrowLeft size={16} />Kembali ke Stock Opname
+        </Link>
+      </Button>
+      <ModuleHero
+        eyebrow="Warehouse • Stock Opname"
+        title={detail.stockOpnameNumber}
+        description={`${detail.warehouseName} (${detail.warehouseCode}) · ${formatDate(detail.opnameDate)} — Created by ${detail.createdBy ?? '-'} · Updated ${formatDate(detail.updatedAtUtc)}`}
+        icon={<ClipboardCheck size={13} className="text-signal" />}
+        side={<Badge className={getStockOpnameStatusTone(detail.status)}>{getStockOpnameStatusLabel(detail.status)}</Badge>}
+        bottom={
+          <div className="grid gap-2 sm:grid-cols-4">
+            {workflow.map((status, index) => {
+              const currentIndex = workflow.indexOf(detail.status as (typeof workflow)[number])
+              const completed = currentIndex >= index
+              return (
+                <div
+                  key={status}
+                  className={`rounded-xl border px-3 py-2.5 backdrop-blur-sm ${completed ? 'border-paper/20 bg-paper/15' : 'border-paper/10 bg-paper/10'}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`flex size-6 items-center justify-center rounded-full text-xs font-semibold ${completed ? 'bg-white text-[#062f75]' : 'bg-paper/20 text-paper/60'}`}
+                    >
+                      {completed ? <CheckCircle2 size={14} /> : index + 1}
+                    </span>
+                    <span className={`text-xs font-semibold ${completed ? 'text-paper' : 'text-paper/60'}`}>
+                      {getStockOpnameStatusLabel(status)}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        }
+      />
 
     <div className="rounded-[24px] border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><div className="flex gap-3"><AlertTriangle size={18} className="mt-0.5 shrink-0" /><p>Posting akan menyesuaikan inventory berdasarkan physical count. Pastikan seluruh LOT sudah dihitung dan variance diverifikasi.</p></div></div>{actionError ? <div className="rounded-[24px] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{actionError}</div> : null}
 
@@ -114,7 +154,8 @@ export function StockOpnameDetailPage() {
     <Card className="overflow-hidden border-slate-200 bg-white shadow-sm" data-tour="opname-count-table"><CardHeader className="border-b border-slate-100 p-5 sm:p-6"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><CardTitle className="flex items-center gap-2 text-xl"><Layers3 size={19} className="text-[#0b5ed7]" />Inventory Snapshot</CardTitle><p className="mt-1 text-sm text-slate-500">Masukkan physical quantity untuk setiap LOT sebelum menyimpan atau posting.</p></div><div className="flex flex-wrap gap-2">{isEditable ? <Button disabled={!allCounted || isSaving} onClick={() => void saveCounts()} className="bg-[#063b8c] text-white hover:bg-[#052f70]"><Save size={16} />{isSaving ? 'Saving...' : 'Save Count'}</Button> : null}{canPost ? <Button data-tour="opname-post-btn" disabled={!allCounted || isPosting} onClick={() => setConfirmOpen(true)} className="bg-rose-700 text-white hover:bg-rose-800"><CheckCircle2 size={16} />Post Stock Opname</Button> : null}</div></div></CardHeader><div className="hidden overflow-x-auto md:block"><table className="min-w-[900px] text-left text-sm"><thead className="bg-slate-50/80 text-xs uppercase tracking-[0.12em] text-slate-500"><tr>{['Material', 'LOT', 'System Qty', 'Physical Qty', 'Variance'].map((label) => <th key={label} className="px-5 py-3">{label}</th>)}</tr></thead><tbody>{detail.items.map((item) => <DesktopCountRow key={item.id} item={item} count={counts[item.id] ?? ''} isEditable={isEditable} onChange={(value) => setCounts((current) => ({ ...current, [item.id]: value }))} />)}</tbody></table></div><div className="space-y-3 p-4 md:hidden">{detail.items.map((item) => <MobileCountCard key={item.id} item={item} count={counts[item.id] ?? ''} isEditable={isEditable} onChange={(value) => setCounts((current) => ({ ...current, [item.id]: value }))} />)}</div></Card>
 
     <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}><DialogContent><DialogHeader><DialogTitle>Post Stock Opname?</DialogTitle><DialogDescription>Inventory akan disesuaikan berdasarkan physical count. Pastikan semua variance sudah diverifikasi karena tindakan ini berdampak pada stok sistem.</DialogDescription></DialogHeader><div className="grid grid-cols-2 gap-3 rounded-2xl bg-slate-50 p-4 text-sm"><div><span className="text-slate-500">Total correction</span><p className="font-semibold">{formatQuantity(summary.totalCorrection)}</p></div><div><span className="text-slate-500">Variance lines</span><p className="font-semibold">{summary.positiveVariance + summary.negativeVariance}</p></div></div><DialogFooter><Button variant="secondary" onClick={() => setConfirmOpen(false)}>Batal</Button><Button disabled={isPosting} onClick={() => void postOpname()} className="bg-rose-700 text-white hover:bg-rose-800">{isPosting ? <LoaderCircle size={16} className="animate-spin" /> : null}Post Stock Opname</Button></DialogFooter></DialogContent></Dialog>
-  </div>
+    </div>
+  )
 }
 
 function SummaryMetric({ label, value, note, tone = 'slate' }: { label: string; value: string | number; note: string; tone?: 'slate' | 'green' | 'blue' | 'rose' }) { const classes = tone === 'green' ? 'text-emerald-700' : tone === 'blue' ? 'text-blue-700' : tone === 'rose' ? 'text-rose-700' : 'text-ink'; return <Card className="border-slate-200 bg-white shadow-sm"><CardContent className="p-4"><div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">{label}</div><div className={`mt-2 truncate font-display text-xl font-semibold sm:text-2xl ${classes}`}>{value}</div><div className="mt-1 truncate text-xs text-slate-400">{note}</div></CardContent></Card> }

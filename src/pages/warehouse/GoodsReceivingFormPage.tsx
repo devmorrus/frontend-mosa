@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
@@ -216,45 +217,36 @@ export function GoodsReceivingFormPage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={form.detail ? breadcrumbs.receivingDetail(form.detail.receivingNumber) : breadcrumbs.receivingList()} />
-      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl">
-            <Button asChild variant="ghost" className="-ml-3 h-auto px-3 py-1.5 text-slate-500 hover:text-[#063b8c]">
-              <Link to="/goods-receiving">
-                <ArrowLeft size={16} />
-                Kembali ke receiving list
-              </Link>
-            </Button>
-            <div className="mt-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#0b5ed7]">
-              <PackageSearch size={15} />
-              {id ? 'Goods Receiving Detail' : 'Create Goods Receiving'}
+      <Button asChild variant="secondary" className="w-fit text-slate-600">
+        <Link to="/goods-receiving">
+          <ArrowLeft size={16} />
+          Kembali ke receiving list
+        </Link>
+      </Button>
+      <ModuleHero
+        eyebrow={id ? 'Warehouse • Receiving Detail' : 'Warehouse • Create Receiving'}
+        title={id ? (form.detail?.receivingNumber ?? 'Goods Receiving') : 'Buat draft receiving baru'}
+        description={
+          id
+            ? 'Draft masih bisa diperbarui. Dokumen non-draft otomatis tampil read-only sesuai rule backend.'
+            : 'Pilih supplier, warehouse, lalu tambahkan item bahan baku yang datang dari supplier.'
+        }
+        icon={<PackageSearch size={13} className="text-signal" />}
+        side={
+          form.detail ? (
+            <div className="rounded-xl border border-paper/10 bg-paper/10 px-4 py-3 backdrop-blur-sm">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-paper/55">Status</div>
+              <div className="mt-2">
+                <StatusBadge domain="receiving" value={form.detail.status} />
+              </div>
+              <p className="mt-2 text-xs text-paper/60">Created by {form.detail.createdBy ?? 'system'}</p>
+              <p className="mt-1 text-xs text-paper/60">
+                Updated {formatDateTimeLabel(form.detail.updatedAtUtc ?? form.detail.createdAtUtc)}
+              </p>
             </div>
-            <h1 className="mt-2 font-display text-2xl font-semibold leading-tight text-ink sm:text-3xl">
-              {id ? form.detail?.receivingNumber ?? 'Goods Receiving' : 'Buat draft receiving baru'}
-            </h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
-              {id
-                ? 'Draft masih bisa diperbarui. Dokumen non-draft otomatis tampil read-only sesuai rule backend.'
-                : 'Pilih supplier, warehouse, lalu tambahkan item bahan baku yang datang dari supplier.'}
-            </p>
-          </div>
-
-          {form.detail ? (
-            <Card className="rounded-2xl border-slate-200 bg-slate-50 shadow-none">
-              <CardContent className="space-y-2 p-4 text-sm">
-                <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
-                  Status
-                </div>
-                <div className="font-display text-2xl font-semibold text-ink">
-                  <StatusBadge domain="receiving" value={form.detail.status} />
-                </div>
-                <p className="text-slate-500">Created by {form.detail.createdBy ?? 'system'}</p>
-                <p className="text-slate-500">Updated {formatDateTimeLabel(form.detail.updatedAtUtc ?? form.detail.createdAtUtc)}</p>
-              </CardContent>
-            </Card>
-          ) : null}
-        </div>
-      </section>
+          ) : undefined
+        }
+      />
 
       {form.isReadOnly ? (
         <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">

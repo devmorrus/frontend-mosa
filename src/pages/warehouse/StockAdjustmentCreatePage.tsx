@@ -6,6 +6,7 @@ import { rawMaterialLotsApi } from '@/api/rawMaterialLots.api'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
 import { stockAdjustmentsApi } from '@/api/stockAdjustments.api'
 import { warehousesApi } from '@/api/warehouses.api'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -101,7 +102,12 @@ export function StockAdjustmentCreatePage() {
 
   return <div className="mx-auto max-w-4xl space-y-6">
     <Button asChild variant="ghost" className="text-slate-500"><Link to="/warehouse/stock-adjustments"><ArrowLeft size={16} />Kembali</Link></Button>
-    <section className="rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8"><div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72"><SlidersHorizontal size={14} className="text-signal" />Create Adjustment</div><h1 className="mt-5 font-display text-3xl font-semibold">Post correction per LOT</h1><p className="mt-3 text-sm leading-7 text-paper/68">Quantity before diambil dari backend. Tidak ada optimistic update setelah post.</p></section>
+    <ModuleHero
+      eyebrow="Warehouse • Create Adjustment"
+      title="Post correction per LOT"
+      description="Quantity before diambil dari backend. Tidak ada optimistic update setelah post."
+      icon={<SlidersHorizontal size={13} className="text-signal" />}
+    />
     <div className="rounded-[24px] border border-red-200 bg-red-50 p-4 text-sm text-red-800"><div className="flex gap-3"><AlertTriangle size={18} className="mt-0.5 shrink-0" /><p>Stock Adjustment langsung mengubah inventory setelah dikonfirmasi. Pastikan LOT, quantity, dan reason benar.</p></div></div>
     {actionError ? <div className="rounded-[24px] border border-red-100 bg-red-50 p-4 text-sm text-red-700">{actionError}</div> : null}
     <Card className="rounded-[28px] border-slate-200/80"><CardHeader><CardTitle>Adjustment Form</CardTitle></CardHeader><CardContent><form onSubmit={handleSubmit} className="grid gap-5 lg:grid-cols-2">

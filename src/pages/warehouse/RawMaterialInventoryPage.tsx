@@ -1,10 +1,10 @@
 import { useDeferredValue, useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
-import { Boxes, CheckCircle2, Layers3, LoaderCircle, PackageSearch } from 'lucide-react'
+import { Boxes, LoaderCircle } from 'lucide-react'
 import { inventoryApi } from '@/api/inventory.api'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
 import { warehousesApi } from '@/api/warehouses.api'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
@@ -134,23 +134,17 @@ export function RawMaterialInventoryPage() {
     <div className="space-y-6">
       <Breadcrumb items={breadcrumbs.inventory()} />
 
-      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#063b8c]"><Boxes size={23} /></div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0b5ed7]">Warehouse / Inventory</p>
-              <h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">Raw Material Inventory</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Pantau aggregate stock raw material dan buka breakdown LOT saat membutuhkan detail.</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 xl:min-w-[470px]">
-            <InventoryMetric icon={<PackageSearch size={16} />} label="Material types" value={pagination.totalItems} note="hasil filter" />
-            <InventoryMetric icon={<CheckCircle2 size={16} />} label="Available on page" value={formatMetricNumber(availableOnPage)} note="page aktif" tone="blue" />
-            <InventoryMetric icon={<Layers3 size={16} />} label="LOTs on page" value={lotsOnPage} note="page aktif" tone="green" />
-          </div>
-        </div>
-      </section>
+      <ModuleHero
+        eyebrow="Warehouse • Inventory"
+        title="Raw Material Inventory"
+        description="Pantau aggregate stock raw material dan buka breakdown LOT saat membutuhkan detail."
+        icon={<Boxes size={13} className="text-signal" />}
+        metrics={[
+          { label: 'Material', value: pagination.totalItems, sub: 'Hasil filter' },
+          { label: 'Available', value: formatMetricNumber(availableOnPage), sub: 'Page aktif', tone: 'success' },
+          { label: 'LOTs', value: lotsOnPage, sub: 'Page aktif' },
+        ]}
+      />
 
       <RawMaterialInventoryFilterBar
         query={query}
@@ -207,9 +201,4 @@ export function RawMaterialInventoryPage() {
 
 function formatMetricNumber(value: number) {
   return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(value)
-}
-
-function InventoryMetric({ icon, label, value, note, tone = 'slate' }: { icon: ReactNode; label: string; value: string | number; note: string; tone?: 'slate' | 'blue' | 'green' }) {
-  const toneClass = tone === 'blue' ? 'border-blue-200 bg-blue-50 text-[#063b8c]' : tone === 'green' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-slate-50 text-ink'
-  return <div className={`rounded-2xl border px-3 py-3 ${toneClass}`}><div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] opacity-70">{icon}{label}</div><p className="mt-1 font-display text-lg font-semibold sm:text-xl">{value}</p><p className="text-[10px] opacity-60">{note}</p></div>
 }

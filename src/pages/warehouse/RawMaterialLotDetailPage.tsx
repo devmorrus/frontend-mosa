@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 import { rawMaterialLotsApi } from '@/api/rawMaterialLots.api'
@@ -149,39 +150,30 @@ export function RawMaterialLotDetailPage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={breadcrumbs.lotDetail(detail.internalLotNumber)} />
-      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl">
-            <Button asChild variant="ghost" className="-ml-3 h-auto px-3 py-1.5 text-slate-500 hover:text-[#063b8c]">
-              <Link to={entityLinks.lotList()}>
-                <ArrowLeft size={16} />
-                Kembali ke LOT list
-              </Link>
-            </Button>
-            <div className="mt-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#0b5ed7]">
-              <QrCode size={15} />
-              Raw Material LOT Detail
+      <Button asChild variant="secondary" className="w-fit text-slate-600">
+        <Link to={entityLinks.lotList()}>
+          <ArrowLeft size={16} />
+          Kembali ke LOT list
+        </Link>
+      </Button>
+      <ModuleHero
+        eyebrow="Warehouse • LOT Detail"
+        title={detail.internalLotNumber}
+        description="Detail LOT hasil receiving, stok berjalan, QR label, dan shortcut traceability."
+        icon={<QrCode size={13} className="text-signal" />}
+        side={
+          <div className="rounded-xl border border-paper/10 bg-paper/10 px-4 py-3 backdrop-blur-sm">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-paper/55">Status</div>
+            <div className="mt-2">
+              <StatusBadge domain="lot" value={detail.status} />
             </div>
-            <h1 className="mt-2 font-display text-2xl font-semibold leading-tight text-ink sm:text-3xl">
-              {detail.internalLotNumber}
-            </h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
-              Detail LOT hasil receiving, stok berjalan, QR label, dan shortcut traceability.
+            <p className="mt-2 text-xs text-paper/60">Created by {detail.createdBy ?? 'system'}</p>
+            <p className="mt-1 text-xs text-paper/60">
+              Updated {formatLotDateTimeLabel(detail.updatedAtUtc ?? detail.createdAtUtc)}
             </p>
           </div>
-
-          <Card className="rounded-2xl border-slate-200 bg-slate-50 shadow-none">
-            <CardContent className="space-y-2 p-4 text-sm">
-              <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Status</div>
-              <div className="font-display text-2xl font-semibold text-ink"><StatusBadge domain="lot" value={detail.status} /></div>
-              <p className="text-slate-500">Created by {detail.createdBy ?? 'system'}</p>
-              <p className="text-slate-500">
-                Updated {formatLotDateTimeLabel(detail.updatedAtUtc ?? detail.createdAtUtc)}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+        }
+      />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)]">
         <Card data-tour="lot-detail-card" className="rounded-[28px] border border-slate-200 bg-white shadow-sm">

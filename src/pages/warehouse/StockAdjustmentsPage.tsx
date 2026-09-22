@@ -5,6 +5,7 @@ import { rawMaterialLotsApi } from '@/api/rawMaterialLots.api'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
 import { stockAdjustmentsApi } from '@/api/stockAdjustments.api'
 import { warehousesApi } from '@/api/warehouses.api'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -73,9 +74,13 @@ export function StockAdjustmentsPage() {
   }, [JSON.stringify(query)])
 
   return <div className="space-y-6" data-tour="adjustment-queue">
-    <section className="rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8">
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"><div><div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72"><SlidersHorizontal size={14} className="text-signal" />Stock Adjustments</div><h1 className="mt-5 font-display text-3xl font-semibold">Correction langsung per LOT</h1><p className="mt-3 max-w-xl text-sm leading-7 text-paper/68">Adjustment IN/OUT langsung memengaruhi inventory setelah konfirmasi.</p></div>{canCreateAdjustment ? <Button asChild className="bg-signal text-ink hover:bg-signal/90"><Link to="/warehouse/stock-adjustments/create" data-tour="adjustment-create-btn"><Plus size={16} />Create Adjustment</Link></Button> : null}</div>
-    </section>
+    <ModuleHero
+      eyebrow="Warehouse • Stock Adjustments"
+      title="Correction langsung per LOT"
+      description="Adjustment IN/OUT langsung memengaruhi inventory setelah konfirmasi."
+      icon={<SlidersHorizontal size={13} className="text-signal" />}
+      actions={canCreateAdjustment ? <Button asChild className="bg-white text-[#062f75] hover:bg-blue-50" data-tour="adjustment-create-btn"><Link to="/warehouse/stock-adjustments/create"><Plus size={16} />Create Adjustment</Link></Button> : undefined}
+    />
 
     <Card className="rounded-[28px] border-slate-200/80"><CardContent className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-6"><input className="h-11 rounded-2xl border border-slate-200 px-4 text-sm" placeholder="Cari adjustment, reason, reference" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} /><select className="h-11 rounded-2xl border border-slate-200 px-4 text-sm" value={query.warehouseId} onChange={(event) => setQuery((current) => ({ ...current, warehouseId: event.target.value, page: 1 }))}><option value="">Semua warehouse</option>{warehouses.map((warehouse) => <option key={warehouse.id} value={warehouse.id}>{warehouse.name}</option>)}</select><select className="h-11 rounded-2xl border border-slate-200 px-4 text-sm" value={query.rawMaterialId} onChange={(event) => setQuery((current) => ({ ...current, rawMaterialId: event.target.value, rawMaterialLotId: '', page: 1 }))}><option value="">Semua material</option>{materials.map((material) => <option key={material.id} value={material.id}>{material.name}</option>)}</select><select className="h-11 rounded-2xl border border-slate-200 px-4 text-sm" value={query.rawMaterialLotId} onChange={(event) => setQuery((current) => ({ ...current, rawMaterialLotId: event.target.value, page: 1 }))}><option value="">Semua LOT</option>{lots.filter((lot) => (!query.warehouseId || lot.warehouseId === query.warehouseId) && (!query.rawMaterialId || lot.rawMaterialId === query.rawMaterialId)).map((lot) => <option key={lot.id} value={lot.id}>{lot.internalLotNumber}</option>)}</select><select className="h-11 rounded-2xl border border-slate-200 px-4 text-sm" value={query.adjustmentType} onChange={(event) => setQuery((current) => ({ ...current, adjustmentType: event.target.value as StockAdjustmentQueryState['adjustmentType'], page: 1 }))}><option value="ALL">Semua type</option><option value="IN">IN</option><option value="OUT">OUT</option></select><input type="date" className="h-11 rounded-2xl border border-slate-200 px-4 text-sm" value={query.dateFrom} onChange={(event) => setQuery((current) => ({ ...current, dateFrom: event.target.value, page: 1 }))} /></CardContent></Card>
 

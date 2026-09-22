@@ -1,8 +1,8 @@
 import { useDeferredValue, useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
-import { ArrowLeftRight, History, LoaderCircle, TrendingDown, TrendingUp } from 'lucide-react'
+import { ArrowLeftRight, LoaderCircle } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { rawMaterialLotsApi } from '@/api/rawMaterialLots.api'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
 import { stockMovementsApi } from '@/api/stockMovements.api'
@@ -183,23 +183,18 @@ export function StockMovementsPage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={breadcrumbs.stockMovements()} />
-      <section data-tour="inventory-stock-movement" className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#063b8c]"><ArrowLeftRight size={23} /></div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0b5ed7]">Warehouse / Stock Movements</p>
-              <h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">Stock Movements</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Pantau riwayat perubahan stock yang bersifat read-only, dari receiving sampai konsumsi produksi.</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 xl:min-w-[470px]">
-            <MovementMetric icon={<History size={16} />} label="Total movements" value={pagination.totalItems} note="hasil filter" />
-            <MovementMetric icon={<TrendingUp size={16} />} label="Stock IN on page" value={formatMovementMetricNumber(inQtyOnPage)} note="page aktif" tone="blue" />
-            <MovementMetric icon={<TrendingDown size={16} />} label="Stock OUT on page" value={formatMovementMetricNumber(outQtyOnPage)} note="page aktif" tone="rose" />
-          </div>
-        </div>
-      </section>
+      <ModuleHero
+        dataTour="inventory-stock-movement"
+        eyebrow="Warehouse • Stock Movements"
+        title="Stock Movements"
+        description="Pantau riwayat perubahan stock yang bersifat read-only, dari receiving sampai konsumsi produksi."
+        icon={<ArrowLeftRight size={13} className="text-signal" />}
+        metrics={[
+          { label: 'Total', value: pagination.totalItems, sub: 'Hasil filter' },
+          { label: 'Stock IN', value: formatMovementMetricNumber(inQtyOnPage), sub: 'Page aktif' },
+          { label: 'Stock OUT', value: formatMovementMetricNumber(outQtyOnPage), sub: 'Page aktif' },
+        ]}
+      />
 
       <StockMovementsFilterBar
         query={query}
@@ -252,9 +247,4 @@ export function StockMovementsPage() {
 
 function formatMovementMetricNumber(value: number) {
   return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(value)
-}
-
-function MovementMetric({ icon, label, value, note, tone = 'slate' }: { icon: ReactNode; label: string; value: string | number; note: string; tone?: 'slate' | 'blue' | 'rose' }) {
-  const toneClass = tone === 'blue' ? 'border-blue-200 bg-blue-50 text-[#063b8c]' : tone === 'rose' ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-slate-200 bg-slate-50 text-ink'
-  return <div className={`rounded-2xl border px-3 py-3 ${toneClass}`}><div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] opacity-70">{icon}{label}</div><p className="mt-1 font-display text-lg font-semibold sm:text-xl">{value}</p><p className="text-[10px] opacity-60">{note}</p></div>
 }
