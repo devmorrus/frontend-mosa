@@ -3,8 +3,7 @@ import { LoaderCircle, ShoppingBasket } from 'lucide-react'
 import { productsApi } from '@/api/products.api'
 import { unitOfMeasuresApi } from '@/api/unitOfMeasures.api'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { MasterDataStatusDialog } from '@/features/master-data/components/MasterDataStatusDialog'
+import { ProductStatusDialog } from '@/features/products/components/ProductStatusDialog'
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
@@ -128,59 +127,44 @@ export function ProductsPage() {
     formUnitOptions.find((option) => option.id === productModule.formValues.unitOfMeasureId) ??
     formUnitOverride
 
+  const activeOnPage = productModule.items.filter((item) => item.isActive).length
+  const inactiveOnPage = productModule.items.length - activeOnPage
+
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <ShoppingBasket size={14} className="text-signal" />
-              Master Data Product
+    <div className="space-y-5">
+      <section className="relative overflow-hidden rounded-[24px] border border-ink/10 bg-[linear-gradient(135deg,#062f75_0%,#0647a6_55%,#0b5ed7_100%)] px-5 py-5 text-paper shadow-[0_18px_50px_rgba(6,59,140,0.18)] sm:px-6 sm:py-6">
+        <div className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+        <div className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-signal/25 blur-3xl" />
+        <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-paper/80">
+              <ShoppingBasket size={13} className="text-signal" />
+              Master Data • Product
             </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
+            <h1 className="mt-3 font-display text-2xl font-semibold leading-snug text-paper sm:text-3xl">
               Product master yang siap dipakai lintas modul
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-paper/68 sm:text-base">
-              Kelola product code, UOM, shelf life, dan status dengan pola UI yang sama seperti
-              master data lain agar onboarding user warehouse tetap konsisten.
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-paper/70">
+              Kelola product code, UOM, dan shelf life dengan pola yang sama seperti master data lain.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-              <CardContent className="p-5">
-                <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">
-                  Total Product
-                </div>
-                <div className="mt-2 font-display text-3xl font-semibold text-paper">
-                  {productModule.pagination.totalItems}
-                </div>
-                <p className="mt-1 text-sm text-paper/60">Semua product tercatat</p>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-              <CardContent className="p-5">
-                <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">Active</div>
-                <div className="mt-2 font-display text-3xl font-semibold text-blue-400">
-                  {productModule.items.filter((item) => item.isActive).length}
-                </div>
-                <p className="mt-1 text-sm text-paper/60">Siap dipakai lintas modul</p>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-              <CardContent className="p-5">
-                <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">
-                  Inactive
-                </div>
-                <div className="mt-2 font-display text-3xl font-semibold text-paper/45">
-                  {productModule.items.filter((item) => !item.isActive).length}
-                </div>
-                <p className="mt-1 text-sm text-paper/60">Perlu direview kembali</p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:w-[340px]">
+            <div className="rounded-xl border border-paper/10 bg-paper/10 px-3 py-2.5 backdrop-blur-sm">
+              <div className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-paper/55">Total</div>
+              <div className="mt-1 font-display text-2xl font-semibold leading-none text-paper">{productModule.pagination.totalItems}</div>
+              <div className="mt-1.5 truncate text-xs text-paper/60">Terdaftar</div>
+            </div>
+            <div className="rounded-xl border border-paper/10 bg-paper/10 px-3 py-2.5 backdrop-blur-sm" title="Active di halaman ini">
+              <div className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-paper/55">Active</div>
+              <div className="mt-1 font-display text-2xl font-semibold leading-none text-emerald-200">{activeOnPage}</div>
+              <div className="mt-1.5 truncate text-xs text-paper/60">Halaman ini</div>
+            </div>
+            <div className="rounded-xl border border-paper/10 bg-paper/10 px-3 py-2.5 backdrop-blur-sm" title="Inactive di halaman ini">
+              <div className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-paper/55">Inactive</div>
+              <div className="mt-1 font-display text-2xl font-semibold leading-none text-paper/70">{inactiveOnPage}</div>
+              <div className="mt-1.5 truncate text-xs text-paper/60">Halaman ini</div>
+            </div>
           </div>
         </div>
       </section>
@@ -214,12 +198,13 @@ export function ProductsPage() {
       />
 
       {productModule.isLoading ? (
-        <MasterDataLoadingState description="Daftar product sedang dimuat dari backend." />
+        <MasterDataLoadingState description="Daftar product sedang dimuat." />
       ) : productModule.error ? (
         <MasterDataErrorState description={productModule.error} onRetry={productModule.reload} />
       ) : productModule.items.length === 0 ? (
         <MasterDataEmptyState
-          description="Belum ada product yang cocok dengan filter saat ini."
+          title="Belum ada product"
+          description="Tambahkan product pertama agar bisa dipakai lintas modul, atau reset filter saat ini."
           action={
             productModule.canCreate ? (
               <Button onClick={productModule.openCreateDialog}>Tambah product pertama</Button>
@@ -229,7 +214,7 @@ export function ProductsPage() {
       ) : (
         <div className="relative space-y-3">
           {productModule.isRefreshing && (
-            <div className="absolute -top-2 right-0 z-10 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm">
+            <div className="pointer-events-none absolute -top-1 right-1 z-10 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm">
               <LoaderCircle size={13} className="animate-spin text-slate-400" />
               Menyegarkan data...
             </div>
@@ -262,9 +247,10 @@ export function ProductsPage() {
         onSubmit={productModule.submitForm}
       />
 
-      <MasterDataStatusDialog
+      <ProductStatusDialog
         open={Boolean(productModule.statusTarget)}
-        entityLabel={productModule.statusTarget?.name ?? 'product'}
+        productName={productModule.statusTarget?.name ?? 'product'}
+        productCode={productModule.statusTarget?.code ?? ''}
         nextStatusLabel={productModule.statusTarget?.isActive ? 'Inactive' : 'Active'}
         onOpenChange={productModule.closeStatusDialog}
         onConfirm={productModule.confirmStatusChange}
