@@ -55,6 +55,9 @@ import { OperatorGuidedProductionPage } from '@/pages/operator/OperatorGuidedPro
 import { FinishedGoodsLotDetailPage } from '@/pages/production/FinishedGoodsLotDetailPage'
 import { QualityControlQueuePage } from '@/pages/production/QualityControlQueuePage'
 import { QualityControlInspectionPage } from '@/pages/production/QualityControlInspectionPage'
+import { QualityControlParametersPage } from '@/pages/production/QualityControlParametersPage'
+import { QualityControlHistoryPage } from '@/pages/production/QualityControlHistoryPage'
+import { QualityControlNcrPage } from '@/pages/production/QualityControlNcrPage'
 import { FinishedGoodsTraceabilityPage, TraceabilitySearchPage } from '@/pages/traceability/TraceabilityPages'
 import { RawMaterialTraceabilityPage } from '@/pages/traceability/RawMaterialTraceabilityPage'
 import { ReportsPage } from '@/pages/reports/ReportsPage'
@@ -168,10 +171,19 @@ export function AppRoutes() {
             <Route path="/reports/:reportCode" element={<ReportsPage />} />
           </Route>
 
-          <Route element={<ProtectedRoute requiredPermission="qc.view" />}>
-            <Route path="/quality-control" element={<QualityControlQueuePage />} />
-            <Route path="/quality-control/:finishedGoodsLotId" element={<QualityControlInspectionPage />} />
-          </Route>
+           <Route element={<ProtectedRoute requiredPermission="qc.parameters.view" />}>
+             <Route path="/quality-control/parameters" element={<QualityControlParametersPage />} />
+           </Route>
+           <Route element={<ProtectedRoute requiredPermission="qc.history.view" />}>
+             <Route path="/quality-control/history" element={<QualityControlHistoryPage />} />
+           </Route>
+           <Route element={<ProtectedRoute requiredPermission="qc.ncr.view" />}>
+             <Route path="/quality-control/ncr" element={<QualityControlNcrPage />} />
+           </Route>
+           <Route element={<ProtectedRoute requiredPermission="qc.view" />}>
+             <Route path="/quality-control" element={<QualityControlQueuePage />} />
+             <Route path="/quality-control/:finishedGoodsLotId" element={<QualityControlInspectionPage />} />
+           </Route>
 
           <Route element={<ProtectedRoute requiredPermission="production-deviations.view" />}>
             <Route path="/production/deviations" element={<ProductionDeviationQueuePage />} />
