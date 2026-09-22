@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react'
+import { Hash, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -32,11 +32,14 @@ export function ReceivingItemFields({
   canRemove: boolean
 }) {
   return (
-    <article className="rounded-[28px] border border-slate-200 bg-white/90 p-4 shadow-sm sm:p-5">
+    <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 className="font-display text-lg font-semibold text-ink">Item {index + 1}</h3>
-          <p className="text-sm text-slate-500">Raw material dan UOM mengikuti master data aktif.</p>
+        <div className="flex items-start gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-sm font-semibold text-[#063b8c]">{index + 1}</div>
+          <div>
+            <h3 className="font-display text-lg font-semibold text-ink">Item {index + 1}</h3>
+            <p className="text-sm text-slate-500">Raw material dan UOM mengikuti master data aktif.</p>
+          </div>
         </div>
         {canRemove ? (
           <Button variant="secondary" size="sm" onClick={onRemove} disabled={disabled}>
@@ -48,12 +51,12 @@ export function ReceivingItemFields({
 
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
         <div>
-          <label className="mb-2 block text-sm font-semibold text-ink">Raw Material</label>
+            <label className="mb-2 block text-sm font-semibold text-ink">Raw Material</label>
           <select
             value={item.rawMaterialId}
             onChange={(event) => {
               const selected = materials.find((material) => material.id === event.target.value)
-            onChange((current) => ({
+              onChange((current) => ({
                 ...current,
                 rawMaterialId: selected?.id ?? '',
                 rawMaterialCode: selected?.code ?? '',
@@ -82,7 +85,7 @@ export function ReceivingItemFields({
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-semibold text-ink">Quantity</label>
+            <label className="mb-2 block text-sm font-semibold text-ink">Quantity</label>
           <Input
             type="number"
             min={0}
@@ -99,9 +102,12 @@ export function ReceivingItemFields({
       </div>
 
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-ink">UOM</label>
-          <Input value={item.unitOfMeasureName || item.unitOfMeasureCode} readOnly disabled />
+         <div className="relative">
+           <label className="mb-2 block text-sm font-semibold text-ink">UOM</label>
+           <div className="relative">
+             <Input value={item.unitOfMeasureName || item.unitOfMeasureCode} readOnly disabled className="pr-10" />
+             <Hash size={15} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+           </div>
           <MasterDataFormFieldError
             message={getReceivingItemFieldError(errors, index, 'unitOfMeasureId')}
           />

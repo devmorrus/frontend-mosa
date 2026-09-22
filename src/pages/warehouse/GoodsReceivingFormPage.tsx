@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, LoaderCircle, PackageSearch, Plus } from 'lucide-react'
+import {
+  ArrowLeft,
+  CheckCircle2,
+  ClipboardList,
+  FileText,
+  Info,
+  LoaderCircle,
+  PackageSearch,
+  Plus,
+} from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
 import { StatusBadge } from '@/components/common/StatusBadge'
@@ -207,24 +216,23 @@ export function GoodsReceivingFormPage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={form.detail ? breadcrumbs.receivingDetail(form.detail.receivingNumber) : breadcrumbs.receivingList()} />
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <Button asChild variant="ghost" className="-ml-3 h-auto px-3 py-2">
+            <Button asChild variant="ghost" className="-ml-3 h-auto px-3 py-1.5 text-slate-500 hover:text-[#063b8c]">
               <Link to="/goods-receiving">
                 <ArrowLeft size={16} />
                 Kembali ke receiving list
               </Link>
             </Button>
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <PackageSearch size={14} className="text-signal" />
+            <div className="mt-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#0b5ed7]">
+              <PackageSearch size={15} />
               {id ? 'Goods Receiving Detail' : 'Create Goods Receiving'}
             </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
+            <h1 className="mt-2 font-display text-2xl font-semibold leading-tight text-ink sm:text-3xl">
               {id ? form.detail?.receivingNumber ?? 'Goods Receiving' : 'Buat draft receiving baru'}
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-paper/68 sm:text-base">
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
               {id
                 ? 'Draft masih bisa diperbarui. Dokumen non-draft otomatis tampil read-only sesuai rule backend.'
                 : 'Pilih supplier, warehouse, lalu tambahkan item bahan baku yang datang dari supplier.'}
@@ -232,16 +240,16 @@ export function GoodsReceivingFormPage() {
           </div>
 
           {form.detail ? (
-            <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-              <CardContent className="space-y-2 p-5 text-sm">
-                <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">
+            <Card className="rounded-2xl border-slate-200 bg-slate-50 shadow-none">
+              <CardContent className="space-y-2 p-4 text-sm">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
                   Status
                 </div>
-                <div className="font-display text-2xl font-semibold text-paper">
+                <div className="font-display text-2xl font-semibold text-ink">
                   <StatusBadge domain="receiving" value={form.detail.status} />
                 </div>
-                <p className="text-paper/60">Created by {form.detail.createdBy ?? 'system'}</p>
-                <p className="text-paper/60">Updated {formatDateTimeLabel(form.detail.updatedAtUtc ?? form.detail.createdAtUtc)}</p>
+                <p className="text-slate-500">Created by {form.detail.createdBy ?? 'system'}</p>
+                <p className="text-slate-500">Updated {formatDateTimeLabel(form.detail.updatedAtUtc ?? form.detail.createdAtUtc)}</p>
               </CardContent>
             </Card>
           ) : null}
@@ -249,41 +257,46 @@ export function GoodsReceivingFormPage() {
       </section>
 
       {form.isReadOnly ? (
-        <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+          <Info size={18} className="mt-0.5 shrink-0" />
           Dokumen dengan status <span className="font-semibold">{form.detail?.status}</span> tidak
           dapat diedit melalui form draft.
         </div>
       ) : null}
 
       {!form.isReadOnly && !canSave ? (
-        <div className="rounded-[28px] border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
+        <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
+          <Info size={18} className="mt-0.5 shrink-0" />
           Anda hanya memiliki akses lihat untuk halaman ini. Form receiving ditampilkan dalam mode
           read-only.
         </div>
       ) : null}
 
       {form.formError ? (
-        <div className="rounded-[28px] border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
+        <div className="flex items-start gap-3 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
+          <Info size={18} className="mt-0.5 shrink-0" />
           {form.formError}
         </div>
       ) : null}
 
       {form.postError ? (
-        <div className="rounded-[28px] border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
+        <div className="flex items-start gap-3 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
+          <Info size={18} className="mt-0.5 shrink-0" />
           {form.postError}
         </div>
       ) : null}
 
       {lookupError ? (
-        <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+          <Info size={18} className="mt-0.5 shrink-0" />
           Gagal memuat source lookup receiving: {lookupError}
         </div>
       ) : null}
 
-      <Card>
+      <Card className="border-slate-200 shadow-sm">
         <CardContent className="space-y-6 p-6">
           {form.detail ? (
-            <div data-tour="receiving-summary" className="grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-600 sm:grid-cols-2 xl:grid-cols-4">
+            <div data-tour="receiving-summary" className="grid gap-4 rounded-2xl border border-blue-100 bg-blue-50/45 p-4 text-sm text-slate-600 sm:grid-cols-2 xl:grid-cols-4">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Receiving Number</p>
                 <p className="mt-1 font-medium text-ink">{form.detail.receivingNumber}</p>
@@ -318,6 +331,14 @@ export function GoodsReceivingFormPage() {
               </div>
             </div>
           ) : null}
+
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+            <FileText size={18} className="text-[#0b5ed7]" />
+            <div>
+              <h2 className="font-display text-xl font-semibold text-ink">Receiving Information</h2>
+              <p className="text-sm text-slate-500">Data utama dokumen penerimaan bahan baku.</p>
+            </div>
+          </div>
 
           <div className="grid gap-5 lg:grid-cols-2">
             <div>
@@ -399,9 +420,10 @@ export function GoodsReceivingFormPage() {
       </Card>
 
       {form.detail && generatedLots.length > 0 ? (
-        <Card data-tour="receiving-generated-lots">
+        <Card data-tour="receiving-generated-lots" className="border-emerald-200 shadow-sm">
           <CardContent className="space-y-3 p-6">
-            <h2 className="font-display text-xl font-semibold text-ink">
+            <h2 className="flex items-center gap-2 font-display text-xl font-semibold text-ink">
+              <CheckCircle2 size={20} className="text-emerald-600" />
               Generated LOTs ({generatedLots.length})
             </h2>
             <p className="text-sm text-slate-500">
@@ -435,12 +457,15 @@ export function GoodsReceivingFormPage() {
 
       <section className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="font-display text-2xl font-semibold text-ink">Receiving Items</h2>
+          <div className="flex items-start gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#0b5ed7]"><ClipboardList size={19} /></div>
+            <div>
+              <h2 className="font-display text-2xl font-semibold text-ink">Receiving Items</h2>
             <p className="text-sm text-slate-500">Minimal satu item diperlukan untuk menyimpan draft receiving.</p>
+            </div>
           </div>
           {!isInteractionDisabled ? (
-            <Button data-tour="receiving-add-item-btn" onClick={form.addItem} variant="secondary" disabled={isLookupLoading}>
+             <Button data-tour="receiving-add-item-btn" onClick={form.addItem} variant="secondary" className="border-blue-200 text-[#063b8c] hover:bg-blue-50" disabled={isLookupLoading}>
               <Plus size={16} />
               Add Item
             </Button>
@@ -470,7 +495,7 @@ export function GoodsReceivingFormPage() {
         </div>
       </section>
 
-      <div className="sticky bottom-0 z-10 rounded-[28px] border border-slate-200/80 bg-white/92 p-4 shadow-[0_-8px_32px_rgba(15,23,42,0.08)] backdrop-blur">
+      <div className="sticky bottom-0 z-10 rounded-2xl border border-slate-200/80 bg-white/95 p-4 shadow-[0_-8px_32px_rgba(15,23,42,0.08)] backdrop-blur">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-slate-500">
             {form.detail ? (
@@ -491,6 +516,7 @@ export function GoodsReceivingFormPage() {
               <Button
                 data-tour="receiving-post-btn"
                 variant="secondary"
+                className="border-amber-200 text-amber-800 hover:bg-amber-50"
                 onClick={form.openPostConfirmation}
                 disabled={form.isPosting || form.isSubmitting}
               >
@@ -499,7 +525,7 @@ export function GoodsReceivingFormPage() {
               </Button>
             ) : null}
             {!isInteractionDisabled ? (
-              <Button data-tour="receiving-save-draft-btn" onClick={() => void handleSubmit()} disabled={form.isSubmitting || form.isPosting || isLookupLoading}>
+               <Button data-tour="receiving-save-draft-btn" className="bg-[#063b8c] hover:bg-[#052f70]" onClick={() => void handleSubmit()} disabled={form.isSubmitting || form.isPosting || isLookupLoading}>
                 {form.isSubmitting ? <LoaderCircle size={16} className="animate-spin" /> : null}
                 Save Draft
               </Button>

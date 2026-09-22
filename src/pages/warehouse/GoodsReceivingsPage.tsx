@@ -1,5 +1,17 @@
 import { useDeferredValue, useEffect, useState } from 'react'
-import { LoaderCircle, PackageSearch } from 'lucide-react'
+import {
+  ArrowUpRight,
+  CalendarDays,
+  ChevronDown,
+  ClipboardList,
+  Filter,
+  LoaderCircle,
+  PackageSearch,
+  RotateCcw,
+  Search,
+  Truck,
+  Warehouse,
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AppPagination } from '@/components/common/AppPagination'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
@@ -122,88 +134,86 @@ export function GoodsReceivingsPage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={breadcrumbs.receivingList()} />
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <PackageSearch size={14} className="text-signal" />
-              Goods Receiving
+      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#063b8c]">
+              <PackageSearch size={23} />
             </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
-              Penerimaan bahan baku yang siap dicatat user warehouse
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-paper/68 sm:text-base">
-              Kelola draft receiving dari pencarian sampai edit ulang, dengan filter backend dan
-              layout yang tetap nyaman dipakai di tablet.
-            </p>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0b5ed7]">Warehouse / Receiving</p>
+              <h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">Goods Receiving</h1>
+              <p className="mt-1 max-w-2xl text-sm text-slate-500">Catat penerimaan bahan baku, kelola draft, dan lanjutkan posting saat data siap.</p>
+            </div>
           </div>
-
-          <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-            <CardContent className="p-5">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">
-                Total receiving
-              </div>
-              <div className="mt-2 font-display text-3xl font-semibold text-paper">
-                {pagination.totalItems}
-              </div>
-              <p className="mt-1 text-sm text-paper/60">Daftar mengikuti pagination backend secara penuh.</p>
-            </CardContent>
-          </Card>
+          <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 lg:min-w-[180px]">
+            <ClipboardList size={20} className="text-[#0b5ed7]" />
+            <div>
+              <p className="text-xs font-medium text-slate-500">Total dokumen</p>
+              <p className="font-display text-2xl font-semibold text-ink">{pagination.totalItems}</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      <div className="grid gap-3 rounded-[28px] border border-white/70 bg-white/85 p-4 shadow-sm sm:p-5">
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
-          <Input
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="Cari receiving number, supplier, warehouse, atau notes"
-            className="h-12 rounded-2xl"
-          />
-          <select
-            value={query.status}
-            onChange={(event) =>
-              setQuery((current) => ({
-                ...current,
-                status: event.target.value as GoodsReceivingQueryState['status'],
-                page: 1,
-              }))
-            }
-            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
+      <div className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <Filter size={17} className="text-[#0b5ed7]" />
+            <h2 className="text-sm font-semibold text-ink">Filter receiving</h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setQuery(DEFAULT_QUERY)
+              setSearchInput('')
+            }}
+            className="inline-flex w-fit items-center gap-1.5 text-xs font-semibold text-slate-500 transition-colors hover:text-[#063b8c]"
           >
-            {STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={query.pageSize}
-            onChange={(event) =>
-              setQuery((current) => ({
-                ...current,
-                pageSize: Number(event.target.value),
-                page: 1,
-              }))
-            }
-            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
-          >
-            {PAGE_SIZE_OPTIONS.map((value) => (
-              <option key={value} value={value}>
-                {value} / halaman
-              </option>
-            ))}
-          </select>
+            <RotateCcw size={13} />
+            Reset filter
+          </button>
         </div>
-
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto_auto]">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(170px,0.7fr)_minmax(170px,0.7fr)]">
+          <div className="relative">
+            <Search size={17} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Input
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="Cari nomor, supplier, warehouse..."
+              className="h-12 rounded-2xl pl-11"
+            />
+          </div>
+          <label className="relative">
+            <span className="sr-only">Status</span>
+            <select
+              value={query.status}
+              onChange={(event) => setQuery((current) => ({ ...current, status: event.target.value as GoodsReceivingQueryState['status'], page: 1 }))}
+              className="h-12 w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 pr-10 text-sm text-ink outline-none transition-all focus:border-[#0b5ed7] focus:ring-4 focus:ring-blue-100"
+            >
+              {STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+            <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          </label>
+          <label className="relative">
+            <span className="sr-only">Jumlah per halaman</span>
+            <select
+              value={query.pageSize}
+              onChange={(event) => setQuery((current) => ({ ...current, pageSize: Number(event.target.value), page: 1 }))}
+              className="h-12 w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 pr-10 text-sm text-ink outline-none transition-all focus:border-[#0b5ed7] focus:ring-4 focus:ring-blue-100"
+            >
+              {PAGE_SIZE_OPTIONS.map((value) => <option key={value} value={value}>{value} / halaman</option>)}
+            </select>
+            <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          </label>
+        </div>
+        <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(150px,0.7fr)_minmax(150px,0.7fr)_auto]">
           <select
             value={query.supplierId}
             onChange={(event) =>
               setQuery((current) => ({ ...current, supplierId: event.target.value, page: 1 }))
             }
-            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
+            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-[#0b5ed7] focus:ring-4 focus:ring-blue-100"
           >
             <option value="">Semua supplier</option>
             {suppliers.map((supplier) => (
@@ -217,7 +227,7 @@ export function GoodsReceivingsPage() {
             onChange={(event) =>
               setQuery((current) => ({ ...current, warehouseId: event.target.value, page: 1 }))
             }
-            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
+            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-[#0b5ed7] focus:ring-4 focus:ring-blue-100"
           >
             <option value="">Semua warehouse</option>
             {warehouses.map((warehouse) => (
@@ -243,12 +253,17 @@ export function GoodsReceivingsPage() {
             className="h-12 rounded-2xl"
           />
           {can('receiving.create') ? (
-            <Button asChild className="h-12 whitespace-nowrap" data-tour="receiving-add-btn">
+            <Button asChild className="h-12 whitespace-nowrap bg-[#063b8c] hover:bg-[#052f70]" data-tour="receiving-add-btn">
               <Link to="/goods-receiving/create" data-tour="receiving-add-btn">Create Receiving</Link>
             </Button>
           ) : (
             <div className="hidden xl:block" />
           )}
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5"><Truck size={13} /> Supplier & warehouse</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5"><CalendarDays size={13} /> Rentang tanggal</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5"><Warehouse size={13} /> Backend filter</span>
         </div>
       </div>
 
@@ -269,9 +284,9 @@ export function GoodsReceivingsPage() {
         />
       ) : (
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-3">
+          <CardHeader className="flex flex-col gap-3 border-b border-slate-100 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle>Receiving List</CardTitle>
+              <CardTitle className="flex items-center gap-2"><ClipboardList size={18} className="text-[#0b5ed7]" /> Receiving List</CardTitle>
               <p className="mt-2 text-sm text-slate-500">
                 {pagination.totalItems} dokumen receiving terdaftar pada sistem.
               </p>
@@ -284,14 +299,14 @@ export function GoodsReceivingsPage() {
             ) : null}
           </CardHeader>
           <CardContent className="px-0 pb-0">
-            <div className="overflow-x-auto">
+            <div className="hidden overflow-x-auto md:block">
               <table className="min-w-full border-separate border-spacing-0">
                 <thead>
                   <tr className="bg-slate-50/80 text-left">
                     {['Receiving No', 'Date', 'Supplier', 'Warehouse', 'Items', 'Status', 'Created By', 'Action'].map((header) => (
                       <th
                         key={header}
-                        className="px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"
+                        className={`px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 ${header === 'Action' ? 'text-center' : 'text-left'}`}
                       >
                         {header}
                       </th>
@@ -304,20 +319,21 @@ export function GoodsReceivingsPage() {
                     const canEditDraft = isDraft && can('receiving.update')
 
                     return (
-                      <tr key={item.id} className="border-b border-slate-200/70 bg-white">
-                        <td className="px-6 py-4 text-sm font-semibold text-ink">{item.receivingNumber}</td>
+                      <tr key={item.id} className="border-b border-slate-200/70 bg-white transition-colors hover:bg-blue-50/30">
+                        <td className="px-6 py-4 text-sm font-semibold text-[#063b8c]">{item.receivingNumber}</td>
                         <td className="px-6 py-4 text-sm text-slate-600">{formatDateLabel(item.receivingDate)}</td>
                         <td className="px-6 py-4 text-sm text-slate-600">{item.supplierName}</td>
                         <td className="px-6 py-4 text-sm text-slate-600">{item.warehouseName}</td>
-                        <td className="px-6 py-4 text-sm text-slate-600">{item.itemsCount}</td>
+                        <td className="px-6 py-4 text-sm font-medium text-slate-700">{item.itemsCount} item</td>
                         <td className="px-6 py-4 text-sm">
                           <StatusBadge domain="receiving" value={item.status} />
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600">{item.createdBy ?? '-'}</td>
-                        <td className="px-6 py-4 text-right">
-                          <Button asChild variant="secondary" size="sm">
+                        <td className="px-6 py-4 text-center">
+                          <Button asChild variant="secondary" size="sm" className="gap-1.5">
                             <Link to={entityLinks.receivingDetail(item.id)}>
                               {canEditDraft ? 'Edit Draft' : 'View Detail'}
+                              <ArrowUpRight size={14} />
                             </Link>
                           </Button>
                         </td>
@@ -326,6 +342,31 @@ export function GoodsReceivingsPage() {
                   })}
                 </tbody>
               </table>
+            </div>
+            <div className="space-y-3 px-4 md:hidden">
+              {items.map((item) => {
+                const canEditDraft = item.status === 'DRAFT' && can('receiving.update')
+                return (
+                  <article key={item.id} className="rounded-2xl border border-slate-200 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-[#063b8c]">{item.receivingNumber}</p>
+                        <p className="mt-1 text-xs text-slate-500">{formatDateLabel(item.receivingDate)}</p>
+                      </div>
+                      <StatusBadge domain="receiving" value={item.status} />
+                    </div>
+                    <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                      <div><dt className="text-xs text-slate-400">Supplier</dt><dd className="mt-0.5 truncate font-medium text-ink">{item.supplierName}</dd></div>
+                      <div><dt className="text-xs text-slate-400">Warehouse</dt><dd className="mt-0.5 truncate font-medium text-ink">{item.warehouseName}</dd></div>
+                      <div><dt className="text-xs text-slate-400">Items</dt><dd className="mt-0.5 font-medium text-ink">{item.itemsCount} item</dd></div>
+                      <div><dt className="text-xs text-slate-400">Created by</dt><dd className="mt-0.5 truncate font-medium text-ink">{item.createdBy ?? '-'}</dd></div>
+                    </dl>
+                    <Button asChild variant="secondary" className="mt-4 w-full justify-center gap-1.5">
+                      <Link to={entityLinks.receivingDetail(item.id)}>{canEditDraft ? 'Edit Draft' : 'View Detail'}<ArrowUpRight size={14} /></Link>
+                    </Button>
+                  </article>
+                )
+              })}
             </div>
             <AppPagination
               pagination={pagination}
