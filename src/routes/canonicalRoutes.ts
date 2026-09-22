@@ -141,6 +141,20 @@ export const breadcrumbs = {
     { label: 'Dashboard', to: canonicalRoutes.dashboard },
     { label: 'Stock Movements' },
   ],
+  stockOpnameList: (): BreadcrumbItem[] => [
+    { label: 'Dashboard', to: canonicalRoutes.dashboard },
+    { label: 'Stock Opname' },
+  ],
+  stockOpnameCreate: (): BreadcrumbItem[] => [
+    { label: 'Dashboard', to: canonicalRoutes.dashboard },
+    { label: 'Stock Opname', to: canonicalRoutes.stockOpname },
+    { label: 'Create' },
+  ],
+  stockOpnameDetail: (number: string): BreadcrumbItem[] => [
+    { label: 'Dashboard', to: canonicalRoutes.dashboard },
+    { label: 'Stock Opname', to: canonicalRoutes.stockOpname },
+    { label: number },
+  ],
   lotDetail: (number: string): BreadcrumbItem[] => [
     { label: 'Dashboard', to: canonicalRoutes.dashboard },
     { label: 'Lots', to: canonicalRoutes.lots },

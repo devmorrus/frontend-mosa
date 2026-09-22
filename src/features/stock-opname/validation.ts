@@ -12,7 +12,7 @@ export const emptyStockOpnameQuery: StockOpnameQueryState = {
 
 export function normalizeStockOpnameQuery(query: StockOpnameQueryState): StockOpnameQueryState {
   return {
-    search: query.search.trim(),
+    search: query.search.trim().slice(0, 100),
     status: query.status,
     warehouseId: query.warehouseId,
     dateFrom: query.dateFrom,
@@ -20,6 +20,15 @@ export function normalizeStockOpnameQuery(query: StockOpnameQueryState): StockOp
     page: Math.max(1, query.page || 1),
     pageSize: Math.min(100, Math.max(1, query.pageSize || 20)),
   }
+}
+
+export function validateStockOpnameQuery(query: StockOpnameQueryState) {
+  const normalized = normalizeStockOpnameQuery(query)
+  const errors: string[] = []
+  if (normalized.dateFrom && normalized.dateTo && normalized.dateFrom > normalized.dateTo) {
+    errors.push('Rentang tanggal stock opname tidak valid.')
+  }
+  return { isValid: errors.length === 0, errors, normalized }
 }
 
 export function validateStockOpnameCreate(values: { warehouseId: string; opnameDate: string }) {
