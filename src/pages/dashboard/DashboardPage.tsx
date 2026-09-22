@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
-import type { ComponentType } from 'react'
+import type { ComponentType, Dispatch, ReactNode, SetStateAction } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  Activity,
   AlertTriangle,
   ArrowRight,
   Boxes,
+  CalendarDays,
   CheckCircle2,
   ClipboardCheck,
+  Command,
   Factory,
   Gauge,
   Layers,
@@ -17,9 +20,25 @@ import {
   RefreshCcw,
   Scale,
   ShieldAlert,
-  Target,
+  Sparkles,
   TrendingUp,
+  Warehouse,
 } from 'lucide-react'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  LabelList,
+  Pie,
+  PieChart,
+  RadialBar,
+  RadialBarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import { dashboardApi, type DashboardSummary, type DashboardSummaryQuery } from '@/api/dashboard.api'
 import { warehousesApi } from '@/api/warehouses.api'
 import { Badge } from '@/components/ui/badge'
@@ -33,6 +52,19 @@ import type { ApiError } from '@/types/api'
 import type { WarehouseListItem } from '@/features/warehouses/types'
 
 const numberFormatter = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 })
+
+const chartPalette = {
+  primary: '#0b5ed7',
+  primaryDark: '#063b8c',
+  slate: '#64748b',
+  slateSoft: '#cbd5e1',
+  signal: '#ffc928',
+  emerald: '#059669',
+  amber: '#d97706',
+  rose: '#dc2626',
+  indigo: '#4f46e5',
+  cyan: '#0891b2',
+}
 
 function todayInputValue() {
   return new Date().toISOString().slice(0, 10)
@@ -51,10 +83,27 @@ function formatPercent(value: number) {
   return `${formatNumber(value)}%`
 }
 
+function tooltipFormatter(value: unknown) {
+  return typeof value === 'number' ? formatNumber(value) : String(value ?? '')
+}
+
+function chartLabelFormatter(value: unknown) {
+  return typeof value === 'number' ? formatNumber(value) : String(value ?? '')
+}
+
 function getDeviationTone(value: number) {
   if (value < 0) return 'text-red-600'
   if (value > 0) return 'text-blue-700'
   return 'text-slate-600'
+}
+
+function clampPercent(value: number) {
+  if (!Number.isFinite(value)) return 0
+  return Math.min(Math.max(value, 0), 100)
+}
+
+function formatPeriod(dateFrom: string, dateTo: string) {
+  return `${dateFrom || 'awal data'} sampai ${dateTo || 'hari ini'}`
 }
 
 function buildLink(path: string, params: Record<string, string | undefined>) {
@@ -66,53 +115,72 @@ function buildLink(path: string, params: Record<string, string | undefined>) {
   return query ? `${path}?${query}` : path
 }
 
-interface KpiCardProps {
+function SectionHeader({ title, description, eyebrow }: { title: string; description: string; eyebrow?: string }) {
+  return (
+    <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        {eyebrow ? <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink/45">{eyebrow}</div> : null}
+      <h2 className="font-display text-2xl font-semibold text-ink">{title}</h2>
+      <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>
+      </div>
+    </div>
+  )
+}
+
+function MiniStat({ label, value, icon: Icon }: { label: string; value: string; icon: ComponentType<{ size?: number; className?: string }> }) {
+  return (
+    <div className="rounded-2xl border border-paper/10 bg-paper/8 px-4 py-3 backdrop-blur-sm">
+      <div className="flex items-center gap-2 text-paper/52">
+        <Icon size={15} />
+        <span className="text-[10px] font-semibold uppercase tracking-[0.18em]">{label}</span>
+      </div>
+      <div className="mt-2 font-display text-2xl font-semibold text-paper">{value}</div>
+    </div>
+  )
+}
+
+function CompactMetricLink({
+  label,
+  value,
+  caption,
+  icon: Icon,
+  to,
+  tone = 'default',
+}: {
   label: string
   value: string | number
   caption: string
   icon: ComponentType<{ size?: number; className?: string }>
-  to?: string
+  to: string
   tone?: 'default' | 'success' | 'warning' | 'danger' | 'signal'
-}
-
-function KpiCard({ label, value, caption, icon: Icon, to, tone = 'default' }: KpiCardProps) {
+}) {
   const toneClass = {
-    default: 'border-slate-200 bg-white text-ink',
-    success: 'border-blue-100 bg-blue-50/80 text-blue-800',
-    warning: 'border-amber-100 bg-amber-50/85 text-amber-800',
-    danger: 'border-red-100 bg-red-50/85 text-red-700',
-    signal: 'border-signal/20 bg-[#fff8d6] text-ink',
+    default: 'border-slate-200 bg-white text-ink hover:border-ink/20',
+    success: 'border-emerald-200 bg-emerald-50/45 text-emerald-800 hover:border-emerald-300',
+    warning: 'border-amber-200 bg-amber-50/55 text-amber-800 hover:border-amber-300',
+    danger: 'border-red-200 bg-red-50/55 text-red-700 hover:border-red-300',
+    signal: 'border-blue-200 bg-blue-50/45 text-blue-800 hover:border-blue-300',
   }[tone]
 
-  const content = (
-    <Card className={cn('h-full rounded-[24px] border shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(6,59,140,0.11)]', toneClass)}>
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] opacity-65">{label}</p>
-            <div className="mt-3 font-display text-3xl font-semibold leading-none sm:text-4xl">{value}</div>
-          </div>
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/75 shadow-sm">
-            <Icon size={20} />
-          </div>
-        </div>
-        <div className="mt-4 flex items-center justify-between gap-3 text-sm opacity-70">
-          <span>{caption}</span>
-          {to ? <ArrowRight size={16} className="shrink-0" /> : null}
-        </div>
-      </CardContent>
-    </Card>
-  )
-
-  return to ? <Link to={to}>{content}</Link> : content
-}
-
-function SectionHeader({ title, description }: { title: string; description: string }) {
   return (
-    <div>
-      <h2 className="font-display text-2xl font-semibold text-ink">{title}</h2>
-      <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>
-    </div>
+    <Link
+      to={to}
+      aria-label={`${label}: ${value}`}
+      className={cn(
+        'group grid min-w-0 min-h-[104px] grid-cols-[44px_minmax(0,1fr)_18px] items-center gap-3 rounded-[22px] border p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(15,23,42,0.08)]',
+        toneClass,
+      )}
+    >
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-current shadow-sm ring-1 ring-current/10">
+        <Icon size={19} />
+      </div>
+      <div className="min-w-0">
+        <div className="truncate text-[11px] font-semibold uppercase tracking-[0.1em] opacity-65">{label}</div>
+        <div className="mt-1 font-display text-3xl font-semibold leading-none">{value}</div>
+        <p className="mt-2 truncate text-sm leading-5 opacity-70" title={caption}>{caption}</p>
+      </div>
+      <ArrowRight size={16} className="opacity-55 transition group-hover:translate-x-1" />
+    </Link>
   )
 }
 
@@ -217,55 +285,21 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.18)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)', backgroundSize: '34px 34px' }} />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.24),transparent_58%)]" />
-        <div className="relative flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
-          <div className="max-w-3xl">
-            <Badge variant="subtle" className="gap-2 px-4 py-1.5">
-              <Gauge size={14} className="text-signal" />
-              Operational Dashboard
-            </Badge>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
-              Monitoring produksi, inventory, QC, dan performance dalam satu ringkasan.
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-paper/68 sm:text-base">
-              Selamat datang, {user?.name ?? 'pengguna'}. Semua KPI diambil dari aggregate backend dashboard, bukan hasil fetch seluruh data operasional di browser.
-            </p>
-          </div>
+      <DashboardHero
+        userName={user?.name ?? 'pengguna'}
+        selectedWarehouseName={selectedWarehouse?.name ?? 'Semua warehouse'}
+        period={formatPeriod(query.dateFrom, query.dateTo)}
+        summary={summary}
+      />
 
-          <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none xl:w-[23rem]">
-            <CardContent className="p-5">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">Current scope</div>
-              <div className="mt-2 font-display text-2xl font-semibold text-paper">{selectedWarehouse?.name ?? 'Semua warehouse'}</div>
-              <p className="mt-2 text-sm leading-6 text-paper/60">
-                Period {query.dateFrom || 'awal data'} sampai {query.dateTo || 'hari ini'}.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      <Card data-tour="dashboard-period">
-        <CardHeader className="pb-3">
-          <CardTitle>Global Filter</CardTitle>
-          <CardDescription>Filter ini dikirim langsung ke endpoint dashboard summary.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1.3fr_auto]">
-          <Input type="date" value={query.dateFrom} onChange={(event) => setQuery((current) => ({ ...current, dateFrom: event.target.value }))} />
-          <Input type="date" value={query.dateTo} onChange={(event) => setQuery((current) => ({ ...current, dateTo: event.target.value }))} />
-          {canViewWarehouses ? (
-            <select className="h-14 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none focus-visible:border-ink focus-visible:ring-4 focus-visible:ring-ink/10" value={query.warehouseId} onChange={(event) => setQuery((current) => ({ ...current, warehouseId: event.target.value }))}>
-              <option value="">Semua warehouse</option>
-              {warehouses.map((warehouse) => <option key={warehouse.id} value={warehouse.id}>{warehouse.name}</option>)}
-            </select>
-          ) : null}
-          <Button variant="secondary" onClick={() => void loadDashboard(query, true)} disabled={isRefreshing}>
-            {isRefreshing ? <LoaderCircle size={16} className="animate-spin" /> : <RefreshCcw size={16} />}
-            Refresh
-          </Button>
-        </CardContent>
-      </Card>
+      <DashboardFilters
+        query={query}
+        setQuery={setQuery}
+        warehouses={warehouses}
+        canViewWarehouses={canViewWarehouses}
+        isRefreshing={isRefreshing}
+        onRefresh={() => void loadDashboard(query, true)}
+      />
 
       {lookupError ? <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">Gagal memuat lookup warehouse: {lookupError}</div> : null}
 
@@ -289,6 +323,125 @@ export function DashboardPage() {
   )
 }
 
+function DashboardHero({
+  userName,
+  selectedWarehouseName,
+  period,
+  summary,
+}: {
+  userName: string
+  selectedWarehouseName: string
+  period: string
+  summary: DashboardSummary | null
+}) {
+  return (
+    <section className="relative overflow-hidden rounded-[34px] border border-ink/10 bg-[linear-gradient(135deg,#062f75_0%,#0647a6_48%,#0b5ed7_100%)] px-5 py-6 text-paper shadow-[0_28px_90px_rgba(6,59,140,0.24)] sm:px-8 sm:py-8">
+      <div className="pointer-events-none absolute inset-0 opacity-[0.09]" style={{ backgroundImage: 'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+      <div className="pointer-events-none absolute -left-24 -top-28 h-80 w-80 rounded-full bg-signal/28 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-28 right-8 h-80 w-80 rounded-full bg-cyan-300/20 blur-3xl" />
+      <div className="pointer-events-none absolute right-8 top-8 hidden h-28 w-28 rotate-12 rounded-[2rem] border border-paper/10 bg-paper/5 xl:block" />
+      <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-end">
+        <div className="min-w-0">
+          <Badge variant="subtle" className="gap-2 border-paper/[0.12] bg-paper/10 px-4 py-1.5 text-paper shadow-none">
+            <Command size={14} className="text-signal" />
+            Manufacturing Command Center
+          </Badge>
+          <h1 className="mt-5 max-w-4xl font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl lg:text-5xl">
+            Monitoring produksi, inventory, QC, dan performance dalam satu ringkasan modern.
+          </h1>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-paper/70 sm:text-base">
+            Selamat datang, {userName}. Semua KPI diambil dari aggregate backend dashboard sehingga status operasional bisa dipantau cepat tanpa membuka setiap modul.
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <MiniStat label="Total PO" value={summary ? formatNumber(summary.production.total) : '—'} icon={Factory} />
+            <MiniStat label="Active LOT" value={summary ? formatNumber(summary.inventory.totalActiveLot) : '—'} icon={Layers} />
+            <MiniStat label="Waiting QC" value={summary ? formatNumber(summary.qc.waitingQc) : '—'} icon={ClipboardCheck} />
+            <MiniStat label="Yield" value={summary ? formatPercent(summary.performance.overallYield) : '—'} icon={TrendingUp} />
+          </div>
+        </div>
+
+        <Card className="rounded-[28px] border-paper/[0.14] bg-paper/10 text-paper shadow-[0_20px_70px_rgba(0,0,0,0.1)] backdrop-blur-md">
+          <CardContent className="p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-paper/50">Current scope</div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200/20 bg-emerald-300/10 px-3 py-1 text-xs font-semibold text-emerald-100">
+                <span className="h-2 w-2 rounded-full bg-emerald-300" />
+                Live aggregate
+              </span>
+            </div>
+            <div className="mt-5 flex items-start gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-paper/12 text-signal ring-4 ring-paper/8">
+                <Warehouse size={21} />
+              </div>
+              <div className="min-w-0">
+                <div className="font-display text-2xl font-semibold leading-tight text-paper">{selectedWarehouseName}</div>
+                <p className="mt-2 text-sm leading-6 text-paper/[0.62]">Period {period}.</p>
+              </div>
+            </div>
+            <div className="mt-5 rounded-2xl border border-paper/10 bg-paper/[0.07] px-4 py-3 text-sm leading-6 text-paper/[0.68]">
+              Fokus utama: shortage, low stock, QC hold/reject, dan pending approval deviation.
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </section>
+  )
+}
+
+function DashboardFilters({
+  query,
+  setQuery,
+  warehouses,
+  canViewWarehouses,
+  isRefreshing,
+  onRefresh,
+}: {
+  query: DashboardSummaryQuery
+  setQuery: Dispatch<SetStateAction<DashboardSummaryQuery>>
+  warehouses: WarehouseListItem[]
+  canViewWarehouses: boolean
+  isRefreshing: boolean
+  onRefresh: () => void
+}) {
+  return (
+    <Card data-tour="dashboard-period" className="overflow-hidden border-white/80 bg-white/[0.88]">
+      <div className="grid gap-5 p-5 sm:p-6 xl:grid-cols-[18rem_minmax(0,1fr)] xl:items-end">
+        <div>
+          <Badge variant="default" className="w-fit gap-2 bg-ink/8 text-ink shadow-none">
+            <Sparkles size={13} />
+            Control Panel
+          </Badge>
+          <CardTitle className="mt-3 text-2xl">Global Filter</CardTitle>
+          <CardDescription className="mt-1">Filter ini dikirim langsung ke endpoint dashboard summary.</CardDescription>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1.35fr_auto]">
+          <label className="block min-w-0">
+            <span className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"><CalendarDays size={14} />Dari</span>
+            <Input type="date" value={query.dateFrom} onChange={(event) => setQuery((current) => ({ ...current, dateFrom: event.target.value }))} />
+          </label>
+          <label className="block min-w-0">
+            <span className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"><CalendarDays size={14} />Sampai</span>
+            <Input type="date" value={query.dateTo} onChange={(event) => setQuery((current) => ({ ...current, dateTo: event.target.value }))} />
+          </label>
+          {canViewWarehouses ? (
+            <label className="block min-w-0">
+              <span className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"><Warehouse size={14} />Warehouse</span>
+              <select className="h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink shadow-sm outline-none transition focus-visible:border-ink focus-visible:ring-4 focus-visible:ring-ink/10" value={query.warehouseId} onChange={(event) => setQuery((current) => ({ ...current, warehouseId: event.target.value }))}>
+                <option value="">Semua warehouse</option>
+                {warehouses.map((warehouse) => <option key={warehouse.id} value={warehouse.id}>{warehouse.name}</option>)}
+              </select>
+            </label>
+          ) : null}
+          <Button variant="secondary" onClick={onRefresh} disabled={isRefreshing} className="h-14 self-end rounded-2xl border-ink/10 px-5 text-ink hover:border-ink/20 hover:bg-blue-50">
+            {isRefreshing ? <LoaderCircle size={16} className="animate-spin" /> : <RefreshCcw size={16} />}
+            Refresh
+          </Button>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
 function DashboardContent({
   summary,
   filterParams,
@@ -300,87 +453,286 @@ function DashboardContent({
   productionFilters: Record<string, string | undefined>
   deviation: number
 }) {
+  const openProduction = Math.max(
+    summary.production.total - summary.production.completed - summary.production.cancelled,
+    0,
+  )
+  const riskAlerts =
+    summary.production.materialShortage +
+    summary.inventory.lowStockMaterialCount +
+    summary.qc.hold +
+    summary.qc.reject
+  const pendingDecisions = summary.performance.pendingDeviationCount + summary.qc.hold
+
   return (
-    <div className="space-y-8">
-      <section className="space-y-4" data-tour="dashboard-production">
-        <SectionHeader title="Production" description="Status production order berdasarkan periode filter." />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <KpiCard label="Total Production Order" value={formatNumber(summary.production.total)} caption="Semua status PO" icon={Factory} to={buildLink('/production/orders', productionFilters)} />
-          <KpiCard label="In Progress" value={formatNumber(summary.production.inProgress)} caption="Sedang diproses operator" icon={Gauge} to={buildLink('/production/orders', { ...productionFilters, status: 'IN_PROGRESS' })} tone="signal" />
-          <KpiCard label="Completed" value={formatNumber(summary.production.completed)} caption="Termasuk waiting QC" icon={CheckCircle2} to={buildLink('/production/orders', { ...productionFilters, status: 'COMPLETED' })} tone="success" />
-          <div data-tour="dashboard-shortage"><KpiCard label="Material Shortage" value={formatNumber(summary.production.materialShortage)} caption="Butuh tindak lanjut stock" icon={AlertTriangle} to={buildLink('/production/orders', { ...productionFilters, status: 'MATERIAL_SHORTAGE' })} tone={summary.production.materialShortage > 0 ? 'danger' : 'default'} /></div>
-        </div>
-      </section>
+    <div className="space-y-10">
+      <InsightStrip
+        openProduction={openProduction}
+        riskAlerts={riskAlerts}
+        pendingDecisions={pendingDecisions}
+        yieldValue={summary.performance.overallYield}
+      />
 
-      <section className="space-y-4" data-tour="dashboard-inventory">
-        <SectionHeader title="Inventory" description="Snapshot raw material LOT aktif, low stock, dan expiry window backend." />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <KpiCard label="Raw Material Stock" value={formatNumber(summary.inventory.totalRawMaterialsWithStock)} caption="Material dengan stock aktif" icon={Boxes} to={buildLink('/inventory', { warehouseId: filterParams.warehouseId })} />
-          <KpiCard label="Active LOT" value={formatNumber(summary.inventory.totalActiveLot)} caption="Available, qty > 0, belum expired" icon={Layers} to={buildLink('/lots', { warehouseId: filterParams.warehouseId, status: 'AVAILABLE' })} tone="success" />
-          <KpiCard label="Low Stock" value={formatNumber(summary.inventory.lowStockMaterialCount)} caption="Di bawah minimum stock" icon={ShieldAlert} to={buildLink('/inventory', { warehouseId: filterParams.warehouseId, status: 'LOW_STOCK' })} tone={summary.inventory.lowStockMaterialCount > 0 ? 'warning' : 'default'} />
-          <KpiCard label="Expiring LOT" value={formatNumber(summary.inventory.expiringLotCount)} caption="Expired dalam 30 hari" icon={PackageSearch} to={buildLink('/lots', { warehouseId: filterParams.warehouseId, status: 'AVAILABLE' })} tone={summary.inventory.expiringLotCount > 0 ? 'warning' : 'default'} />
-        </div>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.8fr)]">
-          <div className="space-y-4" data-tour="dashboard-qc">
-          <SectionHeader title="Quality Control" description="Distribusi status QC finished goods lot sesuai periode produksi." />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 2xl:grid-cols-4">
-            <KpiCard label="Waiting QC" value={formatNumber(summary.qc.waitingQc)} caption="Menunggu inspeksi" icon={ClipboardCheck} to={buildLink('/quality-control', { ...filterParams, status: 'WAITING_QC' })} tone="signal" />
-            <KpiCard label="Hold" value={formatNumber(summary.qc.hold)} caption="Perlu keputusan QC" icon={PauseCircle} to={buildLink('/quality-control', { ...filterParams, status: 'HOLD' })} tone={summary.qc.hold > 0 ? 'warning' : 'default'} />
-            <KpiCard label="Reject" value={formatNumber(summary.qc.reject)} caption="LOT rejected" icon={ShieldAlert} to={buildLink('/quality-control', { ...filterParams, status: 'REJECTED' })} tone={summary.qc.reject > 0 ? 'danger' : 'default'} />
-            <KpiCard label="QC Total" value={formatNumber(summary.qc.total)} caption={`${formatNumber(summary.qc.pass)} pass`} icon={PackageCheck} to={buildLink('/quality-control', filterParams)} />
-          </div>
-        </div>
-
-        <Card className="overflow-hidden border-ink/8 bg-[linear-gradient(180deg,#dbeafe_0%,#ffffff_100%)]">
-          <CardHeader>
-            <Badge variant="default" className="w-fit">Performance</Badge>
-            <CardTitle className="mt-2">Output vs target</CardTitle>
-            <CardDescription>Target, actual, yield, deviation, dan approval pending dari backend.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <MetricTile label="Target Output" value={formatNumber(summary.performance.targetOutput)} icon={Target} />
-              <MetricTile label="Actual Output" value={formatNumber(summary.performance.actualOutput)} icon={Scale} />
-            </div>
-            <div data-tour="dashboard-yield" className="rounded-[24px] border border-white/70 bg-white/75 p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Yield</div>
-                  <div className="mt-2 font-display text-4xl font-semibold text-ink">{formatPercent(summary.performance.overallYield)}</div>
-                  <p className="mt-2 text-sm text-slate-500">Average yield: {formatPercent(summary.performance.averageYield)}</p>
-                </div>
-                <TrendingUp className="text-blue-600" size={28} />
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Link data-tour="dashboard-deviation" to={buildLink('/production/deviations', { ...filterParams, status: 'ALL' })} className="rounded-[22px] border border-slate-200 bg-white/80 p-4 transition hover:border-ink/20">
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Deviation</div>
-                <div className={cn('mt-2 font-display text-2xl font-semibold', getDeviationTone(deviation))}>{formatNumber(deviation)}</div>
-                <p className="mt-1 text-sm text-slate-500">{formatNumber(summary.performance.deviationCount)} deviation record</p>
-              </Link>
-              <Link to={buildLink('/production/deviations', { ...filterParams, status: 'PENDING_APPROVAL' })} className="rounded-[22px] border border-amber-100 bg-amber-50/80 p-4 transition hover:border-amber-300">
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700/70">Pending Approval</div>
-                <div className="mt-2 font-display text-2xl font-semibold text-amber-800">{formatNumber(summary.performance.pendingDeviationCount)}</div>
-                <p className="mt-1 text-sm text-amber-800/65">Butuh review supervisor</p>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+      <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(420px,0.9fr)]">
+        <ProductionAnalytics summary={summary} productionFilters={productionFilters} />
+        <PerformancePanel summary={summary} filterParams={filterParams} deviation={deviation} />
+        <InventoryAnalytics summary={summary} filterParams={filterParams} />
+        <QualityAnalytics summary={summary} filterParams={filterParams} />
       </section>
     </div>
   )
 }
 
-function MetricTile({ label, value, icon: Icon }: { label: string; value: string; icon: ComponentType<{ size?: number; className?: string }> }) {
+function AnalyticsCard({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className="rounded-[22px] border border-white/70 bg-white/75 p-4">
-      <div className="flex items-center justify-between gap-3 text-slate-500">
-        <span className="text-xs font-semibold uppercase tracking-[0.16em]">{label}</span>
-        <Icon size={18} />
+    <Card className={cn('overflow-hidden border-slate-200/75 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.06)]', className)}>
+      {children}
+    </Card>
+  )
+}
+
+function ProductionAnalytics({ summary, productionFilters }: { summary: DashboardSummary; productionFilters: Record<string, string | undefined> }) {
+  const data = [
+    { name: 'Draft', value: summary.production.draft, fill: chartPalette.slateSoft },
+    { name: 'Ready', value: summary.production.ready, fill: chartPalette.cyan },
+    { name: 'Released', value: summary.production.released, fill: chartPalette.indigo },
+    { name: 'In Progress', value: summary.production.inProgress, fill: chartPalette.primary },
+    { name: 'Completed', value: summary.production.completed, fill: chartPalette.emerald },
+    { name: 'Shortage', value: summary.production.materialShortage, fill: chartPalette.rose },
+    { name: 'Cancelled', value: summary.production.cancelled, fill: chartPalette.slate },
+  ]
+
+  return (
+    <section className="space-y-4" data-tour="dashboard-production">
+      <SectionHeader eyebrow="Production Flow" title="Production Analytics" description="Komposisi status production order berdasarkan periode filter." />
+      <AnalyticsCard>
+        <CardContent className="space-y-5 p-5 sm:p-6">
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data} margin={{ top: 16, right: 10, left: -18, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#64748b', fontSize: 11 }} interval={0} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: '#64748b', fontSize: 11 }} allowDecimals={false} />
+                <Tooltip formatter={tooltipFormatter} cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 18px 40px rgba(15,23,42,0.08)' }} />
+                <Bar dataKey="value" radius={[10, 10, 0, 0]}>
+                  {data.map((entry) => <Cell key={entry.name} fill={entry.fill} />)}
+                  <LabelList dataKey="value" position="top" formatter={chartLabelFormatter} fill="#0f172a" fontSize={12} fontWeight={700} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+            <CompactMetricLink label="Total PO" value={formatNumber(summary.production.total)} caption="Semua status" icon={Factory} to={buildLink('/production/orders', productionFilters)} />
+            <CompactMetricLink label="In Progress" value={formatNumber(summary.production.inProgress)} caption="Sedang diproses" icon={Gauge} to={buildLink('/production/orders', { ...productionFilters, status: 'IN_PROGRESS' })} tone="signal" />
+            <CompactMetricLink label="Completed" value={formatNumber(summary.production.completed)} caption="Termasuk QC" icon={CheckCircle2} to={buildLink('/production/orders', { ...productionFilters, status: 'COMPLETED' })} tone="success" />
+            <div data-tour="dashboard-shortage"><CompactMetricLink label="Shortage" value={formatNumber(summary.production.materialShortage)} caption="Tindak lanjut" icon={AlertTriangle} to={buildLink('/production/orders', { ...productionFilters, status: 'MATERIAL_SHORTAGE' })} tone={summary.production.materialShortage > 0 ? 'danger' : 'default'} /></div>
+          </div>
+        </CardContent>
+      </AnalyticsCard>
+    </section>
+  )
+}
+
+function InventoryAnalytics({ summary, filterParams }: { summary: DashboardSummary; filterParams: Record<string, string | undefined> }) {
+  const data = [
+    { name: 'Active LOT', value: summary.inventory.totalActiveLot, fill: chartPalette.primary },
+    { name: 'Low Stock', value: summary.inventory.lowStockMaterialCount, fill: chartPalette.amber },
+    { name: 'Expiring LOT', value: summary.inventory.expiringLotCount, fill: chartPalette.cyan },
+  ]
+
+  return (
+    <section className="space-y-4" data-tour="dashboard-inventory">
+      <SectionHeader eyebrow="Warehouse Signal" title="Inventory Analytics" description="Risk view raw material LOT aktif, low stock, dan expiry window backend." />
+      <AnalyticsCard>
+        <CardContent className="space-y-5 p-5 sm:p-6">
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data} layout="vertical" margin={{ top: 10, right: 24, left: 18, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                <XAxis type="number" tickLine={false} axisLine={false} tick={{ fill: '#64748b', fontSize: 11 }} allowDecimals={false} />
+                <YAxis type="category" dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#475569', fontSize: 12 }} width={86} />
+                <Tooltip formatter={tooltipFormatter} cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: 16, border: '1px solid #e2e8f0' }} />
+                <Bar dataKey="value" radius={[0, 10, 10, 0]} barSize={28}>
+                  {data.map((entry) => <Cell key={entry.name} fill={entry.fill} />)}
+                  <LabelList dataKey="value" position="right" formatter={chartLabelFormatter} fill="#0f172a" fontSize={12} fontWeight={700} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+            <CompactMetricLink label="Raw Stock" value={formatNumber(summary.inventory.totalRawMaterialsWithStock)} caption="Material aktif" icon={Boxes} to={buildLink('/inventory', { warehouseId: filterParams.warehouseId })} />
+            <CompactMetricLink label="Active LOT" value={formatNumber(summary.inventory.totalActiveLot)} caption="Available" icon={Layers} to={buildLink('/lots', { warehouseId: filterParams.warehouseId, status: 'AVAILABLE' })} tone="success" />
+            <CompactMetricLink label="Low Stock" value={formatNumber(summary.inventory.lowStockMaterialCount)} caption="Di bawah minimum" icon={ShieldAlert} to={buildLink('/inventory', { warehouseId: filterParams.warehouseId, status: 'LOW_STOCK' })} tone={summary.inventory.lowStockMaterialCount > 0 ? 'warning' : 'default'} />
+            <CompactMetricLink label="Expiring" value={formatNumber(summary.inventory.expiringLotCount)} caption="30 hari" icon={PackageSearch} to={buildLink('/lots', { warehouseId: filterParams.warehouseId, status: 'AVAILABLE' })} tone={summary.inventory.expiringLotCount > 0 ? 'warning' : 'default'} />
+          </div>
+        </CardContent>
+      </AnalyticsCard>
+    </section>
+  )
+}
+
+function QualityAnalytics({ summary, filterParams }: { summary: DashboardSummary; filterParams: Record<string, string | undefined> }) {
+  const data = [
+    { name: 'Pass', value: summary.qc.pass, fill: chartPalette.emerald },
+    { name: 'Waiting QC', value: summary.qc.waitingQc, fill: chartPalette.primary },
+    { name: 'Hold', value: summary.qc.hold, fill: chartPalette.amber },
+    { name: 'Reject', value: summary.qc.reject, fill: chartPalette.rose },
+  ]
+  const total = data.reduce((sum, item) => sum + item.value, 0)
+
+  return (
+    <section className="space-y-4" data-tour="dashboard-qc">
+      <SectionHeader eyebrow="Release Gate" title="Quality Control" description="Distribusi status QC finished goods lot sesuai periode produksi." />
+      <AnalyticsCard>
+        <CardContent className="grid min-w-0 gap-5 p-5 sm:p-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+          <div className="relative h-56 min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={data} dataKey="value" nameKey="name" innerRadius={68} outerRadius={102} paddingAngle={3} stroke="#ffffff" strokeWidth={4}>
+                  {data.map((entry) => <Cell key={entry.name} fill={entry.fill} />)}
+                </Pie>
+                <Tooltip formatter={tooltipFormatter} contentStyle={{ borderRadius: 16, border: '1px solid #e2e8f0' }} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-center">
+              <div>
+                <div className="font-display text-3xl font-semibold text-ink">{formatNumber(total)}</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">QC Total</div>
+              </div>
+            </div>
+          </div>
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+            <CompactMetricLink label="Waiting QC" value={formatNumber(summary.qc.waitingQc)} caption="Menunggu inspeksi" icon={ClipboardCheck} to={buildLink('/quality-control', { ...filterParams, status: 'WAITING_QC' })} tone="signal" />
+            <CompactMetricLink label="Hold" value={formatNumber(summary.qc.hold)} caption="Perlu keputusan" icon={PauseCircle} to={buildLink('/quality-control', { ...filterParams, status: 'HOLD' })} tone={summary.qc.hold > 0 ? 'warning' : 'default'} />
+            <CompactMetricLink label="Reject" value={formatNumber(summary.qc.reject)} caption="LOT rejected" icon={ShieldAlert} to={buildLink('/quality-control', { ...filterParams, status: 'REJECTED' })} tone={summary.qc.reject > 0 ? 'danger' : 'default'} />
+            <CompactMetricLink label="QC Total" value={formatNumber(summary.qc.total)} caption={`${formatNumber(summary.qc.pass)} pass`} icon={PackageCheck} to={buildLink('/quality-control', filterParams)} tone="success" />
+          </div>
+        </CardContent>
+      </AnalyticsCard>
+    </section>
+  )
+}
+
+function InsightStrip({
+  openProduction,
+  riskAlerts,
+  pendingDecisions,
+  yieldValue,
+}: {
+  openProduction: number
+  riskAlerts: number
+  pendingDecisions: number
+  yieldValue: number
+}) {
+  return (
+    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <InsightTile label="Open Production" value={formatNumber(openProduction)} caption="PO belum selesai" icon={Activity} tone="blue" />
+      <InsightTile label="Risk Alerts" value={formatNumber(riskAlerts)} caption="Shortage, stock, QC risk" icon={AlertTriangle} tone={riskAlerts > 0 ? 'red' : 'blue'} />
+      <InsightTile label="Pending Decisions" value={formatNumber(pendingDecisions)} caption="Hold + approval" icon={ShieldAlert} tone={pendingDecisions > 0 ? 'amber' : 'blue'} />
+      <InsightTile label="Yield Health" value={formatPercent(yieldValue)} caption="Overall output yield" icon={TrendingUp} tone="green" />
+    </section>
+  )
+}
+
+function InsightTile({ label, value, caption, icon: Icon, tone }: { label: string; value: string; caption: string; icon: ComponentType<{ size?: number; className?: string }>; tone: 'blue' | 'amber' | 'red' | 'green' }) {
+  const toneClass = {
+    blue: 'border-blue-100 bg-blue-50/70 text-blue-800',
+    amber: 'border-amber-100 bg-amber-50/80 text-amber-800',
+    red: 'border-red-100 bg-red-50/80 text-red-700',
+    green: 'border-emerald-100 bg-emerald-50/80 text-emerald-800',
+  }[tone]
+
+  return (
+    <div className={cn('rounded-[24px] border px-5 py-4 shadow-[0_14px_36px_rgba(6,59,140,0.06)] backdrop-blur-sm', toneClass)}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-60">{label}</div>
+          <div className="mt-2 font-display text-3xl font-semibold leading-none">{value}</div>
+        </div>
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/75 shadow-sm">
+          <Icon size={18} />
+        </div>
       </div>
-      <div className="mt-3 font-display text-2xl font-semibold text-ink">{value}</div>
+      <p className="mt-3 text-sm opacity-[0.68]">{caption}</p>
     </div>
+  )
+}
+
+function PerformancePanel({ summary, filterParams, deviation }: { summary: DashboardSummary; filterParams: Record<string, string | undefined>; deviation: number }) {
+  const yieldProgress = clampPercent(summary.performance.overallYield)
+  const outputData = [
+    { name: 'Target', value: summary.performance.targetOutput, fill: chartPalette.slate },
+    { name: 'Actual', value: summary.performance.actualOutput, fill: chartPalette.primary },
+  ]
+  const gaugeData = [{ name: 'Yield', value: yieldProgress, fill: chartPalette.primary }]
+
+  return (
+    <AnalyticsCard className="border-blue-100/80 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)]">
+      <CardHeader className="pb-4">
+        <Badge variant="default" className="w-fit gap-2 bg-ink/8 text-ink shadow-none"><Gauge size={13} />Performance</Badge>
+        <CardTitle className="mt-2">Output vs target</CardTitle>
+        <CardDescription>Target, actual, yield, deviation, dan approval pending dari backend.</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4 px-5 pb-5 sm:px-6 sm:pb-6 2xl:grid-cols-2">
+        <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Output Comparison</div>
+            <Scale size={18} className="text-slate-400" />
+          </div>
+          <div className="h-40">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={outputData} layout="vertical" margin={{ top: 8, right: 28, left: 4, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                <XAxis type="number" hide />
+                <YAxis type="category" dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#475569', fontSize: 12 }} width={58} />
+                <Tooltip formatter={tooltipFormatter} cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: 16, border: '1px solid #e2e8f0' }} />
+                <Bar dataKey="value" radius={[0, 10, 10, 0]} barSize={28}>
+                  {outputData.map((entry) => <Cell key={entry.name} fill={entry.fill} />)}
+                  <LabelList dataKey="value" position="right" formatter={chartLabelFormatter} fill="#0f172a" fontSize={12} fontWeight={700} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <div data-tour="dashboard-yield" className="grid gap-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[160px_minmax(0,1fr)] sm:items-center 2xl:grid-cols-1">
+          <div className="relative h-40">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadialBarChart innerRadius="70%" outerRadius="100%" data={gaugeData} startAngle={90} endAngle={-270}>
+                <RadialBar dataKey="value" cornerRadius={18} background={{ fill: '#e2e8f0' }} />
+              </RadialBarChart>
+            </ResponsiveContainer>
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-center">
+              <div>
+                <div className="font-display text-3xl font-semibold text-ink">{formatPercent(summary.performance.overallYield)}</div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Yield</div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"><TrendingUp size={16} />Overall Yield</div>
+            <p className="mt-3 text-sm leading-6 text-slate-600">Average yield: <span className="font-semibold text-ink">{formatPercent(summary.performance.averageYield)}</span></p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Gauge dibatasi 0-100% untuk visual, angka tetap mengikuti data backend.</p>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 2xl:col-span-2">
+          <Link data-tour="dashboard-deviation" to={buildLink('/production/deviations', { ...filterParams, status: 'ALL' })} className="group rounded-[24px] border border-slate-200 bg-white/[0.82] p-4 transition hover:-translate-y-0.5 hover:border-ink/20 hover:shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Deviation</div>
+              <ArrowRight size={15} className="text-slate-400 transition group-hover:translate-x-1" />
+            </div>
+            <div className={cn('mt-2 font-display text-2xl font-semibold', getDeviationTone(deviation))}>{formatNumber(deviation)}</div>
+            <p className="mt-1 text-sm text-slate-500">{formatNumber(summary.performance.deviationCount)} deviation record</p>
+          </Link>
+          <Link to={buildLink('/production/deviations', { ...filterParams, status: 'PENDING_APPROVAL' })} className="group rounded-[24px] border border-amber-100 bg-amber-50/[0.82] p-4 transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700/70">Pending Approval</div>
+              <ArrowRight size={15} className="text-amber-700/50 transition group-hover:translate-x-1" />
+            </div>
+            <div className="mt-2 font-display text-2xl font-semibold text-amber-800">{formatNumber(summary.performance.pendingDeviationCount)}</div>
+            <p className="mt-1 text-sm text-amber-800/65">Butuh review supervisor</p>
+          </Link>
+        </div>
+      </CardContent>
+    </AnalyticsCard>
   )
 }
