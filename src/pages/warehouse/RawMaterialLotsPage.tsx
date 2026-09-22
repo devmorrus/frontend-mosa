@@ -1,5 +1,11 @@
 import { useDeferredValue, useEffect, useState } from 'react'
-import { LoaderCircle, Tags } from 'lucide-react'
+import {
+  CalendarDays,
+  Info,
+  LoaderCircle,
+  QrCode,
+  Tags,
+} from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
 import { breadcrumbs } from '@/routes/canonicalRoutes'
@@ -8,7 +14,6 @@ import { rawMaterialsApi } from '@/api/rawMaterials.api'
 import { suppliersApi } from '@/api/suppliers.api'
 import { warehousesApi } from '@/api/warehouses.api'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
@@ -157,40 +162,36 @@ export function RawMaterialLotsPage() {
       query.receivedDateTo,
   )
 
+  const availableOnPage = items.filter((item) => item.status.toUpperCase() === 'AVAILABLE').length
+  const attentionOnPage = items.filter((item) => ['BLOCKED', 'EXPIRED'].includes(item.status.toUpperCase())).length
+
+  function resetFilters() {
+    setQuery(emptyRawMaterialLotQuery)
+    setSearchInput('')
+  }
+
   return (
     <div className="space-y-6">
       <Breadcrumb items={breadcrumbs.lotList()} />
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <Tags size={14} className="text-signal" />
-              Raw Material LOT
-            </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
-              LOT hasil receiving siap dilihat, dicetak, dan diuji via QR
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-paper/68 sm:text-base">
-              Warehouse dapat mencari LOT secara manual, membuka detail, melihat QR, dan menguji
-              scan browser camera tanpa bergantung pada device scanner khusus.
-            </p>
-            <div className="mt-5">
-              <Button asChild variant="secondary" data-tour="lot-scan-qr-btn">
-                <Link to="/lots/scan">Scan QR LOT</Link>
-              </Button>
+      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#063b8c]"><Tags size={23} /></div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0b5ed7]">Warehouse / Lots</p>
+              <h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">Raw Material LOT</h1>
+              <p className="mt-1 max-w-2xl text-sm text-slate-500">Pantau LOT bahan baku, sisa stok, expiry, QR label, dan akses cepat ke detail traceability.</p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Button asChild className="bg-[#063b8c] hover:bg-[#052f70]" data-tour="lot-scan-qr-btn"><Link to="/lots/scan"><QrCode size={16} /> Scan QR LOT</Link></Button>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-2 text-xs text-slate-500"><CalendarDays size={13} /> Backend pagination</span>
+              </div>
             </div>
           </div>
-
-          <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-            <CardContent className="p-5">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">Total LOT</div>
-              <div className="mt-2 font-display text-3xl font-semibold text-paper">
-                {pagination.totalItems}
-              </div>
-              <p className="mt-1 text-sm text-paper/60">Pagination mengikuti backend secara penuh.</p>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-3 gap-2 sm:min-w-[300px] sm:gap-3">
+            <Metric label="Total" value={pagination.totalItems} />
+            <Metric label="Available" value={availableOnPage} tone="blue" />
+            <Metric label="Attention" value={attentionOnPage} tone="amber" />
+          </div>
         </div>
       </section>
 
@@ -203,16 +204,19 @@ export function RawMaterialLotsPage() {
         materials={materials}
         onSearchInputChange={setSearchInput}
         onQueryChange={(patch) => setQuery((current) => ({ ...current, ...patch }))}
+        onReset={resetFilters}
       />
 
       {lookupError ? (
-        <div className="rounded-[28px] border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+        <div className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+          <Info size={17} className="mt-0.5 shrink-0" />
           Gagal memuat lookup filter LOT: {lookupError}
         </div>
       ) : null}
 
       {printError ? (
-        <div className="rounded-[28px] border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
+        <div className="flex items-start gap-2 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-700">
+          <Info size={17} className="mt-0.5 shrink-0" />
           {printError}
         </div>
       ) : null}
@@ -252,4 +256,9 @@ export function RawMaterialLotsPage() {
       ) : null}
     </div>
   )
+}
+
+function Metric({ label, value, tone = 'slate' }: { label: string; value: number; tone?: 'slate' | 'blue' | 'amber' }) {
+  const toneClass = tone === 'blue' ? 'bg-blue-50 text-[#063b8c]' : tone === 'amber' ? 'bg-amber-50 text-amber-800' : 'bg-slate-50 text-ink'
+  return <div className={`rounded-2xl px-3 py-3 ${toneClass}`}><p className="text-[10px] font-semibold uppercase tracking-[0.14em] opacity-70">{label}</p><p className="mt-1 font-display text-xl font-semibold">{value}</p></div>
 }

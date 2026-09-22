@@ -1,5 +1,16 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { ArrowLeftRight, QrCode, ScanLine, Waypoints } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowLeftRight,
+  CalendarDays,
+  Info,
+  Printer,
+  QrCode,
+  RefreshCw,
+  ScanLine,
+  Tags,
+  Waypoints,
+} from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
 import { StatusBadge } from '@/components/common/StatusBadge'
@@ -138,33 +149,33 @@ export function RawMaterialLotDetailPage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={breadcrumbs.lotDetail(detail.internalLotNumber)} />
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <Button asChild variant="ghost" className="-ml-3 h-auto px-3 py-2">
+            <Button asChild variant="ghost" className="-ml-3 h-auto px-3 py-1.5 text-slate-500 hover:text-[#063b8c]">
               <Link to={entityLinks.lotList()}>
+                <ArrowLeft size={16} />
                 Kembali ke LOT list
               </Link>
             </Button>
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <QrCode size={14} className="text-signal" />
+            <div className="mt-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#0b5ed7]">
+              <QrCode size={15} />
               Raw Material LOT Detail
             </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
+            <h1 className="mt-2 font-display text-2xl font-semibold leading-tight text-ink sm:text-3xl">
               {detail.internalLotNumber}
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-paper/68 sm:text-base">
-              Detail LOT hasil goods receiving dengan preview QR dan flow print/reprint label V1.
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
+              Detail LOT hasil receiving, stok berjalan, QR label, dan shortcut traceability.
             </p>
           </div>
 
-          <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-            <CardContent className="space-y-2 p-5 text-sm">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">Status</div>
-              <div className="font-display text-2xl font-semibold text-paper">{detail.status}</div>
-              <p className="text-paper/60">Created by {detail.createdBy ?? 'system'}</p>
-              <p className="text-paper/60">
+          <Card className="rounded-2xl border-slate-200 bg-slate-50 shadow-none">
+            <CardContent className="space-y-2 p-4 text-sm">
+              <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Status</div>
+              <div className="font-display text-2xl font-semibold text-ink"><StatusBadge domain="lot" value={detail.status} /></div>
+              <p className="text-slate-500">Created by {detail.createdBy ?? 'system'}</p>
+              <p className="text-slate-500">
                 Updated {formatLotDateTimeLabel(detail.updatedAtUtc ?? detail.createdAtUtc)}
               </p>
             </CardContent>
@@ -173,9 +184,13 @@ export function RawMaterialLotDetailPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)]">
-        <Card data-tour="lot-detail-card" className="rounded-[28px] border border-white/70 bg-white shadow-sm">
+        <Card data-tour="lot-detail-card" className="rounded-[28px] border border-slate-200 bg-white shadow-sm">
           <CardContent className="space-y-6 p-6">
-            <div className="grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-600 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="flex items-start gap-3 border-b border-slate-100 pb-4">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#0b5ed7]"><Tags size={19} /></div>
+              <div><h2 className="font-display text-xl font-semibold text-ink">LOT Information</h2><p className="mt-1 text-sm text-slate-500">Identitas material dan penerimaan awal.</p></div>
+            </div>
+            <div className="grid gap-4 rounded-2xl border border-blue-100 bg-blue-50/40 p-4 text-sm text-slate-600 sm:grid-cols-2 xl:grid-cols-3">
               <DetailField label="Internal LOT" value={detail.internalLotNumber} />
               <DetailField label="Material" value={`${detail.rawMaterialCode} - ${detail.rawMaterialName}`} />
               <DetailField label="Supplier" value={detail.supplierName} />
@@ -185,10 +200,7 @@ export function RawMaterialLotDetailPage() {
               <DetailField label="Current Qty" value={formatLotQuantity(detail.currentQuantity, detail.unitOfMeasureCode)} />
               <DetailField label="Production Date" value={formatLotDateLabel(detail.productionDate)} />
               <DetailField label="Expiry Date" value={formatLotDateLabel(detail.expiryDate)} />
-              <DetailField
-                label="Status"
-                value={<StatusBadge domain="lot" value={detail.status} />}
-              />
+              <DetailField label="Status" value={<StatusBadge domain="lot" value={detail.status} />} />
               <DetailField label="Receiving Date" value={formatLotDateLabel(detail.receivingDate)} />
               <DetailField
                 label="Receiving Reference"
@@ -207,9 +219,11 @@ export function RawMaterialLotDetailPage() {
               />
             </div>
 
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400"><CalendarDays size={14} className="text-[#0b5ed7]" /> LOT actions</div>
             <div className="flex flex-wrap gap-3">
-              <Button data-tour="lot-print-label-btn" onClick={() => void handlePrint()}>Print Label</Button>
+              <Button data-tour="lot-print-label-btn" className="bg-[#063b8c] hover:bg-[#052f70]" onClick={() => void handlePrint()}><Printer size={16} /> Print Label</Button>
               <Button variant="secondary" onClick={() => void handlePrint()}>
+                <RefreshCw size={16} />
                 Reprint Existing Label
               </Button>
               <Button asChild variant="secondary">
@@ -233,7 +247,8 @@ export function RawMaterialLotDetailPage() {
             </div>
 
             {qrError ? (
-              <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+              <div className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+                <Info size={17} className="mt-0.5 shrink-0" />
                 Gagal memuat data QR LOT: {qrError}
               </div>
             ) : null}
