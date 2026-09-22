@@ -1,6 +1,19 @@
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { Download, FileSpreadsheet, LoaderCircle, RotateCcw, Search } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import {
+  BarChart3,
+  Boxes,
+  CheckCircle2,
+  Download,
+  Factory,
+  FileSpreadsheet,
+  Filter,
+  LoaderCircle,
+  RotateCcw,
+  Search,
+  Tags,
+  Waypoints,
+} from 'lucide-react'
 import { reportsApi, emptyReportQuery, type ReportCode, type ReportQuery, type ReportRow } from '@/api/reports.api'
 import { productsApi } from '@/api/products.api'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
@@ -9,7 +22,6 @@ import { warehousesApi } from '@/api/warehouses.api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { MasterDataEmptyState, MasterDataErrorState, MasterDataLoadingState } from '@/features/master-data/components/MasterDataStates'
 import { MasterDataPagination } from '@/features/master-data/components/MasterDataPagination'
 import type { MasterDataPagination as PaginationMeta } from '@/features/master-data/types'
@@ -76,8 +88,10 @@ function downloadBlob(blob: Blob, fileName: string) {
 
 export function ReportsPage() {
   const params = useParams()
-  const routeCode = REPORTS.some((report) => report.code === params.reportCode) ? params.reportCode as ReportCode : 'material-consumption'
+  const navigate = useNavigate()
+  const routeCode = REPORTS.some((report) => report.code === params.reportCode) ? params.reportCode as ReportCode : 'raw-material-stock'
   const [activeCode, setActiveCode] = useState<ReportCode>(routeCode)
+  const [selectedCategory, setSelectedCategory] = useState<'ALL' | ReportDefinition['category']>('ALL')
   const [query, setQuery] = useState<ReportQuery>(emptyReportQuery)
   const [items, setItems] = useState<ReportRow[]>([])
   const [pagination, setPagination] = useState<PaginationMeta>(EMPTY_PAGINATION)
@@ -94,6 +108,7 @@ export function ReportsPage() {
 
   useEffect(() => {
     setActiveCode(routeCode)
+    setQuery(emptyReportQuery)
   }, [routeCode])
 
   useEffect(() => {
@@ -125,7 +140,7 @@ export function ReportsPage() {
   }
 
   useEffect(() => {
-    void loadReport({ ...query, page: 1 })
+    void loadReport({ ...emptyReportQuery, page: 1 })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCode])
 
@@ -139,6 +154,17 @@ export function ReportsPage() {
     void loadReport(reset)
   }
 
+  function selectReport(code: ReportCode) {
+    setQuery(emptyReportQuery)
+    setActiveCode(code)
+    navigate(`/reports/${code}`)
+  }
+
+  const visibleReports = useMemo(
+    () => selectedCategory === 'ALL' ? REPORTS : REPORTS.filter((report) => report.category === selectedCategory),
+    [selectedCategory],
+  )
+
   async function exportReport(format: 'xlsx' | 'csv') {
     setIsExporting(format)
     try {
@@ -151,43 +177,53 @@ export function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.18)] sm:px-8">
-        <Badge variant="subtle" className="gap-2 px-4 py-1.5"><FileSpreadsheet size={14} className="text-signal" />Report Center</Badge>
-        <h1 className="mt-5 font-display text-3xl font-semibold sm:text-4xl">Reporting Center MOSA</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-paper/68">Satu pusat untuk RPT-01 sampai RPT-10, lengkap dengan filter, pagination, dan export sesuai filter aktif.</p>
+      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#063b8c]"><FileSpreadsheet size={23} /></div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0b5ed7]">Analytics / Reports</p>
+              <h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">Reporting Center</h1>
+              <p className="mt-1 max-w-2xl text-sm text-slate-500">Pilih laporan operasional, gunakan filter, lalu export data sesuai kebutuhan.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:min-w-[330px] sm:gap-3">
+            <HeroMetric label="Reports" value={REPORTS.length} />
+            <HeroMetric label="Kategori" value={categories.length} tone="blue" />
+            <HeroMetric label="Export" value="CSV / XLSX" tone="green" />
+          </div>
+        </div>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-        <Card data-tour="reports-menu" className="h-fit min-w-0">
-          <CardHeader><CardTitle>Report Menu</CardTitle><CardDescription>Pilih kategori dan report.</CardDescription></CardHeader>
-          <CardContent className="space-y-5">
-            {categories.map((category) => (
-              <div key={category} data-tour="reports-category" className="space-y-2">
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{category}</div>
-                {REPORTS.filter((report) => report.category === category).map((report) => (
-                  <button key={report.code} type="button" onClick={() => { setActiveCode(report.code); setQuery(emptyReportQuery) }} className={cn('w-full rounded-2xl border px-4 py-3 text-left transition', activeCode === report.code ? 'border-ink bg-ink text-paper' : 'border-slate-200 bg-white text-slate-700 hover:border-ink/20')}>
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60">{report.rpt}</div>
-                    <div className="mt-1 font-semibold">{report.name}</div>
-                  </button>
-                ))}
-              </div>
+      <Card data-tour="reports-menu" className="border-slate-200 shadow-sm">
+        <CardHeader className="gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div><CardTitle className="flex items-center gap-2"><BarChart3 size={19} className="text-[#0b5ed7]" /> Choose a report</CardTitle><CardDescription>Pilih laporan berdasarkan kategori dan kebutuhan operasional.</CardDescription></div>
+          <div data-tour="reports-category" className="flex max-w-full gap-2 overflow-x-auto pb-1">
+            {(['ALL', ...categories] as const).map((category) => (
+              <button key={category} type="button" onClick={() => setSelectedCategory(category)} className={cn('whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors', selectedCategory === category ? 'border-[#063b8c] bg-[#063b8c] text-white' : 'border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:text-[#063b8c]')}>
+                {category === 'ALL' ? 'Semua' : category}
+              </button>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {visibleReports.map((report) => <ReportSelectorCard key={report.code} report={report} active={activeCode === report.code} onSelect={() => selectReport(report.code)} />)}
+        </CardContent>
+      </Card>
 
-        <div className="min-w-0 space-y-5">
-          <Card className="min-w-0">
+      <div className="min-w-0 space-y-5">
+          <Card className="min-w-0 border-slate-200 shadow-sm">
             <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="min-w-0"><div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">{activeReport.rpt}</div><CardTitle className="mt-2">{activeReport.name}</CardTitle><CardDescription className="mt-2">{activeReport.description}</CardDescription><p className="mt-2 text-xs text-slate-400">Last Generated/Loaded: {loadedAt ?? '-'}</p></div>
-              <div data-tour="reports-export" className="flex flex-wrap gap-2">
+              <div className="min-w-0"><div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#0b5ed7]"><ReportIcon category={activeReport.category} size={15} />{activeReport.rpt} / {activeReport.category}</div><CardTitle className="mt-2 font-display text-2xl">{activeReport.name}</CardTitle><CardDescription className="mt-2">{activeReport.description}</CardDescription><p className="mt-2 text-xs text-slate-400">Last loaded: {loadedAt ?? '-'}</p></div>
+              <div data-tour="reports-export" className="flex flex-col gap-2 sm:flex-row">
                 <Button variant="secondary" onClick={() => void exportReport('csv')} disabled={Boolean(isExporting)}><Download size={16} />{isExporting === 'csv' ? 'Exporting...' : 'CSV'}</Button>
-                <Button onClick={() => void exportReport('xlsx')} disabled={Boolean(isExporting)}><Download size={16} />{isExporting === 'xlsx' ? 'Exporting...' : 'Excel'}</Button>
+                <Button className="bg-[#063b8c] hover:bg-[#052f70]" onClick={() => void exportReport('xlsx')} disabled={Boolean(isExporting)}><Download size={16} />{isExporting === 'xlsx' ? 'Exporting...' : 'Excel'}</Button>
               </div>
             </CardHeader>
           </Card>
 
-          <Card data-tour="reports-filter">
-            <CardHeader><CardTitle>Filter</CardTitle><CardDescription>Apply filter akan memuat ulang data dan export memakai filter aktif yang sama.</CardDescription></CardHeader>
+          <Card data-tour="reports-filter" className="border-slate-200 shadow-sm">
+            <CardHeader><CardTitle className="flex items-center gap-2"><Filter size={19} className="text-[#0b5ed7]" /> Filter Report</CardTitle><CardDescription>Apply filter akan memuat ulang data dan export memakai filter aktif yang sama.</CardDescription></CardHeader>
             <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {activeReport.filters.includes('search') ? <Input placeholder="Search" value={query.search} onChange={(event) => updateQuery({ search: event.target.value })} /> : null}
               {activeReport.filters.includes('dateFrom') ? <Input data-tour="reports-date-filter" type="date" value={query.dateFrom} onChange={(event) => updateQuery({ dateFrom: event.target.value })} /> : null}
@@ -208,33 +244,84 @@ export function ReportsPage() {
               {activeReport.filters.includes('sourceType') ? <Select value={query.sourceType} onChange={(value) => updateQuery({ sourceType: value })} options={[{ value: 'ADJUSTMENT', label: 'Adjustment' }, { value: 'OPNAME', label: 'Opname' }]} placeholder="Semua source" /> : null}
               {activeReport.filters.includes('lowStockOnly') ? <Toggle label="Low stock only" checked={query.lowStockOnly} onChange={(checked) => updateQuery({ lowStockOnly: checked })} /> : null}
               {activeReport.filters.includes('deviationOnly') ? <Toggle label="Deviation only" checked={query.deviationOnly} onChange={(checked) => updateQuery({ deviationOnly: checked })} /> : null}
-              <select className="h-14 rounded-2xl border border-slate-200 bg-white px-4 text-sm" value={query.pageSize} onChange={(event) => updateQuery({ pageSize: Number(event.target.value) })}><option value={20}>20 / halaman</option><option value={50}>50 / halaman</option><option value={100}>100 / halaman</option></select>
-              <div className="flex gap-2 md:col-span-2 xl:col-span-3">
-                <Button onClick={() => void loadReport(query)}><Search size={16} />Apply</Button>
+              <Select value={String(query.pageSize)} onChange={(value) => updateQuery({ pageSize: Number(value) })} options={[{ value: '20', label: '20 / halaman' }, { value: '50', label: '50 / halaman' }, { value: '100', label: '100 / halaman' }]} placeholder="Jumlah per halaman" />
+              <div className="flex flex-col gap-2 sm:flex-row md:col-span-2 xl:col-span-3">
+                <Button className="bg-[#063b8c] hover:bg-[#052f70]" onClick={() => void loadReport(query)}><Search size={16} />Apply</Button>
                 <Button variant="secondary" onClick={resetFilters}><RotateCcw size={16} />Reset</Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card data-tour="reports-result" className="overflow-hidden">
+          <Card data-tour="reports-result" className="overflow-hidden border-slate-200 shadow-sm">
             {isLoading ? <div className="p-6"><MasterDataLoadingState description="Report sedang dimuat dari backend." /></div> : error ? <div className="p-6"><MasterDataErrorState description={error} onRetry={() => void loadReport(query)} /></div> : items.length === 0 ? <div className="p-6"><MasterDataEmptyState description="Tidak ada data report untuk filter saat ini." /></div> : <ReportTable report={activeReport} rows={items} />}
             {!isLoading && !error && items.length > 0 ? <MasterDataPagination pagination={pagination} onPageChange={(page) => { const next = { ...query, page }; setQuery(next); void loadReport(next) }} /> : null}
           </Card>
           {isExporting ? <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-500"><LoaderCircle size={14} className="animate-spin" />Menyiapkan export {isExporting.toUpperCase()}...</div> : null}
-        </div>
       </div>
     </div>
   )
 }
 
 function ReportTable({ report, rows }: { report: ReportDefinition; rows: ReportRow[] }) {
-  return <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase tracking-[0.08em] text-slate-500"><tr>{report.columns.map((column) => <th key={column.key} className="whitespace-nowrap p-4 font-semibold">{column.label}</th>)}</tr></thead><tbody>{rows.map((row, index) => <tr key={index} className="border-t border-slate-100"><td className="hidden" />{report.columns.map((column) => <td key={column.key} className="whitespace-nowrap p-4 text-slate-700">{valueText(row[column.key])}</td>)}</tr>)}</tbody></table></div>
+  return (
+    <>
+      <div className="hidden overflow-x-auto md:block">
+        <table className="min-w-full text-sm">
+          <thead className="bg-slate-50 text-left text-xs uppercase tracking-[0.08em] text-slate-500">
+            <tr>{report.columns.map((column) => <th key={column.key} className="whitespace-nowrap p-4 font-semibold">{column.label}</th>)}</tr>
+          </thead>
+          <tbody>{rows.map((row, index) => <tr key={index} className="border-t border-slate-100 transition-colors hover:bg-blue-50/30">{report.columns.map((column) => <td key={column.key} className="whitespace-nowrap p-4 text-slate-700">{renderReportValue(column.key, row[column.key])}</td>)}</tr>)}</tbody>
+        </table>
+      </div>
+      <div className="space-y-3 p-4 md:hidden">
+        {rows.map((row, index) => (
+          <article key={index} className="rounded-2xl border border-slate-200 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0b5ed7]">Record {index + 1}</p><p className="mt-1 font-semibold text-ink">{valueText(row[report.columns[0]?.key])}</p></div>
+              {report.columns.find((column) => ['status', 'qcStatus', 'deviationStatus'].includes(column.key)) ? <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#063b8c]">{valueText(row[report.columns.find((column) => ['status', 'qcStatus', 'deviationStatus'].includes(column.key))?.key ?? ''])}</span> : null}
+            </div>
+            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+              {report.columns.slice(1).map((column) => <div key={column.key}><dt className="text-xs text-slate-400">{column.label}</dt><dd className="mt-0.5 break-words font-medium text-slate-700">{renderReportValue(column.key, row[column.key])}</dd></div>)}
+            </dl>
+          </article>
+        ))}
+      </div>
+    </>
+  )
 }
 
 function Select({ value, onChange, options, placeholder, dataTour }: { value: string; onChange: (value: string) => void; options: Array<{ value: string; label: string }>; placeholder: string; dataTour?: string }) {
-  return <select data-tour={dataTour} className="h-14 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink" value={value} onChange={(event) => onChange(event.target.value)}><option value="">{placeholder}</option>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+  return <select data-tour={dataTour} className="h-14 min-w-0 w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink" value={value} onChange={(event) => onChange(event.target.value)}><option value="">{placeholder}</option>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
 }
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
-  return <label className="flex h-14 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700"><input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />{label}</label>
+  return <label className="flex h-14 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700"><input className="size-4 accent-[#063b8c]" type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />{label}</label>
+}
+
+function renderReportValue(key: string, value: unknown) {
+  if (['status', 'qcStatus', 'deviationStatus'].includes(key) && value) {
+    return <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#063b8c]">{valueText(value)}</span>
+  }
+  if (typeof value === 'boolean') {
+    return <span className={value ? 'inline-flex items-center gap-1 text-emerald-700' : 'text-slate-500'}>{value ? <CheckCircle2 size={14} /> : null}{valueText(value)}</span>
+  }
+  return valueText(value)
+}
+
+function ReportIcon({ category, size = 18 }: { category: ReportDefinition['category']; size?: number }) {
+  const Icon = category === 'Inventory' ? Boxes : category === 'Production' ? Factory : category === 'Quality' ? CheckCircle2 : category === 'Traceability' ? Waypoints : Tags
+  return <Icon size={size} />
+}
+
+function HeroMetric({ label, value, tone = 'slate' }: { label: string; value: string | number; tone?: 'slate' | 'blue' | 'green' }) {
+  const toneClass = tone === 'blue' ? 'border-blue-200 bg-blue-100 text-[#063b8c]' : tone === 'green' ? 'border-emerald-200 bg-emerald-100 text-emerald-800' : 'border-slate-200 bg-slate-100 text-ink'
+  return <div className={`rounded-2xl border px-3 py-3 ${toneClass}`}><p className="text-[10px] font-semibold uppercase tracking-[0.14em] opacity-70">{label}</p><p className="mt-1 font-display text-lg font-semibold sm:text-xl">{value}</p></div>
+}
+
+function ReportSelectorCard({ report, active, onSelect }: { report: ReportDefinition; active: boolean; onSelect: () => void }) {
+  return <button type="button" onClick={onSelect} className={cn('min-h-[132px] rounded-2xl border p-4 text-left transition-all', active ? 'border-[#063b8c] bg-[#063b8c] text-white shadow-[0_12px_24px_rgba(6,59,140,0.18)]' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50/40')}>
+    <div className="flex items-start justify-between gap-3"><div className={cn('flex size-9 items-center justify-center rounded-xl', active ? 'bg-white/15 text-white' : 'bg-blue-50 text-[#0b5ed7]')}><ReportIcon category={report.category} size={17} /></div><span className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60">{report.rpt}</span></div>
+    <p className="mt-4 font-semibold">{report.name}</p>
+    <p className="mt-1 line-clamp-2 text-xs opacity-70">{report.description}</p>
+  </button>
 }

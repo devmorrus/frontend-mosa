@@ -4,6 +4,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { filterSidebarItems } from '@/routes/homeRoute'
 import { getSidebarIcon } from '@/routes/navigation.config'
+import { collapseReportsSidebarItem } from '@/routes/sidebarPresentation'
 import { useUiStore } from '@/stores/uiStore'
 import type { SidebarItem } from '@/types/auth'
 import { Badge } from '@/components/ui/badge'
@@ -219,7 +220,7 @@ function SidebarContent() {
   // backend sidebar can include parent menus without a required permission
   // while the route itself is guarded.
   const visibleItems = useMemo(
-    () => filterSidebarItems(sidebarItems, user?.permissions ?? []),
+    () => collapseReportsSidebarItem(filterSidebarItems(sidebarItems, user?.permissions ?? [])),
     [sidebarItems, user],
   )
 
