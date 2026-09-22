@@ -10,7 +10,6 @@ import {
   RotateCcw,
   Search,
   Truck,
-  Warehouse,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AppPagination } from '@/components/common/AppPagination'
@@ -146,7 +145,7 @@ export function GoodsReceivingsPage() {
               <p className="mt-1 max-w-2xl text-sm text-slate-500">Catat penerimaan bahan baku, kelola draft, dan lanjutkan posting saat data siap.</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 lg:min-w-[180px]">
+          <div className="flex items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 lg:min-w-[180px]">
             <ClipboardList size={20} className="text-[#0b5ed7]" />
             <div>
               <p className="text-xs font-medium text-slate-500">Total dokumen</p>
@@ -263,7 +262,6 @@ export function GoodsReceivingsPage() {
         <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5"><Truck size={13} /> Supplier & warehouse</span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5"><CalendarDays size={13} /> Rentang tanggal</span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5"><Warehouse size={13} /> Backend filter</span>
         </div>
       </div>
 

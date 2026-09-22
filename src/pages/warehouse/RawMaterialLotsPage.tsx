@@ -1,9 +1,7 @@
 import { useDeferredValue, useEffect, useState } from 'react'
 import {
-  CalendarDays,
   Info,
   LoaderCircle,
-  QrCode,
   Tags,
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -181,10 +179,6 @@ export function RawMaterialLotsPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0b5ed7]">Warehouse / Lots</p>
               <h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">Raw Material LOT</h1>
               <p className="mt-1 max-w-2xl text-sm text-slate-500">Pantau LOT bahan baku, sisa stok, expiry, QR label, dan akses cepat ke detail traceability.</p>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <Button asChild className="bg-[#063b8c] hover:bg-[#052f70]" data-tour="lot-scan-qr-btn"><Link to="/lots/scan"><QrCode size={16} /> Scan QR LOT</Link></Button>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-2 text-xs text-slate-500"><CalendarDays size={13} /> Backend pagination</span>
-              </div>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-2 sm:min-w-[300px] sm:gap-3">
@@ -259,6 +253,11 @@ export function RawMaterialLotsPage() {
 }
 
 function Metric({ label, value, tone = 'slate' }: { label: string; value: number; tone?: 'slate' | 'blue' | 'amber' }) {
-  const toneClass = tone === 'blue' ? 'bg-blue-50 text-[#063b8c]' : tone === 'amber' ? 'bg-amber-50 text-amber-800' : 'bg-slate-50 text-ink'
+  const toneClass =
+    tone === 'blue'
+      ? 'border border-blue-200 bg-blue-100 text-[#063b8c]'
+      : tone === 'amber'
+        ? 'border border-amber-200 bg-amber-100 text-amber-900'
+        : 'border border-slate-200 bg-slate-100 text-ink'
   return <div className={`rounded-2xl px-3 py-3 ${toneClass}`}><p className="text-[10px] font-semibold uppercase tracking-[0.14em] opacity-70">{label}</p><p className="mt-1 font-display text-xl font-semibold">{value}</p></div>
 }

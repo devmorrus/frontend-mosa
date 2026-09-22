@@ -107,9 +107,11 @@ export function RawMaterialLotsFilterBar({
         <DateField label="Expiry sampai" value={query.expiryTo} onChange={(value) => onQueryChange({ expiryTo: value, page: 1 })} />
         <DateField label="Receiving dari" value={query.receivedDateFrom} onChange={(value) => onQueryChange({ receivedDateFrom: value, page: 1 })} />
         <DateField label="Receiving sampai" value={query.receivedDateTo} onChange={(value) => onQueryChange({ receivedDateTo: value, page: 1 })} />
-        <Button asChild className="h-12 whitespace-nowrap bg-[#063b8c] hover:bg-[#052f70]">
-          <Link to="/lots/scan"><QrCode size={16} /> Scan QR Test</Link>
-        </Button>
+        <div className="flex items-end">
+          <Button asChild data-tour="lot-scan-qr-btn" className="h-12 w-full whitespace-nowrap bg-[#063b8c] hover:bg-[#052f70] xl:w-auto">
+            <Link to="/lots/scan" data-tour="lot-scan-qr-btn"><QrCode size={16} /> Scan QR Test</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
