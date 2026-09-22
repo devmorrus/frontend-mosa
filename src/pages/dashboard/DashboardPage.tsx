@@ -129,12 +129,12 @@ function SectionHeader({ title, description, eyebrow }: { title: string; descrip
 
 function MiniStat({ label, value, icon: Icon }: { label: string; value: string; icon: ComponentType<{ size?: number; className?: string }> }) {
   return (
-    <div className="rounded-2xl border border-paper/10 bg-paper/8 px-4 py-3 backdrop-blur-sm">
-      <div className="flex items-center gap-2 text-paper/52">
-        <Icon size={15} />
-        <span className="text-[10px] font-semibold uppercase tracking-[0.18em]">{label}</span>
+    <div className="rounded-xl border border-paper/10 bg-paper/8 px-3 py-2 backdrop-blur-sm">
+      <div className="flex items-center gap-1.5 text-paper/52">
+        <Icon size={13} />
+        <span className="truncate text-[10px] font-semibold uppercase tracking-[0.14em]">{label}</span>
       </div>
-      <div className="mt-2 font-display text-2xl font-semibold text-paper">{value}</div>
+      <div className="mt-1 font-display text-xl font-semibold leading-none text-paper">{value}</div>
     </div>
   )
 }
@@ -167,19 +167,19 @@ function CompactMetricLink({
       to={to}
       aria-label={`${label}: ${value}`}
       className={cn(
-        'group grid min-w-0 min-h-[104px] grid-cols-[44px_minmax(0,1fr)_18px] items-center gap-3 rounded-[22px] border p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(15,23,42,0.08)]',
+        'group grid min-h-[104px] w-full min-w-0 grid-cols-[40px_minmax(0,1fr)_16px] items-center gap-3 overflow-hidden rounded-[22px] border p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(15,23,42,0.08)]',
         toneClass,
       )}
     >
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-current shadow-sm ring-1 ring-current/10">
-        <Icon size={19} />
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-current shadow-sm ring-1 ring-current/10">
+        <Icon size={18} />
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 overflow-hidden">
         <div className="truncate text-[11px] font-semibold uppercase tracking-[0.1em] opacity-65">{label}</div>
-        <div className="mt-1 font-display text-3xl font-semibold leading-none">{value}</div>
+        <div className="mt-1 truncate font-display text-3xl font-semibold leading-none">{value}</div>
         <p className="mt-2 truncate text-sm leading-5 opacity-70" title={caption}>{caption}</p>
       </div>
-      <ArrowRight size={16} className="opacity-55 transition group-hover:translate-x-1" />
+      <ArrowRight size={16} className="shrink-0 opacity-55 transition group-hover:translate-x-1" />
     </Link>
   )
 }
@@ -335,24 +335,23 @@ function DashboardHero({
   summary: DashboardSummary | null
 }) {
   return (
-    <section className="relative overflow-hidden rounded-[34px] border border-ink/10 bg-[linear-gradient(135deg,#062f75_0%,#0647a6_48%,#0b5ed7_100%)] px-5 py-6 text-paper shadow-[0_28px_90px_rgba(6,59,140,0.24)] sm:px-8 sm:py-8">
-      <div className="pointer-events-none absolute inset-0 opacity-[0.09]" style={{ backgroundImage: 'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
-      <div className="pointer-events-none absolute -left-24 -top-28 h-80 w-80 rounded-full bg-signal/28 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-28 right-8 h-80 w-80 rounded-full bg-cyan-300/20 blur-3xl" />
-      <div className="pointer-events-none absolute right-8 top-8 hidden h-28 w-28 rotate-12 rounded-[2rem] border border-paper/10 bg-paper/5 xl:block" />
-      <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-end">
+    <section className="relative overflow-hidden rounded-[24px] border border-ink/10 bg-[linear-gradient(135deg,#062f75_0%,#0647a6_48%,#0b5ed7_100%)] px-5 py-5 text-paper shadow-[0_18px_50px_rgba(6,59,140,0.18)] sm:px-6 sm:py-6">
+      <div className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+      <div className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-signal/25 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-20 right-8 h-56 w-56 rounded-full bg-cyan-300/20 blur-3xl" />
+      <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-center">
         <div className="min-w-0">
-          <Badge variant="subtle" className="gap-2 border-paper/[0.12] bg-paper/10 px-4 py-1.5 text-paper shadow-none">
-            <Command size={14} className="text-signal" />
+          <Badge variant="subtle" className="gap-2 border-paper/[0.12] bg-paper/10 px-3 py-1 text-paper shadow-none">
+            <Command size={13} className="text-signal" />
             Manufacturing Command Center
           </Badge>
-          <h1 className="mt-5 max-w-4xl font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl lg:text-5xl">
-            Monitoring produksi, inventory, QC, dan performance dalam satu ringkasan modern.
+          <h1 className="mt-4 max-w-3xl font-display text-2xl font-semibold leading-snug text-paper sm:text-3xl">
+            Monitoring produksi, inventory, QC, dan performance dalam satu ringkasan.
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-paper/70 sm:text-base">
-            Selamat datang, {userName}. Semua KPI diambil dari aggregate backend dashboard sehingga status operasional bisa dipantau cepat tanpa membuka setiap modul.
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-paper/70">
+            Selamat datang, {userName}. Pantau progress production order, ketersediaan material, antrian QC, dan capaian output dalam satu ringkasan periode berjalan.
           </p>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-5 grid grid-cols-2 gap-2 lg:grid-cols-4">
             <MiniStat label="Total PO" value={summary ? formatNumber(summary.production.total) : '—'} icon={Factory} />
             <MiniStat label="Active LOT" value={summary ? formatNumber(summary.inventory.totalActiveLot) : '—'} icon={Layers} />
             <MiniStat label="Waiting QC" value={summary ? formatNumber(summary.qc.waitingQc) : '—'} icon={ClipboardCheck} />
@@ -360,26 +359,26 @@ function DashboardHero({
           </div>
         </div>
 
-        <Card className="rounded-[28px] border-paper/[0.14] bg-paper/10 text-paper shadow-[0_20px_70px_rgba(0,0,0,0.1)] backdrop-blur-md">
-          <CardContent className="p-5 sm:p-6">
+        <Card className="rounded-[20px] border-paper/[0.14] bg-paper/10 text-paper shadow-[0_16px_50px_rgba(0,0,0,0.08)] backdrop-blur-md">
+          <CardContent className="p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3">
               <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-paper/50">Current scope</div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200/20 bg-emerald-300/10 px-3 py-1 text-xs font-semibold text-emerald-100">
-                <span className="h-2 w-2 rounded-full bg-emerald-300" />
-                Live aggregate
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/20 bg-emerald-300/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-100">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                Live
               </span>
             </div>
-            <div className="mt-5 flex items-start gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-paper/12 text-signal ring-4 ring-paper/8">
-                <Warehouse size={21} />
+            <div className="mt-4 flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-paper/12 text-signal ring-4 ring-paper/8">
+                <Warehouse size={18} />
               </div>
               <div className="min-w-0">
-                <div className="font-display text-2xl font-semibold leading-tight text-paper">{selectedWarehouseName}</div>
-                <p className="mt-2 text-sm leading-6 text-paper/[0.62]">Period {period}.</p>
+                <div className="truncate font-display text-xl font-semibold leading-tight text-paper">{selectedWarehouseName}</div>
+                <p className="mt-1 text-[13px] leading-5 text-paper/[0.62]">Period {period}.</p>
               </div>
             </div>
-            <div className="mt-5 rounded-2xl border border-paper/10 bg-paper/[0.07] px-4 py-3 text-sm leading-6 text-paper/[0.68]">
-              Fokus utama: shortage, low stock, QC hold/reject, dan pending approval deviation.
+            <div className="mt-4 rounded-xl border border-paper/10 bg-paper/[0.07] px-3 py-2.5 text-[13px] leading-5 text-paper/[0.68]">
+              Fokus: shortage, low stock, QC hold/reject, dan pending approval.
             </div>
           </CardContent>
         </Card>
@@ -584,11 +583,11 @@ function QualityAnalytics({ summary, filterParams }: { summary: DashboardSummary
     <section className="space-y-4" data-tour="dashboard-qc">
       <SectionHeader eyebrow="Release Gate" title="Quality Control" description="Distribusi status QC finished goods lot sesuai periode produksi." />
       <AnalyticsCard>
-        <CardContent className="grid min-w-0 gap-5 p-5 sm:p-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-          <div className="relative h-56 min-w-0">
+        <CardContent className="flex min-w-0 flex-col gap-5 p-5 sm:p-6">
+          <div className="relative mx-auto h-60 w-full min-w-0 max-w-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={data} dataKey="value" nameKey="name" innerRadius={68} outerRadius={102} paddingAngle={3} stroke="#ffffff" strokeWidth={4}>
+                <Pie data={data} dataKey="value" nameKey="name" innerRadius={70} outerRadius={100} paddingAngle={3} stroke="#ffffff" strokeWidth={4}>
                   {data.map((entry) => <Cell key={entry.name} fill={entry.fill} />)}
                 </Pie>
                 <Tooltip formatter={tooltipFormatter} contentStyle={{ borderRadius: 16, border: '1px solid #e2e8f0' }} />
@@ -596,8 +595,8 @@ function QualityAnalytics({ summary, filterParams }: { summary: DashboardSummary
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-center">
               <div>
-                <div className="font-display text-3xl font-semibold text-ink">{formatNumber(total)}</div>
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">QC Total</div>
+                <div className="font-display text-3xl font-semibold leading-none text-ink">{formatNumber(total)}</div>
+                <div className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">QC Total</div>
               </div>
             </div>
           </div>
