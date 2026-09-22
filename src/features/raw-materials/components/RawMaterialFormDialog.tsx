@@ -48,10 +48,10 @@ function formatMinimumStock(value: string) {
 function AccentBar({ mode }: { mode: 'create' | 'edit' }) {
   return (
     <div
-      className={`absolute inset-x-0 top-0 h-1 rounded-t-[28px] ${
+      className={`absolute inset-x-0 top-0 h-1 rounded-t-[24px] ${
         mode === 'create'
-          ? 'bg-gradient-to-r from-blue-500 to-blue-400'
-          : 'bg-gradient-to-r from-amber-500 to-orange-400'
+          ? 'bg-blue-600'
+          : 'bg-amber-500'
       }`}
     />
   )
@@ -60,11 +60,11 @@ function AccentBar({ mode }: { mode: 'create' | 'edit' }) {
 function HeaderIcon({ mode }: { mode: 'create' | 'edit' }) {
   return (
     <div
-      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
         mode === 'create' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'
       }`}
     >
-      {mode === 'create' ? <Boxes size={20} /> : <PencilLine size={20} />}
+      {mode === 'create' ? <Boxes size={19} /> : <PencilLine size={19} />}
     </div>
   )
 }
@@ -316,16 +316,16 @@ export function RawMaterialFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl overflow-hidden p-0">
+      <DialogContent className="max-w-xl overflow-hidden rounded-[24px] p-0">
         <AccentBar mode={mode} />
 
-        <div className="px-7 pb-4 pt-8">
+        <div className="px-6 pb-4 pt-6">
           <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3.5">
+            <div className="flex min-w-0 items-center gap-3">
               <HeaderIcon mode={mode} />
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="font-display text-xl font-semibold text-ink">{title}</h2>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-display text-xl font-semibold text-slate-900">{title}</h2>
                   <ModeBadge mode={mode} />
                 </div>
                 <DialogDescription className="mt-0.5 text-[13px] text-slate-500">
@@ -340,23 +340,23 @@ export function RawMaterialFormDialog({
 
         <div className="h-px bg-slate-100" />
 
-        <div className="max-h-[60vh] overflow-y-auto px-7 py-5">
+        <div className="max-h-[62vh] overflow-y-auto px-6 py-4">
           {isDetailLoading ? (
-            <div className="flex items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 py-10 text-sm text-slate-500">
+            <div className="flex items-center justify-center gap-3 rounded-xl border border-slate-200 bg-slate-50 py-10 text-sm text-slate-500">
               <LoaderCircle size={18} className="animate-spin text-slate-400" />
               Memuat detail raw material...
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-4">
               {formError && (
-                <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5">
+                <div role="alert" className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
                   <AlertCircle size={16} className="mt-0.5 shrink-0 text-red-500" />
                   <p className="text-sm text-red-700">{formError}</p>
                 </div>
               )}
 
               {uomError && (
-                <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5">
+                <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
                   <AlertCircle size={16} className="mt-0.5 shrink-0 text-amber-600" />
                   <p className="text-sm text-amber-800">{uomError}</p>
                 </div>
@@ -376,7 +376,7 @@ export function RawMaterialFormDialog({
                         onValuesChange((prev) => ({ ...prev, code: event.target.value }))
                       }
                       placeholder="RM-001"
-                      className="h-12"
+                      className="h-11"
                     />
                   </IconInput>
                   <MasterDataFormFieldError message={getFieldError(errors, 'code')} />
@@ -406,7 +406,7 @@ export function RawMaterialFormDialog({
                         onValuesChange((prev) => ({ ...prev, name: event.target.value }))
                       }
                       placeholder="Tepung Terigu Premium"
-                      className="h-12"
+                      className="h-11"
                     />
                   </IconInput>
                   <MasterDataFormFieldError message={getFieldError(errors, 'name')} />
@@ -421,7 +421,7 @@ export function RawMaterialFormDialog({
                       onChange={(event) =>
                         onValuesChange((prev) => ({ ...prev, category: event.target.value }))
                       }
-                      className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-white pr-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
+                      className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white pr-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
                     >
                       <option value="">Tanpa kategori</option>
                       {RAW_MATERIAL_CATEGORIES.map((category) => (
@@ -451,7 +451,7 @@ export function RawMaterialFormDialog({
                         }))
                       }
                       disabled={isUomLoading}
-                      className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-white pr-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10 disabled:cursor-not-allowed disabled:bg-slate-100"
+                      className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white pr-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10 disabled:cursor-not-allowed disabled:bg-slate-100"
                     >
                       <option value="">{isUomLoading ? 'Memuat UOM...' : 'Pilih UOM aktif'}</option>
                       {unitOptions.map((option) => (
@@ -480,7 +480,7 @@ export function RawMaterialFormDialog({
                         }))
                       }
                       placeholder="100"
-                      className="h-12"
+                      className="h-11"
                     />
                   </IconInput>
                   <MasterDataFormFieldError message={getFieldError(errors, 'minimumStock')} />
@@ -522,7 +522,7 @@ export function RawMaterialFormDialog({
                         }))
                       }
                       placeholder="30"
-                      className="h-12"
+                      className="h-11"
                       disabled={!values.hasExpiry}
                     />
                   </IconInput>
@@ -540,12 +540,20 @@ export function RawMaterialFormDialog({
 
         <div className="h-px bg-slate-100" />
 
-        <div className="px-7 py-4">
+        <div className="flex flex-col-reverse gap-2 px-6 py-4 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            disabled={submitting || isDetailLoading}
+            className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50"
+          >
+            Batal
+          </button>
           <button
             type="button"
             onClick={onSubmit}
             disabled={submitting || isDetailLoading}
-            className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-semibold text-paper shadow-md transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 ${
+            className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-paper shadow-md transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 sm:min-w-[200px] ${
               mode === 'create'
                 ? 'bg-blue-700 shadow-blue-200 hover:bg-blue-800'
                 : 'bg-ink shadow-ink/20 hover:bg-ink-light'
