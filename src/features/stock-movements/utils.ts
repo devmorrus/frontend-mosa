@@ -1,4 +1,5 @@
 import type { StockMovementListItem, StockMovementTypeFilter } from '@/features/stock-movements/types'
+import { entityLinks } from '@/routes/canonicalRoutes'
 
 export const STOCK_MOVEMENT_TYPE_OPTIONS: Array<{
   label: string
@@ -68,13 +69,13 @@ export function getStockMovementReferenceLink(item: StockMovementListItem): stri
   if (!item.referenceId) return null
   switch (item.referenceType) {
     case 'GoodsReceiving':
-      return `/goods-receiving/${item.referenceId}`
+      return entityLinks.receivingDetail(item.referenceId)
     case 'StockAdjustment':
-      return `/warehouse/stock-adjustments/${item.referenceId}`
+      return entityLinks.stockAdjustmentDetail(item.referenceId)
     case 'StockOpname':
-      return `/warehouse/stock-opname/${item.referenceId}`
+      return entityLinks.stockOpnameDetail(item.referenceId)
     case 'ProductionOrder':
-      return `/production/orders/${item.referenceId}`
+      return entityLinks.productionOrderDetail(item.referenceId)
     default:
       return null
   }

@@ -124,6 +124,23 @@ function resolveSpec(domain: string, value: string | number): StatusSpec {
 
   if (common[key]) return common[key]
 
+  if (d === 'movement') {
+    const movement: Record<string, StatusSpec> = {
+      RECEIVING: { label: 'Receiving', tone: 'blue' },
+      ADJUSTMENTIN: { label: 'Adjustment In', tone: 'blue' },
+      ADJUSTMENT_IN: { label: 'Adjustment In', tone: 'blue' },
+      ADJUSTMENTOUT: { label: 'Adjustment Out', tone: 'rose' },
+      ADJUSTMENT_OUT: { label: 'Adjustment Out', tone: 'rose' },
+      PRODUCTIONCONSUMPTION: { label: 'Production Consumption', tone: 'amber' },
+      PRODUCTION_CONSUMPTION: { label: 'Production Consumption', tone: 'amber' },
+      STOCKOPNAME: { label: 'Stock Opname', tone: 'violet' },
+      STOCK_OPNAME: { label: 'Stock Opname', tone: 'violet' },
+      FINISHEDGOODSRELEASE: { label: 'Finished Goods Release', tone: 'sky' },
+      FINISHED_GOODS_RELEASE: { label: 'Finished Goods Release', tone: 'sky' },
+    }
+    if (movement[key]) return movement[key]
+  }
+
   // Fallback: Title Case label + tone netral per domain
   const label = String(value)
     .replace(/_/g, ' ')

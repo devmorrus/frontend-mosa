@@ -137,6 +137,10 @@ export const breadcrumbs = {
     { label: 'Dashboard', to: canonicalRoutes.dashboard },
     { label: 'Inventory' },
   ],
+  stockMovements: (): BreadcrumbItem[] => [
+    { label: 'Dashboard', to: canonicalRoutes.dashboard },
+    { label: 'Stock Movements' },
+  ],
   lotDetail: (number: string): BreadcrumbItem[] => [
     { label: 'Dashboard', to: canonicalRoutes.dashboard },
     { label: 'Lots', to: canonicalRoutes.lots },

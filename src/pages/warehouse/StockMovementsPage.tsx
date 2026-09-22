@@ -1,12 +1,13 @@
 import { useDeferredValue, useEffect, useState } from 'react'
-import { ArrowLeftRight, LoaderCircle } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { ArrowLeftRight, History, LoaderCircle, TrendingDown, TrendingUp } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
 import { rawMaterialLotsApi } from '@/api/rawMaterialLots.api'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
 import { stockMovementsApi } from '@/api/stockMovements.api'
 import { warehousesApi } from '@/api/warehouses.api'
-import { Card, CardContent } from '@/components/ui/card'
+import { breadcrumbs } from '@/routes/canonicalRoutes'
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
@@ -165,35 +166,38 @@ export function StockMovementsPage() {
       query.dateTo,
   )
 
+  function resetFilters() {
+    setSearchInput('')
+    setQuery(emptyStockMovementQuery)
+  }
+
+  const inQtyOnPage = items.reduce(
+    (total, item) => total + (item.quantityDirection.toUpperCase() === 'OUT' ? 0 : item.displayQuantity),
+    0,
+  )
+  const outQtyOnPage = items.reduce(
+    (total, item) => total + (item.quantityDirection.toUpperCase() === 'OUT' ? item.displayQuantity : 0),
+    0,
+  )
+
   return (
     <div className="space-y-6">
-      <Breadcrumb items={[{ label: 'Dashboard', to: '/dashboard' }, { label: 'Stock Movements' }]} />
-      <section data-tour="inventory-stock-movement" className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <ArrowLeftRight size={14} className="text-signal" />
-              Stock Movements
+      <Breadcrumb items={breadcrumbs.stockMovements()} />
+      <section data-tour="inventory-stock-movement" className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#063b8c]"><ArrowLeftRight size={23} /></div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0b5ed7]">Warehouse / Stock Movements</p>
+              <h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">Stock Movements</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Pantau riwayat perubahan stock yang bersifat read-only, dari receiving sampai konsumsi produksi.</p>
             </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
-              Telusuri bagaimana stock berubah sampai menjadi angka saat ini
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-paper/68 sm:text-base">
-              Riwayat stock movement bersifat read-only dan membantu Warehouse memahami perubahan
-              quantity, reference receiving, serta histori LOT per material.
-            </p>
           </div>
-
-          <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-            <CardContent className="p-5">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">Total Movement</div>
-              <div className="mt-2 font-display text-3xl font-semibold text-paper">
-                {pagination.totalItems}
-              </div>
-              <p className="mt-1 text-sm text-paper/60">History mengikuti filter dan pagination backend.</p>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 xl:min-w-[470px]">
+            <MovementMetric icon={<History size={16} />} label="Total movements" value={pagination.totalItems} note="hasil filter" />
+            <MovementMetric icon={<TrendingUp size={16} />} label="Stock IN on page" value={formatMovementMetricNumber(inQtyOnPage)} note="page aktif" tone="blue" />
+            <MovementMetric icon={<TrendingDown size={16} />} label="Stock OUT on page" value={formatMovementMetricNumber(outQtyOnPage)} note="page aktif" tone="rose" />
+          </div>
         </div>
       </section>
 
@@ -206,6 +210,7 @@ export function StockMovementsPage() {
         lots={lots}
         onSearchInputChange={setSearchInput}
         onQueryChange={(patch) => setQuery((current) => ({ ...current, ...patch }))}
+        onReset={resetFilters}
       />
 
       {lookupError ? (
@@ -243,4 +248,13 @@ export function StockMovementsPage() {
       ) : null}
     </div>
   )
+}
+
+function formatMovementMetricNumber(value: number) {
+  return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(value)
+}
+
+function MovementMetric({ icon, label, value, note, tone = 'slate' }: { icon: ReactNode; label: string; value: string | number; note: string; tone?: 'slate' | 'blue' | 'rose' }) {
+  const toneClass = tone === 'blue' ? 'border-blue-200 bg-blue-50 text-[#063b8c]' : tone === 'rose' ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-slate-200 bg-slate-50 text-ink'
+  return <div className={`rounded-2xl border px-3 py-3 ${toneClass}`}><div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] opacity-70">{icon}{label}</div><p className="mt-1 font-display text-lg font-semibold sm:text-xl">{value}</p><p className="text-[10px] opacity-60">{note}</p></div>
 }
