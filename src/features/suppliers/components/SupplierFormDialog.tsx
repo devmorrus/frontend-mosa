@@ -29,10 +29,10 @@ import type { SupplierFormValues } from '@/features/suppliers/types'
 function AccentBar({ mode }: { mode: 'create' | 'edit' }) {
   return (
     <div
-      className={`absolute inset-x-0 top-0 h-1 rounded-t-[28px] ${
+      className={`absolute inset-x-0 top-0 h-1 rounded-t-[24px] ${
         mode === 'create'
-          ? 'bg-gradient-to-r from-blue-500 to-blue-400'
-          : 'bg-gradient-to-r from-amber-500 to-orange-400'
+          ? 'bg-blue-600'
+          : 'bg-amber-500'
       }`}
     />
   )
@@ -42,11 +42,11 @@ function AccentBar({ mode }: { mode: 'create' | 'edit' }) {
 function HeaderIcon({ mode }: { mode: 'create' | 'edit' }) {
   return (
     <div
-      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
         mode === 'create' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'
       }`}
     >
-      {mode === 'create' ? <Building2 size={20} /> : <PencilLine size={20} />}
+      {mode === 'create' ? <Building2 size={19} /> : <PencilLine size={19} />}
     </div>
   )
 }
@@ -61,7 +61,7 @@ function ModeBadge({ mode }: { mode: 'create' | 'edit' }) {
           : 'bg-amber-100 text-amber-700'
       }`}
     >
-      {mode === 'create' ? '✦ Baru' : '✎ Edit'}
+      {mode === 'create' ? 'Baru' : 'Edit'}
     </span>
   )
 }
@@ -194,10 +194,10 @@ function getInitials(name: string): string {
 /** Mirrors how this supplier will appear as a row in the table, updated live. */
 function SupplierPreview({ values }: { values: SupplierFormValues }) {
   const displayName = values.name.trim() || 'Nama supplier'
-  const [from, to] = getAvatarGradient(displayName)
+  const [from, to] = getAvatarGradient(displayName || 'Supplier')
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 px-4 py-3.5">
+    <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 px-3 py-2.5">
       <div
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-xs font-bold tracking-wide text-white ring-2 ring-white shadow-[0_4px_12px_rgba(6,59,140,0.18)]"
         style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
@@ -258,25 +258,31 @@ export function SupplierFormDialog({
   const title = mode === 'create' ? 'Tambah Supplier' : 'Edit Supplier'
   const submitLabel = mode === 'create' ? 'Simpan Supplier' : 'Perbarui Supplier'
 
+  const codeError = getFieldError(errors, 'code')
+  const nameError = getFieldError(errors, 'name')
+  const phoneError = getFieldError(errors, 'phone')
+  const emailError = getFieldError(errors, 'email')
+  const addressError = getFieldError(errors, 'address')
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl overflow-hidden p-0">
+      <DialogContent className="max-w-xl overflow-hidden rounded-[24px] p-0">
         {/* Accent bar */}
         <AccentBar mode={mode} />
 
         {/* Header */}
-        <div className="px-7 pb-4 pt-8">
+        <div className="px-6 pb-4 pt-6">
           <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3.5">
+            <div className="flex min-w-0 items-center gap-3">
               <HeaderIcon mode={mode} />
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="font-display text-xl font-semibold text-ink">{title}</h2>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-display text-xl font-semibold text-slate-900">{title}</h2>
                   <ModeBadge mode={mode} />
                 </div>
                 <DialogDescription className="mt-0.5 text-[13px] text-slate-500">
                   {mode === 'create'
-                    ? 'Isi data pemasok baru yang akan terdaftar di sistem.'
+                    ? 'Isi data pemasok baru untuk dipakai di Goods Receiving.'
                     : 'Perbarui informasi pemasok sesuai data terkini.'}
                 </DialogDescription>
               </div>
@@ -288,17 +294,17 @@ export function SupplierFormDialog({
         <div className="h-px bg-slate-100" />
 
         {/* Body */}
-        <div className="max-h-[60vh] overflow-y-auto px-7 py-5">
+        <div className="max-h-[62vh] overflow-y-auto px-6 py-4">
           {isDetailLoading ? (
-            <div className="flex items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 py-10 text-sm text-slate-500">
+            <div className="flex items-center justify-center gap-3 rounded-xl border border-slate-200 bg-slate-50 py-10 text-sm text-slate-500">
               <LoaderCircle size={18} className="animate-spin text-slate-400" />
               Memuat detail supplier...
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-4">
               {/* Error banner */}
               {formError && (
-                <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5">
+                <div role="alert" className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
                   <AlertCircle size={16} className="mt-0.5 shrink-0 text-red-500" />
                   <p className="text-sm text-red-700">{formError}</p>
                 </div>
@@ -312,7 +318,7 @@ export function SupplierFormDialog({
 
               <div className="grid gap-4 sm:grid-cols-2">
                 {/* Code */}
-                <div>
+                <div className="min-w-0">
                   <FieldLabel required>Code</FieldLabel>
                   <IconInput icon={<Hash size={15} />}>
                     <Input
@@ -322,15 +328,16 @@ export function SupplierFormDialog({
                         onValuesChange((prev) => ({ ...prev, code: e.target.value }))
                       }
                       placeholder="SUP-001"
-                      className="h-12"
+                      className="h-11"
+                      aria-invalid={Boolean(codeError)}
                     />
                   </IconInput>
-                  <MasterDataFormFieldError message={getFieldError(errors, 'code')} />
-                  <FieldHelper>Kode unik untuk identifikasi supplier</FieldHelper>
+                  <MasterDataFormFieldError message={codeError} />
+                  <FieldHelper>Kode unik, 2–50 karakter</FieldHelper>
                 </div>
 
                 {/* Status */}
-                <div>
+                <div className="min-w-0">
                   <FieldLabel>Status</FieldLabel>
                   <StatusToggle
                     value={values.isActive}
@@ -338,11 +345,12 @@ export function SupplierFormDialog({
                       onValuesChange((prev) => ({ ...prev, isActive: v }))
                     }
                   />
+                  <FieldHelper>Inactive tidak bisa dipilih di Receiving baru</FieldHelper>
                 </div>
               </div>
 
               {/* Name */}
-              <div>
+              <div className="min-w-0">
                 <FieldLabel required>Nama Supplier</FieldLabel>
                 <IconInput icon={<Building2 size={15} />}>
                   <Input
@@ -352,60 +360,59 @@ export function SupplierFormDialog({
                       onValuesChange((prev) => ({ ...prev, name: e.target.value }))
                     }
                     placeholder="Supplier Nusantara Jaya"
-                    className="h-12"
+                    className="h-11"
+                    aria-invalid={Boolean(nameError)}
                   />
                 </IconInput>
-                <MasterDataFormFieldError message={getFieldError(errors, 'name')} />
-                <FieldHelper>Nama resmi pemasok yang terdaftar secara operasional</FieldHelper>
+                <MasterDataFormFieldError message={nameError} />
               </div>
 
-              {/* ── Section: Kontak ── */}
-              <SectionHeading>Kontak</SectionHeading>
+              {/* ── Section: Kontak & Lokasi ── */}
+              <SectionHeading>Kontak & Lokasi</SectionHeading>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 {/* Phone */}
-                <div>
+                <div className="min-w-0">
                   <FieldLabel>Phone</FieldLabel>
                   <IconInput icon={<Phone size={15} />}>
                     <Input
                       value={values.phone}
+                      inputMode="tel"
                       onChange={(e) =>
                         onValuesChange((prev) => ({ ...prev, phone: e.target.value }))
                       }
                       placeholder="08xxxxxxxxxx"
-                      className="h-12"
+                      className="h-11"
+                      aria-invalid={Boolean(phoneError)}
                     />
                   </IconInput>
-                  <MasterDataFormFieldError message={getFieldError(errors, 'phone')} />
-                  <FieldHelper>Nomor telepon aktif (opsional)</FieldHelper>
+                  <MasterDataFormFieldError message={phoneError} />
                 </div>
 
                 {/* Email */}
-                <div>
+                <div className="min-w-0">
                   <FieldLabel>Email</FieldLabel>
                   <IconInput icon={<Mail size={15} />}>
                     <Input
                       value={values.email}
+                      inputMode="email"
                       onChange={(e) =>
                         onValuesChange((prev) => ({ ...prev, email: e.target.value }))
                       }
                       placeholder="supplier@company.com"
-                      className="h-12"
+                      className="h-11"
+                      aria-invalid={Boolean(emailError)}
                     />
                   </IconInput>
-                  <MasterDataFormFieldError message={getFieldError(errors, 'email')} />
-                  <FieldHelper>Alamat email untuk komunikasi (opsional)</FieldHelper>
+                  <MasterDataFormFieldError message={emailError} />
                 </div>
               </div>
 
-              {/* ── Section: Lokasi ── */}
-              <SectionHeading>Lokasi</SectionHeading>
-
               {/* Address */}
-              <div>
+              <div className="min-w-0">
                 <FieldLabel>Alamat</FieldLabel>
                 <div className="relative">
-                  <div className="pointer-events-none absolute left-4 top-4 text-slate-400">
+                  <div className="pointer-events-none absolute left-4 top-3.5 text-slate-400">
                     <MapPin size={15} />
                   </div>
                   <Textarea
@@ -413,13 +420,13 @@ export function SupplierFormDialog({
                     onChange={(e) =>
                       onValuesChange((prev) => ({ ...prev, address: e.target.value }))
                     }
-                    placeholder="Jl. Raya Industri No. 12, Surabaya"
-                    className="pl-11"
+                    placeholder="Jl. Raya Industri No. 12, Surabaya (opsional)"
+                    className="min-h-[84px] pl-11"
                     rows={3}
+                    aria-invalid={Boolean(addressError)}
                   />
                 </div>
-                <MasterDataFormFieldError message={getFieldError(errors, 'address')} />
-                <FieldHelper>Alamat operasional lengkap supplier (opsional)</FieldHelper>
+                <MasterDataFormFieldError message={addressError} />
               </div>
             </div>
           )}
@@ -429,13 +436,21 @@ export function SupplierFormDialog({
         <div className="h-px bg-slate-100" />
 
         {/* Footer */}
-        <div className="px-7 py-4">
+        <div className="flex flex-col-reverse gap-2 px-6 py-4 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            disabled={submitting || isDetailLoading}
+            className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50"
+          >
+            Batal
+          </button>
           <button
             type="button"
             data-tour="supplier-save-btn"
             onClick={onSubmit}
             disabled={submitting || isDetailLoading}
-            className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-semibold text-paper shadow-md transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 ${
+            className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-paper shadow-md transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 sm:min-w-[200px] ${
               mode === 'create'
                 ? 'bg-blue-700 shadow-blue-200 hover:bg-blue-800'
                 : 'bg-ink shadow-ink/20 hover:bg-ink-light'
