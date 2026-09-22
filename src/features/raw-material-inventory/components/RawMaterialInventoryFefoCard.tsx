@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
+import { ListChecks } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { entityLinks } from '@/routes/canonicalRoutes'
 import type { FefoRecommendation } from '@/features/raw-material-inventory/types'
 import {
   formatInventoryDateLabel,
@@ -24,14 +26,14 @@ export function RawMaterialInventoryFefoCard({
   unit,
 }: RawMaterialInventoryFefoCardProps) {
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-[24px] border border-blue-100 bg-white p-4 shadow-sm">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h3 className="font-display text-xl font-semibold text-ink">Recommended LOT (FEFO)</h3>
+        <div className="flex items-start gap-3"><div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#0b5ed7]"><ListChecks size={17} /></div><div>
+          <div className="flex flex-wrap items-center gap-2"><h3 className="font-display text-xl font-semibold text-ink">Recommended LOT (FEFO)</h3><span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#063b8c]">Guidance</span></div>
           <p className="mt-1 text-sm text-slate-500">
             FEFO hanya rekomendasi, tidak mengurangi stock otomatis.
           </p>
-        </div>
+        </div></div>
       </div>
 
       {isLoading ? (
@@ -81,7 +83,7 @@ export function RawMaterialInventoryFefoCard({
               </div>
               <div className="flex items-start justify-end">
                 <Button asChild variant="secondary" size="sm">
-                  <Link to={`/lots/${lot.lotId}`}>View LOT</Link>
+                  <Link to={entityLinks.lotDetail(lot.lotId)}>View LOT</Link>
                 </Button>
               </div>
             </div>

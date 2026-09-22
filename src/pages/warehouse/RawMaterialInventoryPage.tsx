@@ -1,9 +1,10 @@
 import { useDeferredValue, useEffect, useState } from 'react'
-import { Boxes, LoaderCircle } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Boxes, CheckCircle2, Layers3, LoaderCircle, PackageSearch } from 'lucide-react'
 import { inventoryApi } from '@/api/inventory.api'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
 import { warehousesApi } from '@/api/warehouses.api'
-import { Card, CardContent } from '@/components/ui/card'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
@@ -28,6 +29,7 @@ import type { RawMaterialListItem } from '@/features/raw-materials/types'
 import type { WarehouseListItem } from '@/features/warehouses/types'
 import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 import type { ApiError } from '@/types/api'
+import { breadcrumbs } from '@/routes/canonicalRoutes'
 
 export function RawMaterialInventoryPage() {
   const [query, setQuery] = useState<InventoryRawMaterialQueryState>(
@@ -119,38 +121,34 @@ export function RawMaterialInventoryPage() {
       query.expiryTo,
   )
 
+  function resetFilters() {
+    setSearchInput('')
+    setQuery(emptyInventoryRawMaterialQuery)
+    setExpandedMaterialId(null)
+  }
+
+  const availableOnPage = items.reduce((total, item) => total + item.availableQuantity, 0)
+  const lotsOnPage = items.reduce((total, item) => total + item.lots.length, 0)
+
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <Boxes size={14} className="text-signal" />
-              Raw Material Inventory
-            </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
-              Lihat total stock raw material tanpa membuka LOT satu per satu
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-paper/68 sm:text-base">
-              Inventory hanya menampilkan agregasi stock dari LOT backend, lengkap dengan
-              breakdown pembentuk total untuk Warehouse dan Admin.
-            </p>
-          </div>
+      <Breadcrumb items={breadcrumbs.inventory()} />
 
-          <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-            <CardContent className="p-5">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">
-                Total Material
-              </div>
-              <div className="mt-2 font-display text-3xl font-semibold text-paper">
-                {pagination.totalItems}
-              </div>
-              <p className="mt-1 text-sm text-paper/60">
-                Inventory page mengikuti aggregate dan pagination backend.
-              </p>
-            </CardContent>
-          </Card>
+      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm sm:px-7">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#063b8c]"><Boxes size={23} /></div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0b5ed7]">Warehouse / Inventory</p>
+              <h1 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">Raw Material Inventory</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Pantau aggregate stock raw material dan buka breakdown LOT saat membutuhkan detail.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 xl:min-w-[470px]">
+            <InventoryMetric icon={<PackageSearch size={16} />} label="Material types" value={pagination.totalItems} note="hasil filter" />
+            <InventoryMetric icon={<CheckCircle2 size={16} />} label="Available on page" value={formatMetricNumber(availableOnPage)} note="page aktif" tone="blue" />
+            <InventoryMetric icon={<Layers3 size={16} />} label="LOTs on page" value={lotsOnPage} note="page aktif" tone="green" />
+          </div>
         </div>
       </section>
 
@@ -162,6 +160,7 @@ export function RawMaterialInventoryPage() {
         materials={materials}
         onSearchInputChange={setSearchInput}
         onQueryChange={(patch) => setQuery((current) => ({ ...current, ...patch }))}
+        onReset={resetFilters}
       />
 
       {lookupError ? (
@@ -204,4 +203,13 @@ export function RawMaterialInventoryPage() {
       ) : null}
     </div>
   )
+}
+
+function formatMetricNumber(value: number) {
+  return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(value)
+}
+
+function InventoryMetric({ icon, label, value, note, tone = 'slate' }: { icon: ReactNode; label: string; value: string | number; note: string; tone?: 'slate' | 'blue' | 'green' }) {
+  const toneClass = tone === 'blue' ? 'border-blue-200 bg-blue-50 text-[#063b8c]' : tone === 'green' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-slate-50 text-ink'
+  return <div className={`rounded-2xl border px-3 py-3 ${toneClass}`}><div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] opacity-70">{icon}{label}</div><p className="mt-1 font-display text-lg font-semibold sm:text-xl">{value}</p><p className="text-[10px] opacity-60">{note}</p></div>
 }

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Boxes, Layers3 } from 'lucide-react'
 import { inventoryApi } from '@/api/inventory.api'
 import { Button } from '@/components/ui/button'
+import { entityLinks } from '@/routes/canonicalRoutes'
 import { RawMaterialInventoryFefoCard } from '@/features/raw-material-inventory/components/RawMaterialInventoryFefoCard'
 import type {
   FefoRecommendation,
@@ -73,15 +75,15 @@ export function RawMaterialInventoryLotBreakdown({
   const visibleLoading = !resolvedWarehouseId || infoMessage ? false : isLoadingFefo
 
   return (
-    <div className="space-y-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
+    <div className="space-y-4 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4 sm:p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 className="font-display text-xl font-semibold text-ink">{item.materialName}</h3>
+        <div className="flex items-start gap-3"><div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#0b5ed7]"><Boxes size={18} /></div><div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0b5ed7]">Material breakdown</p><h3 className="mt-1 font-display text-xl font-semibold text-ink">{item.materialName}</h3>
           <p className="mt-1 text-sm text-slate-500">
-            Total Available {formatInventoryQuantity(item.availableQuantity, item.unit)}
+            {formatInventoryQuantity(item.availableQuantity, item.unit)} available stock
           </p>
-        </div>
-        <div className="text-sm text-slate-500">{item.lots.length} LOT pembentuk total</div>
+        </div></div>
+        <div className="inline-flex items-center gap-1.5 text-sm text-slate-500"><Layers3 size={15} className="text-[#0b5ed7]" />{item.lots.length} LOT pembentuk total</div>
       </div>
 
       <RawMaterialInventoryFefoCard
@@ -138,7 +140,7 @@ function LotCard({
       </div>
       <div className="flex items-start justify-end">
         <Button asChild variant="secondary" size="sm">
-          <Link to={`/lots/${lot.lotId}`}>View LOT</Link>
+          <Link to={entityLinks.lotDetail(lot.lotId)}>View LOT</Link>
         </Button>
       </div>
     </div>
