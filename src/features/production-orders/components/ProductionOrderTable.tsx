@@ -7,6 +7,7 @@ import { ProductionOrderStatusBadge } from '@/features/production-orders/compone
 import type { ProductionOrderListItem } from '@/features/production-orders/types'
 import { formatDateLabel } from '@/features/production-orders/validation'
 import type { MasterDataPagination as PaginationMeta } from '@/features/master-data/types'
+import { entityLinks } from '@/routes/canonicalRoutes'
 
 interface ProductionOrderTableProps {
   items: ProductionOrderListItem[]
@@ -40,7 +41,7 @@ export function ProductionOrderTable({
         ) : null}
       </CardHeader>
       <CardContent className="px-0 pb-0">
-        <div className="overflow-x-auto">
+        <div className="hidden overflow-x-auto md:block">
           <table className="min-w-full border-separate border-spacing-0">
             <thead>
               <tr className="bg-slate-50/80 text-left">
@@ -98,7 +99,7 @@ export function ProductionOrderTable({
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Button asChild variant="secondary" size="sm">
-                        <Link to={`/production/orders/${item.id}`}>
+                        <Link to={entityLinks.productionOrderDetail(item.id)}>
                           {canEdit ? 'Edit Draft' : 'View Detail'}
                         </Link>
                       </Button>
@@ -108,6 +109,49 @@ export function ProductionOrderTable({
               })}
             </tbody>
           </table>
+        </div>
+        <div className="grid gap-3 px-4 pb-4 md:hidden">
+          {items.map((item) => {
+            const isDraft = item.status === 1
+            const isMaterialShortage = item.status === 2
+            const canEdit = (isDraft || isMaterialShortage) && canUpdate
+
+            return (
+              <div key={item.id} className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-mono text-xs uppercase tracking-[0.16em] text-slate-500">
+                      {item.productionOrderNumber}
+                    </div>
+                    <div className="mt-1 font-semibold text-ink">{item.product.name}</div>
+                    <div className="mt-1 text-sm text-slate-500">
+                      {item.recipeVersion.recipeName} v{item.recipeVersion.versionNumber}
+                    </div>
+                  </div>
+                  <ProductionOrderStatusBadge status={item.status} />
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-2xl bg-slate-50 p-3">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Target</div>
+                    <div className="mt-1 font-semibold text-ink">{item.targetOutput} {item.unitOfMeasure.code}</div>
+                  </div>
+                  <div className="rounded-2xl bg-slate-50 p-3">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Schedule</div>
+                    <div className="mt-1 font-semibold text-ink">{formatDateLabel(item.scheduledDate)}</div>
+                  </div>
+                </div>
+                <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600">
+                  <div className="font-semibold text-ink">{item.warehouse.name}</div>
+                  <div className="mt-1">Operator: {item.assignedOperator?.fullName ?? '-'}</div>
+                </div>
+                <Button asChild variant="secondary" className="mt-4 w-full">
+                  <Link to={entityLinks.productionOrderDetail(item.id)}>
+                    {canEdit ? 'Edit Draft' : 'View Detail'}
+                  </Link>
+                </Button>
+              </div>
+            )
+          })}
         </div>
         <MasterDataPagination pagination={pagination} onPageChange={onPageChange} />
       </CardContent>

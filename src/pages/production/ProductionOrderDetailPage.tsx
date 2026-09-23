@@ -12,9 +12,10 @@ import {
   X,
   XCircle,
 } from 'lucide-react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { productionOrdersApi } from '@/api/productionOrders.api'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -41,6 +42,7 @@ import {
   getFieldError,
   type ProductionOrderFormErrors,
   formatDateTimeLabel,
+  getProductionOrderStatusLabel,
 } from '@/features/production-orders/validation'
 import { useAuth } from '@/hooks/useAuth'
 import type { ProductListItem } from '@/features/products/types'
@@ -51,7 +53,6 @@ import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
 
 export function ProductionOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const { can } = useAuth()
 
   const [order, setOrder] = useState<ProductionOrderDetailType | null>(null)
@@ -297,40 +298,33 @@ export function ProductionOrderDetailPage() {
   return (
     <div className="space-y-6">
       <Breadcrumb items={breadcrumbs.productionOrderDetail(order.productionOrderNumber)} />
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <button
-              onClick={() => navigate('/production/orders')}
-              className="mb-4 inline-flex items-center gap-1.5 text-sm text-paper/60 transition-colors hover:text-paper"
-            >
-              <ArrowLeft size={14} />
-              Kembali ke daftar
-            </button>
-            <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <Factory size={14} className="text-signal" />
-              {order.productionOrderNumber}
-            </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
-              {order.product.name}
-            </h1>
-            <p className="mt-3 text-sm leading-7 text-paper/68 sm:text-base">
-              {order.recipeVersion.recipeName} v{order.recipeVersion.versionNumber} &middot;{' '}
-              {order.targetOutput} {order.unitOfMeasure.code}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
+      <Button asChild variant="secondary" className="text-slate-600">
+        <Link to={entityLinks.productionOrderList()}>
+          <ArrowLeft size={16} />
+          Kembali ke daftar
+        </Link>
+      </Button>
+      <ModuleHero
+        eyebrow={order.productionOrderNumber}
+        title={order.product.name}
+        description={`${order.recipeVersion.recipeName} v${order.recipeVersion.versionNumber} - ${order.targetOutput} ${order.unitOfMeasure.code}`}
+        icon={<Factory size={13} className="text-signal" />}
+        metrics={[
+          { label: 'Status', value: getProductionOrderStatusLabel(order.status), sub: 'lifecycle saat ini' },
+          { label: 'Materials', value: order.materialRequirements.length, sub: hasAnyShortage ? 'ada shortage' : 'requirement', tone: hasAnyShortage ? 'default' : 'success' },
+          { label: 'Scaling', value: scalingFactor > 0 ? `${scalingFactor}x` : '-', sub: 'target / standard', tone: 'muted' },
+        ]}
+        actions={
+          <>
             {canEdit && !isEditing ? (
               <Button variant="secondary" onClick={startEdit} className="border-paper/20 bg-paper/10 text-paper hover:bg-paper/20">
-                <Pencil size={14} className="mr-2" />
+                <Pencil size={14} />
                 Edit Draft
               </Button>
             ) : null}
             {canCancel && !isEditing ? (
               <Button variant="secondary" onClick={() => setIsCancelDialogOpen(true)} className="border-rose-400/30 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20">
-                <Trash2 size={14} className="mr-2" />
+                <Trash2 size={14} />
                 Cancel
               </Button>
             ) : null}
@@ -343,9 +337,9 @@ export function ProductionOrderDetailPage() {
                 className="border-paper/20 bg-paper/10 text-paper hover:bg-paper/20"
               >
                 {isCheckingMaterials ? (
-                  <LoaderCircle size={14} className="mr-2 animate-spin" />
+                  <LoaderCircle size={14} className="animate-spin" />
                 ) : (
-                  <ClipboardCheck size={14} className="mr-2" />
+                  <ClipboardCheck size={14} />
                 )}
                 Check Materials
               </Button>
@@ -358,16 +352,32 @@ export function ProductionOrderDetailPage() {
                 className="bg-blue-600 text-white hover:bg-blue-700"
               >
                 {isReleasing ? (
-                  <LoaderCircle size={14} className="mr-2 animate-spin" />
+                  <LoaderCircle size={14} className="animate-spin" />
                 ) : (
-                  <CheckCircle2 size={14} className="mr-2" />
+                  <CheckCircle2 size={14} />
                 )}
                 Release
               </Button>
             ) : null}
+          </>
+        }
+        bottom={
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-paper/10 bg-paper/10 p-2">
+            {[
+              { status: ProductionOrderStatus.Draft, label: 'Draft' },
+              { status: ProductionOrderStatus.MaterialShortage, label: 'Shortage' },
+              { status: ProductionOrderStatus.Ready, label: 'Ready' },
+              { status: ProductionOrderStatus.Released, label: 'Released' },
+              { status: ProductionOrderStatus.Completed, label: 'Completed' },
+            ].map((step) => (
+              <span key={step.status} className={`rounded-full px-3 py-1 text-xs font-semibold ${order.status === step.status ? 'bg-paper text-ink' : 'bg-paper/10 text-paper/65'}`}>
+                {step.label}
+              </span>
+            ))}
+            {order.status === ProductionOrderStatus.Cancelled ? <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">Cancelled</span> : null}
           </div>
-        </div>
-      </section>
+        }
+      />
 
       {error ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -674,7 +684,7 @@ export function ProductionOrderDetailPage() {
                   <CardTitle>Material Requirements</CardTitle>
                 </CardHeader>
                 <CardContent className="px-0 pb-0">
-                  <div className="overflow-x-auto">
+                  <div className="hidden overflow-x-auto md:block">
                     <table className="min-w-full border-separate border-spacing-0">
                       <thead>
                         <tr className="bg-slate-50/80 text-left">
@@ -744,6 +754,60 @@ export function ProductionOrderDetailPage() {
                         })}
                       </tbody>
                     </table>
+                  </div>
+                  <div className="grid gap-3 px-4 pb-4 md:hidden">
+                    {order.materialRequirements.map((req) => {
+                      const shortage = Math.max(0, req.scaledRequiredQuantity - req.availableQuantity)
+                      return (
+                        <div key={req.id} className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="font-semibold text-ink">
+                                {can('lots.view') ? (
+                                  <Link
+                                    to={entityLinks.lotList({ rawMaterialId: req.rawMaterialId })}
+                                    className="underline underline-offset-4 hover:text-ink"
+                                  >
+                                    {req.rawMaterialCode} - {req.rawMaterialName}
+                                  </Link>
+                                ) : (
+                                  <>{req.rawMaterialCode} - {req.rawMaterialName}</>
+                                )}
+                              </div>
+                            </div>
+                            {req.isSufficient ? (
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                                <CheckCircle2 size={12} />
+                                Sufficient
+                              </span>
+                            ) : (
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
+                                <XCircle size={12} />
+                                Shortage
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                            <div className="rounded-2xl bg-slate-50 p-3">
+                              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Recipe Qty</div>
+                              <div className="mt-1 font-semibold text-ink">{req.recipeTargetQuantity} {req.unitOfMeasure.code}</div>
+                            </div>
+                            <div className="rounded-2xl bg-slate-50 p-3">
+                              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Required</div>
+                              <div className="mt-1 font-semibold text-ink">{req.scaledRequiredQuantity} {req.unitOfMeasure.code}</div>
+                            </div>
+                            <div className="rounded-2xl bg-slate-50 p-3">
+                              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Available</div>
+                              <div className="mt-1 font-semibold text-ink">{req.availableQuantity} {req.unitOfMeasure.code}</div>
+                            </div>
+                            <div className="rounded-2xl bg-slate-50 p-3">
+                              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Shortage</div>
+                              <div className={`mt-1 font-semibold ${shortage > 0 ? 'text-rose-600' : 'text-ink'}`}>{shortage > 0 ? `${shortage} ${req.unitOfMeasure.code}` : '-'}</div>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </CardContent>
               </Card>

@@ -1,7 +1,9 @@
-import { useDeferredValue, useEffect, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { Factory } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { productionOrdersApi } from '@/api/productionOrders.api'
-import { Card, CardContent } from '@/components/ui/card'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
@@ -15,6 +17,8 @@ import type {
   ProductionOrderQueryState,
 } from '@/features/production-orders/types'
 import { useAuth } from '@/hooks/useAuth'
+import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
+import { countProductionOrderStatuses } from '@/features/production-orders/validation'
 import type { MasterDataPagination as PaginationMeta } from '@/features/master-data/types'
 import type { ApiError } from '@/types/api'
 
@@ -75,40 +79,28 @@ export function ProductionOrdersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(query)])
 
+  const statusSummary = useMemo(() => countProductionOrderStatuses(items), [items])
+
+  function resetFilters() {
+    setSearchInput('')
+    setQuery(DEFAULT_QUERY)
+  }
+
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <Factory size={14} className="text-signal" />
-              Production Orders
-            </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
-              Kelola Production Order dari draft hingga released
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-paper/68 sm:text-base">
-              Buat, edit, dan pantau production order. Status otomatis berubah berdasarkan
-              ketersediaan material.
-            </p>
-          </div>
-
-          <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-            <CardContent className="p-5">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">
-                Total orders
-              </div>
-              <div className="mt-2 font-display text-3xl font-semibold text-paper">
-                {pagination.totalItems}
-              </div>
-              <p className="mt-1 text-sm text-paper/60">
-                Daftar mengikuti pagination backend secara penuh.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+      <Breadcrumb items={breadcrumbs.productionOrderList()} />
+      <ModuleHero
+        eyebrow="Production • Orders"
+        title="Kelola Production Order dari draft hingga released"
+        description="Buat, edit, pantau ketersediaan material, dan release production order dengan status lifecycle yang mudah dibaca."
+        icon={<Factory size={13} className="text-signal" />}
+        metrics={[
+          { label: 'Total orders', value: pagination.totalItems, sub: 'sesuai filter backend' },
+          { label: 'Ready visible', value: statusSummary.ready, sub: 'di halaman ini', tone: 'success' },
+          { label: 'Shortage visible', value: statusSummary.shortage, sub: 'di halaman ini', tone: statusSummary.shortage > 0 ? 'default' : 'muted' },
+          { label: 'Released visible', value: statusSummary.released, sub: 'di halaman ini', tone: 'muted' },
+        ]}
+      />
 
       <ProductionOrderToolbar
         query={query}
@@ -120,7 +112,10 @@ export function ProductionOrdersPage() {
         onPageSizeChange={(pageSize) =>
           setQuery((current) => ({ ...current, pageSize, page: 1 }))
         }
+        onReset={resetFilters}
         canCreate={can('production-orders.create')}
+        totalItems={pagination.totalItems}
+        visibleItems={items.length}
       />
 
       {isLoading ? (
@@ -132,12 +127,9 @@ export function ProductionOrdersPage() {
           description="Belum ada production order yang cocok dengan filter saat ini."
           action={
             can('production-orders.create') ? (
-              <a
-                href="/production/orders/create"
-                className="inline-flex h-10 items-center justify-center rounded-2xl bg-ink px-5 text-sm font-semibold text-paper shadow-sm shadow-ink/20 transition-all hover:bg-ink/90"
-              >
+              <Link to={entityLinks.productionOrderCreate()} className="inline-flex h-10 items-center justify-center rounded-2xl bg-ink px-5 text-sm font-semibold text-paper shadow-sm shadow-ink/20 transition-all hover:bg-ink/90">
                 Buat production order pertama
-              </a>
+              </Link>
             ) : null
           }
         />

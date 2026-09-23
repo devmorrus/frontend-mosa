@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Factory, LoaderCircle, Save } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { ArrowLeft, Factory, LoaderCircle, Save } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 import { productionOrdersApi } from '@/api/productionOrders.api'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -27,6 +29,7 @@ import type { WarehouseListItem } from '@/features/warehouses/types'
 import type { UserListItem } from '@/features/users/types'
 import type { ApiError } from '@/types/api'
 import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
+import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 
 export function ProductionOrderCreatePage() {
   const navigate = useNavigate()
@@ -185,6 +188,15 @@ export function ProductionOrderCreatePage() {
     }
   }
 
+  const selectedProduct = products.find((product) => product.id === values.productId)
+  const selectedVersion = recipeVersions.find((version) => version.id === values.recipeVersionId)
+  const setupItems = [
+    { label: 'Product dipilih', done: Boolean(values.productId) },
+    { label: 'Approved recipe dipilih', done: Boolean(values.recipeVersionId) },
+    { label: 'Target output valid', done: Number(values.targetOutput) > 0 },
+    { label: 'Warehouse dipilih', done: Boolean(values.warehouseId) },
+  ]
+
   async function handleSubmit() {
     const validationErrors = validateProductionOrderForm(values)
     if (hasFormErrors(validationErrors)) {
@@ -216,28 +228,53 @@ export function ProductionOrderCreatePage() {
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-            <Factory size={14} className="text-signal" />
-            Production Order
-          </div>
-          <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
-            Buat Production Order Baru
-          </h1>
-          <p className="mt-3 max-w-xl text-sm leading-7 text-paper/68 sm:text-base">
-            Pilih product dan approved recipe untuk membuat production order.
-          </p>
-        </div>
-      </section>
+      <Breadcrumb items={breadcrumbs.productionOrderCreate()} />
+      <Button asChild variant="secondary" className="text-slate-600">
+        <Link to={entityLinks.productionOrderList()}>
+          <ArrowLeft size={16} />
+          Back to Orders
+        </Link>
+      </Button>
+      <ModuleHero
+        eyebrow="Production • Create Order"
+        title="Buat Production Order Baru"
+        description="Pilih product, approved recipe, target output, warehouse, dan operator agar order siap dicek material sebelum release."
+        icon={<Factory size={13} className="text-signal" />}
+        metrics={[
+          { label: 'Products', value: products.length, sub: 'lookup aktif' },
+          { label: 'Warehouses', value: warehouses.length, sub: 'lookup aktif', tone: 'muted' },
+          { label: 'Operators', value: users.length, sub: 'opsional', tone: 'muted' },
+        ]}
+      />
 
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.65fr)]">
       <Card className="rounded-[28px] border-white/70 bg-white/85 shadow-sm">
         <CardContent className="p-6 sm:p-8">
           <div className="space-y-6">
             {formError ? (
               <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 {formError}
+              </div>
+            ) : null}
+
+            {selectedProduct || selectedVersion ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {selectedProduct ? (
+                  <div className="rounded-[24px] border border-blue-100 bg-blue-50/70 p-4">
+                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Selected product</div>
+                    <div className="mt-2 font-semibold text-ink">{selectedProduct.name}</div>
+                    <div className="mt-1 font-mono text-xs uppercase tracking-[0.16em] text-slate-500">{selectedProduct.code}</div>
+                  </div>
+                ) : null}
+                {selectedVersion ? (
+                  <div className="rounded-[24px] border border-emerald-100 bg-emerald-50/70 p-4">
+                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Approved recipe</div>
+                    <div className="mt-2 font-semibold text-ink">V{selectedVersion.versionNumber}</div>
+                    <div className="mt-1 text-xs text-slate-500">
+                      Output {selectedVersion.standardOutputQuantity} {selectedVersion.unitOfMeasure.code}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -401,7 +438,7 @@ export function ProductionOrderCreatePage() {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => navigate('/production/orders')}
+                onClick={() => navigate(entityLinks.productionOrderList())}
                 disabled={isSubmitting}
               >
                 Batal
@@ -424,6 +461,28 @@ export function ProductionOrderCreatePage() {
           </div>
         </CardContent>
       </Card>
+      <Card className="rounded-[28px] border-white/70 bg-white/85 shadow-sm">
+        <CardContent className="space-y-5 p-6 sm:p-8">
+          <div>
+            <div className="font-display text-xl font-semibold text-ink">Setup Order</div>
+            <p className="mt-1 text-sm leading-6 text-slate-500">
+              Order disimpan sebagai draft. Jalankan check material dari detail sebelum release.
+            </p>
+          </div>
+          <div className="space-y-3">
+            {setupItems.map((item) => (
+              <div key={item.label} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm">
+                <span className={`h-2.5 w-2.5 rounded-full ${item.done ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                <span className={item.done ? 'font-medium text-ink' : 'text-slate-500'}>{item.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-2xl bg-sand/35 p-4 text-sm leading-6 text-slate-600">
+            Target output akan digunakan backend untuk menghitung scaling material requirement berdasarkan approved recipe.
+          </div>
+        </CardContent>
+      </Card>
+      </div>
     </div>
   )
 }

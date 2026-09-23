@@ -65,6 +65,7 @@ export const entityLinks = {
   productionOrderDetail: (id: string) => `${canonicalRoutes.productionOrders}/${id}`,
   productionOrderList: (query?: Record<string, string | number | undefined>) =>
     withQuery(canonicalRoutes.productionOrders, query),
+  productionOrderCreate: () => `${canonicalRoutes.productionOrders}/create`,
   recipeDetail: (id: string) => `${canonicalRoutes.recipes}/${id}`,
   recipeList: (query?: Record<string, string | number | undefined>) =>
     withQuery(canonicalRoutes.recipes, query),
@@ -169,6 +170,11 @@ export const breadcrumbs = {
   productionOrderList: (): BreadcrumbItem[] => [
     { label: 'Dashboard', to: canonicalRoutes.dashboard },
     { label: 'Production Orders' },
+  ],
+  productionOrderCreate: (): BreadcrumbItem[] => [
+    { label: 'Dashboard', to: canonicalRoutes.dashboard },
+    { label: 'Production Orders', to: canonicalRoutes.productionOrders },
+    { label: 'Create' },
   ],
   productionOrderDetail: (number: string): BreadcrumbItem[] => [
     { label: 'Dashboard', to: canonicalRoutes.dashboard },

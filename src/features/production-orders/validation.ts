@@ -1,4 +1,4 @@
-import type { ProductionOrderFormValues } from '@/features/production-orders/types'
+import type { ProductionOrderFormValues, ProductionOrderQueryState } from '@/features/production-orders/types'
 import type { ProductionOrderStatus } from '@/features/production-orders/types'
 
 export const emptyProductionOrderFormValues: ProductionOrderFormValues = {
@@ -102,6 +102,24 @@ const STATUS_FILTER_LABELS: Record<string, string> = {
 
 export function getProductionOrderStatusFilterLabel(filter: string): string {
   return STATUS_FILTER_LABELS[filter] ?? filter
+}
+
+export function hasActiveProductionOrderFilters(query: ProductionOrderQueryState): boolean {
+  return Boolean(query.search || query.status !== 'ALL')
+}
+
+export function countProductionOrderStatuses(items: Array<{ status: ProductionOrderStatus }>) {
+  return items.reduce(
+    (summary, item) => {
+      if (item.status === 1) summary.draft += 1
+      else if (item.status === 2) summary.shortage += 1
+      else if (item.status === 3) summary.ready += 1
+      else if (item.status === 5) summary.released += 1
+      else if (item.status === 8) summary.completed += 1
+      return summary
+    },
+    { draft: 0, shortage: 0, ready: 0, released: 0, completed: 0 },
+  )
 }
 
 export function formatDateLabel(dateString: string | null): string {
