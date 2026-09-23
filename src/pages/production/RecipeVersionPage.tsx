@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Calculator,
   Eye,
@@ -132,6 +132,11 @@ export function RecipeVersionPage() {
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false)
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false)
   const [decisionError, setDecisionError] = useState<string | null>(null)
+  // Re-entry guard: Save Builder fires ~1 + K + 1 sequential PUTs. A second
+  // click before React re-renders the disabled button (or an impatient retry
+  // while the first run is still in flight) interleaves two runs against the
+  // same version and the loser fails with 409 concurrency_conflict.
+  const persistInFlight = useRef(false)
 
   const isEditable = Boolean(version && canUpdate && isRecipeVersionEditable(version.status))
   const isReadOnly = Boolean(version && isReadOnlyRecipeVersion(version.status))
@@ -192,6 +197,10 @@ export function RecipeVersionPage() {
       return null
     }
 
+    if (persistInFlight.current) {
+      return null
+    }
+    persistInFlight.current = true
     setIsSaving(true)
 
     try {
@@ -273,8 +282,20 @@ export function RecipeVersionPage() {
       const apiError = caughtError as ApiError
       setBuilderError(apiError.message)
       setBuilderErrors(apiError.errors ?? {})
+      // A failed run may have partially committed (earlier PUTs succeed before
+      // the failing one). Resync the base version so the next save computes
+      // deletes/updates against fresh server state. User form edits are kept.
+      try {
+        if (versionId) {
+          const fresh = await recipesApi.getVersionById(versionId)
+          setVersion(fresh)
+        }
+      } catch {
+        // Keep showing the original save error if resync also fails.
+      }
       return null
     } finally {
+      persistInFlight.current = false
       setIsSaving(false)
       setIsSubmittingApproval(false)
     }
