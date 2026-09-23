@@ -94,9 +94,9 @@ export const emptyReportQuery: ReportQuery = {
 }
 
 export const reportsApi = {
-  list: (code: ReportCode, query: ReportQuery) =>
+  list: (code: ReportCode, query: ReportQuery, signal?: AbortSignal) =>
     apiClient
-      .get<ApiPaginatedResponse<ReportRow>>(`/reports/${code}`, { params: buildParams(query) })
+      .get<ApiPaginatedResponse<ReportRow>>(`/reports/${code}`, { params: buildParams(query), signal })
       .then((response) => response.data),
 
   export: async (code: ReportCode, query: ReportQuery, format: 'xlsx' | 'csv') => {

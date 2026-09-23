@@ -115,6 +115,20 @@ async function refreshAccessToken(): Promise<RefreshResponse> {
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
+    // Aborted / superseded requests (e.g. user switches report cards fast,
+    // React StrictMode double-mount) have no response. They are not network
+    // failures, so never toast, refresh, or redirect for them. Reject with
+    // the original error so callers can detect cancellation via
+    // code === 'ERR_CANCELED' / name === 'CanceledError'.
+    if (
+      axios.isCancel?.(error) ||
+      error.code === 'ERR_CANCELED' ||
+      error.name === 'CanceledError' ||
+      error.config?.signal?.aborted
+    ) {
+      return Promise.reject(error)
+    }
+
     const apiError = normalizeError(error)
     const skipAuthRedirect = error.config?.skipAuthRedirect
     const skipForbiddenRedirect = error.config?.skipForbiddenRedirect

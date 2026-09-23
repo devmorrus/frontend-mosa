@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   BarChart3,
@@ -77,6 +77,10 @@ function valueText(value: unknown) {
   return String(value)
 }
 
+function isRequestCanceled(error: unknown) {
+  return typeof error === 'object' && error !== null && (('code' in error && error.code === 'ERR_CANCELED') || ('name' in error && error.name === 'CanceledError'))
+}
+
 function downloadBlob(blob: Blob, fileName: string) {
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
@@ -103,6 +107,8 @@ export function ReportsPage() {
   const [materials, setMaterials] = useState<RawMaterialListItem[]>([])
   const [products, setProducts] = useState<ProductListItem[]>([])
   const [suppliers, setSuppliers] = useState<SupplierListItem[]>([])
+  const latestReportRequest = useRef(0)
+  const reportAbortController = useRef<AbortController | null>(null)
 
   const activeReport = REPORTS.find((report) => report.code === activeCode) ?? REPORTS[0]
 
@@ -123,24 +129,35 @@ export function ReportsPage() {
     ]).catch(() => undefined)
   }, [])
 
-  async function loadReport(nextQuery = query) {
+  async function loadReport(nextQuery = query, reportCode = activeCode) {
+    const requestId = latestReportRequest.current + 1
+    latestReportRequest.current = requestId
+    reportAbortController.current?.abort()
+    const abortController = new AbortController()
+    reportAbortController.current = abortController
     setIsLoading(true)
     setError(null)
     try {
-      const result = await reportsApi.list(activeReport.code, nextQuery)
+      const result = await reportsApi.list(reportCode, nextQuery, abortController.signal)
+      if (latestReportRequest.current !== requestId) return
       setItems(result.items)
       setPagination(result.pagination)
       setLoadedAt(new Date().toLocaleString('id-ID'))
     } catch (caughtError) {
+      if (latestReportRequest.current !== requestId) return
+      if (isRequestCanceled(caughtError)) return
       const apiError = caughtError as ApiError
       setError(apiError.message)
     } finally {
-      setIsLoading(false)
+      if (reportAbortController.current === abortController) reportAbortController.current = null
+      if (latestReportRequest.current === requestId) setIsLoading(false)
     }
   }
 
   useEffect(() => {
-    void loadReport({ ...emptyReportQuery, page: 1 })
+    const resetQuery = { ...emptyReportQuery, page: 1 }
+    setQuery(resetQuery)
+    void loadReport(resetQuery, activeCode)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCode])
 
