@@ -66,8 +66,14 @@ export const entityLinks = {
   productionOrderList: (query?: Record<string, string | number | undefined>) =>
     withQuery(canonicalRoutes.productionOrders, query),
   recipeDetail: (id: string) => `${canonicalRoutes.recipes}/${id}`,
+  recipeList: (query?: Record<string, string | number | undefined>) =>
+    withQuery(canonicalRoutes.recipes, query),
+  recipeCreate: () => `${canonicalRoutes.recipes}/create`,
+  recipeApprovalQueue: () => `${canonicalRoutes.recipes}/approval-queue`,
   recipeVersionDetail: (recipeId: string, versionId: string) =>
     `${canonicalRoutes.recipes}/${recipeId}/versions/${versionId}`,
+  recipeTutorial: (recipeId: string, versionId: string) =>
+    `${canonicalRoutes.recipes}/${recipeId}/versions/${versionId}/tutorial`,
   finishedGoodsLotDetail: (id: string) => `/production/finished-goods-lots/${id}`,
   deviationDetail: (id: string) => `${canonicalRoutes.deviations}/${id}`,
   qcInspection: (fgLotId: string) => `${canonicalRoutes.qualityControl}/${fgLotId}`,
@@ -168,6 +174,37 @@ export const breadcrumbs = {
     { label: 'Dashboard', to: canonicalRoutes.dashboard },
     { label: 'Production Orders', to: canonicalRoutes.productionOrders },
     { label: number },
+  ],
+  recipeList: (): BreadcrumbItem[] => [
+    { label: 'Dashboard', to: canonicalRoutes.dashboard },
+    { label: 'Recipes' },
+  ],
+  recipeCreate: (): BreadcrumbItem[] => [
+    { label: 'Dashboard', to: canonicalRoutes.dashboard },
+    { label: 'Recipes', to: canonicalRoutes.recipes },
+    { label: 'Create' },
+  ],
+  recipeDetail: (name: string): BreadcrumbItem[] => [
+    { label: 'Dashboard', to: canonicalRoutes.dashboard },
+    { label: 'Recipes', to: canonicalRoutes.recipes },
+    { label: name },
+  ],
+  recipeVersionDetail: (recipeName: string, versionNumber: number): BreadcrumbItem[] => [
+    { label: 'Dashboard', to: canonicalRoutes.dashboard },
+    { label: 'Recipes', to: canonicalRoutes.recipes },
+    { label: recipeName },
+    { label: `V${versionNumber}` },
+  ],
+  recipeApprovalQueue: (): BreadcrumbItem[] => [
+    { label: 'Dashboard', to: canonicalRoutes.dashboard },
+    { label: 'Recipes', to: canonicalRoutes.recipes },
+    { label: 'Approval Queue' },
+  ],
+  recipeTutorial: (recipeName: string, versionNumber: number): BreadcrumbItem[] => [
+    { label: 'Dashboard', to: canonicalRoutes.dashboard },
+    { label: 'Recipes', to: canonicalRoutes.recipes },
+    { label: recipeName },
+    { label: `V${versionNumber} Tutorial` },
   ],
   deviationList: (): BreadcrumbItem[] => [
     { label: 'Dashboard', to: canonicalRoutes.dashboard },

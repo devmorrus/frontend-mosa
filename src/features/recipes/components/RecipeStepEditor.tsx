@@ -44,6 +44,31 @@ function stepTypeLabel(stepType: RecipeStepType) {
   }
 }
 
+function stepToneClass(stepType: RecipeStepType) {
+  if (stepType === RecipeStepType.Material) return 'border-blue-100 bg-blue-50 text-blue-700'
+  if (stepType === RecipeStepType.Timer) return 'border-amber-100 bg-amber-50 text-amber-700'
+  if (stepType === RecipeStepType.Check) return 'border-emerald-100 bg-emerald-50 text-emerald-700'
+  return 'border-slate-200 bg-slate-100 text-slate-600'
+}
+
+function stepSummary(step: RecipeStepFormValues, material?: RawMaterialListItem) {
+  if (step.stepType === RecipeStepType.Material) {
+    return material
+      ? `${material.code} - ${material.name}${step.targetQuantity ? ` • ${step.targetQuantity}` : ''}`
+      : 'Pilih material dan target quantity.'
+  }
+
+  if (step.stepType === RecipeStepType.Timer) {
+    return step.timerSeconds ? `${step.timerSeconds} seconds` : 'Isi instruksi dan timer produksi.'
+  }
+
+  if (step.stepType === RecipeStepType.Check) {
+    return `${step.checkItems.filter(Boolean).length} checklist item terisi.`
+  }
+
+  return step.instruction || 'Isi instruksi proses produksi.'
+}
+
 export function RecipeStepEditor({
   steps,
   errors,
@@ -69,21 +94,31 @@ export function RecipeStepEditor({
 
   return (
     <div className="space-y-4">
+      {readOnly ? (
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
+          Version ini read-only karena lifecycle approval sudah mengunci perubahan step.
+        </div>
+      ) : null}
       {steps.map((step, index) => {
         const selectedMaterial = rawMaterials.find((item) => item.id === step.rawMaterialId)
 
         return (
-          <div key={step.id} className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4 sm:p-5">
+          <div key={step.id} className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3" data-tour="recipe-step-sequence">
-                <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-400">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-400">
                   <GripVertical size={16} />
                 </div>
                 <div>
                   <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                     Step {index + 1}
                   </div>
-                  <div className="mt-1 font-semibold text-ink">{stepTypeLabel(step.stepType)}</div>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${stepToneClass(step.stepType)}`}>
+                      {stepTypeLabel(step.stepType)}
+                    </span>
+                    <span className="text-sm text-slate-500">{stepSummary(step, selectedMaterial)}</span>
+                  </div>
                 </div>
               </div>
 
@@ -155,11 +190,11 @@ export function RecipeStepEditor({
               </div>
             </div>
 
-            <div className="mt-4 grid gap-4" data-tour="recipe-material-step-fields">
+            <div className="mt-5 grid gap-4 rounded-[20px] border border-slate-100 bg-slate-50/70 p-4" data-tour="recipe-material-step-fields">
               {step.stepType === RecipeStepType.Material ? (
                 <>
                   <div className="grid gap-4 lg:grid-cols-2">
-                    <div>
+                    <div className="rounded-[22px] border border-slate-200 bg-white p-4">
                       <label className="mb-2 block text-sm font-semibold text-ink">Raw Material</label>
                       <select
                         value={step.rawMaterialId}
@@ -184,7 +219,7 @@ export function RecipeStepEditor({
                       <MasterDataFormFieldError message={getFieldError(errors, `steps.${index}.rawMaterialId`)} />
                     </div>
 
-                    <div>
+                    <div className="rounded-[22px] border border-slate-200 bg-white p-4">
                       <label className="mb-2 block text-sm font-semibold text-ink">UOM Material</label>
                       <select
                         value={step.unitOfMeasureId}
@@ -310,17 +345,59 @@ export function RecipeStepEditor({
                     </div>
                   ) : (
                     step.stepType === RecipeStepType.Check ? (
-                      <div className="rounded-[24px] border border-dashed border-slate-200 bg-white/70 p-4">
-                        <div className="mb-3 text-sm font-semibold text-ink">Checklist pemeriksaan</div>
+                      <div className="rounded-[24px] border border-dashed border-slate-200 bg-white/80 p-4">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <div className="text-sm font-semibold text-ink">Checklist pemeriksaan</div>
+                          <div className="text-xs text-slate-500">{step.checkItems.length}/20</div>
+                        </div>
                         <div className="space-y-2">
                           {step.checkItems.map((item, itemIndex) => (
                             <div key={`${step.id}-${itemIndex}`} className="flex gap-2">
-                              <Input value={item} disabled={readOnly} placeholder="Contoh: Warna campuran merata" onChange={(event) => updateStep(index, (current) => ({ ...current, checkItems: current.checkItems.map((value, valueIndex) => valueIndex === itemIndex ? event.target.value : value) }))} />
-                              <Button type="button" variant="secondary" size="icon" disabled={readOnly} onClick={() => updateStep(index, (current) => ({ ...current, checkItems: current.checkItems.filter((_, valueIndex) => valueIndex !== itemIndex) }))}><Trash2 size={16} /></Button>
+                              <Input
+                                value={item}
+                                disabled={readOnly}
+                                placeholder="Contoh: Warna campuran merata"
+                                onChange={(event) =>
+                                  updateStep(index, (current) => ({
+                                    ...current,
+                                    checkItems: current.checkItems.map((value, valueIndex) =>
+                                      valueIndex === itemIndex ? event.target.value : value,
+                                    ),
+                                  }))
+                                }
+                                aria-label={`Checklist item ${itemIndex + 1}`}
+                              />
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="icon"
+                                disabled={readOnly}
+                                onClick={() =>
+                                  updateStep(index, (current) => ({
+                                    ...current,
+                                    checkItems: current.checkItems.filter((_, valueIndex) => valueIndex !== itemIndex),
+                                  }))
+                                }
+                                aria-label={`Remove checklist item ${itemIndex + 1}`}
+                              >
+                                <Trash2 size={16} />
+                              </Button>
                             </div>
                           ))}
                         </div>
-                        <Button type="button" variant="secondary" size="sm" disabled={readOnly || step.checkItems.length >= 20} className="mt-3" onClick={() => updateStep(index, (current) => ({ ...current, checkItems: [...current.checkItems, ''] }))}><Plus size={15} />Tambah checklist</Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          disabled={readOnly || step.checkItems.length >= 20}
+                          className="mt-3"
+                          onClick={() =>
+                            updateStep(index, (current) => ({ ...current, checkItems: [...current.checkItems, ''] }))
+                          }
+                        >
+                          <Plus size={15} />
+                          Tambah checklist
+                        </Button>
                         <MasterDataFormFieldError message={getFieldError(errors, `steps.${index}.checkItems`)} />
                       </div>
                     ) : <div className="rounded-[24px] border border-dashed border-slate-200 bg-white/70 p-4 text-sm leading-6 text-slate-500">Step tipe ini tidak membutuhkan quantity material.</div>

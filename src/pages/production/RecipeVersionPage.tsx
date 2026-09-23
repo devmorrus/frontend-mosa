@@ -13,6 +13,8 @@ import { Link, useParams } from 'react-router-dom'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
 import { recipesApi } from '@/api/recipes.api'
 import { unitOfMeasuresApi } from '@/api/unitOfMeasures.api'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -22,7 +24,6 @@ import {
 } from '@/features/master-data/components/MasterDataStates'
 import { hasFormErrors } from '@/features/master-data/utils'
 import { RecipeApprovalDecisionDialog } from '@/features/recipes/components/RecipeApprovalDecisionDialog'
-import { RecipeStatusBadge } from '@/features/recipes/components/RecipeStatusBadge'
 import { RecipeStepEditor } from '@/features/recipes/components/RecipeStepEditor'
 import {
   RecipeLifecycleStatus,
@@ -37,7 +38,9 @@ import {
   formatQuantity,
   formatRecipeDate,
   formatToleranceLabel,
+  countRecipeStepTypes,
   getRecipeStepTypeLabel,
+  getRecipeStatusLabel,
   isReadOnlyRecipeVersion,
   isRecipeVersionEditable,
   moveRecipeStep,
@@ -54,6 +57,7 @@ import type { UnitOfMeasureOption } from '@/features/unit-of-measures/types'
 import { useAuth } from '@/hooks/useAuth'
 import { useUiStore } from '@/stores/uiStore'
 import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
+import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 
 function buildUnitLabel(option: UnitOfMeasureOption) {
   return option.symbol ? `${option.name} (${option.symbol})` : `${option.name} (${option.code})`
@@ -132,6 +136,7 @@ export function RecipeVersionPage() {
   const isEditable = Boolean(version && canUpdate && isRecipeVersionEditable(version.status))
   const isReadOnly = Boolean(version && isReadOnlyRecipeVersion(version.status))
   const isPendingApproval = version?.status === RecipeLifecycleStatus.PendingApproval
+  const stepSummary = useMemo(() => countRecipeStepTypes(stepValues), [stepValues])
 
   useEffect(() => {
     if (!versionId) return
@@ -351,31 +356,46 @@ export function RecipeVersionPage() {
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <Eye size={14} className="text-signal" />
-              Recipe Builder
-            </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
-              {version.recipeName} • V{version.versionNumber}
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-paper/68 sm:text-base">
-              Builder hanya editable untuk status draft atau needs revision. Pending approval,
-              approved, dan historical tetap terlihat jelas sebagai read-only state.
-            </p>
+      <Breadcrumb items={breadcrumbs.recipeVersionDetail(version.recipeName, version.versionNumber)} />
+      <Button asChild variant="secondary" className="text-slate-600">
+        <Link to={entityLinks.recipeDetail(recipeId)}>Back to Recipe</Link>
+      </Button>
+      <ModuleHero
+        eyebrow="Production • Recipe Builder"
+        title={`${version.recipeName} - V${version.versionNumber}`}
+        description="Builder editable hanya untuk Draft atau Needs Revision. Pending Approval, Approved, dan Historical tetap ditampilkan sebagai review read-only yang aman."
+        icon={<Eye size={13} className="text-signal" />}
+        metrics={[
+          { label: 'Status', value: getRecipeStatusLabel(version.status), sub: 'lifecycle saat ini' },
+          { label: 'Steps', value: version.steps.length, sub: 'sequence tersimpan', tone: 'muted' },
+          {
+            label: 'Output',
+            value: formatQuantity(version.standardOutputQuantity, version.unitOfMeasure.symbol ?? version.unitOfMeasure.code),
+            sub: 'standard output',
+            tone: 'muted',
+          },
+        ]}
+        bottom={
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-paper/10 bg-paper/10 p-2">
+            {[
+              { status: RecipeLifecycleStatus.Draft, label: 'Draft' },
+              { status: RecipeLifecycleStatus.PendingApproval, label: 'Pending Approval' },
+              { status: RecipeLifecycleStatus.Approved, label: 'Approved' },
+              { status: RecipeLifecycleStatus.Historical, label: 'Historical' },
+            ].map((step) => (
+              <span
+                key={step.status}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${version.status === step.status ? 'bg-paper text-ink' : 'bg-paper/10 text-paper/65'}`}
+              >
+                {step.label}
+              </span>
+            ))}
+            {version.status === RecipeLifecycleStatus.NeedsRevision ? (
+              <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-800">Needs Revision</span>
+            ) : null}
           </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <RecipeStatusBadge status={version.status} />
-            <Button asChild variant="ghost">
-              <Link to={`/production/recipes/${recipeId}`}>Back to Recipe</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+        }
+      />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)]">
         <Card>
@@ -506,7 +526,25 @@ export function RecipeVersionPage() {
             Sequence dikelola secara visual dengan move up dan move down agar operasional tetap jelas di production floor.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-5">
+          <div className="grid gap-3 sm:grid-cols-4">
+            <div className="rounded-2xl bg-blue-50 p-4 text-sm">
+              <div className="text-xs font-semibold uppercase tracking-wide text-blue-700">Material</div>
+              <div className="mt-1 text-2xl font-semibold text-ink">{stepSummary.material}</div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4 text-sm">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Process</div>
+              <div className="mt-1 text-2xl font-semibold text-ink">{stepSummary.process}</div>
+            </div>
+            <div className="rounded-2xl bg-amber-50 p-4 text-sm">
+              <div className="text-xs font-semibold uppercase tracking-wide text-amber-700">Timer</div>
+              <div className="mt-1 text-2xl font-semibold text-ink">{stepSummary.timer}</div>
+            </div>
+            <div className="rounded-2xl bg-emerald-50 p-4 text-sm">
+              <div className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Check</div>
+              <div className="mt-1 text-2xl font-semibold text-ink">{stepSummary.check}</div>
+            </div>
+          </div>
           <RecipeStepEditor
             steps={stepValues}
             errors={builderErrors}

@@ -2,6 +2,8 @@ import { useDeferredValue, useEffect, useState } from 'react'
 import { CheckCircle2, ClipboardCheck, Eye, LoaderCircle, ShieldX } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { recipesApi } from '@/api/recipes.api'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -14,9 +16,10 @@ import {
 import { RecipeApprovalDecisionDialog } from '@/features/recipes/components/RecipeApprovalDecisionDialog'
 import { RecipeStatusBadge } from '@/features/recipes/components/RecipeStatusBadge'
 import type { RecipeApprovalQueueItem, RecipeApprovalQueueQueryState } from '@/features/recipes/types'
-import { RECIPE_PAGE_SIZE_OPTIONS, formatQuantity, formatRecipeDate } from '@/features/recipes/utils'
+import { RECIPE_PAGE_SIZE_OPTIONS, formatQuantity, formatRecipeDate, hasActiveRecipeApprovalFilters } from '@/features/recipes/utils'
 import type { ApiError } from '@/types/api'
 import { useUiStore } from '@/stores/uiStore'
+import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 
 const DEFAULT_QUERY: RecipeApprovalQueueQueryState = {
   search: '',
@@ -125,6 +128,13 @@ export function RecipeApprovalQueuePage() {
     }
   }
 
+  const hasActiveFilters = hasActiveRecipeApprovalFilters(query)
+
+  function resetFilters() {
+    setSearchInput('')
+    setQuery(DEFAULT_QUERY)
+  }
+
   if (isLoading) {
     return <MasterDataLoadingState description="Approval queue sedang dimuat dari backend." />
   }
@@ -135,53 +145,64 @@ export function RecipeApprovalQueuePage() {
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <ClipboardCheck size={14} className="text-signal" />
-              Supervisor Approval Queue
-            </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
-              Review recipe version yang menunggu keputusan approval
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-paper/68 sm:text-base">
-              Queue ini hanya menampilkan version berstatus pending approval sehingga supervisor bisa membuka,
-              approve, atau reject tanpa mencari manual dari recipe list.
+      <Breadcrumb items={breadcrumbs.recipeApprovalQueue()} />
+      <ModuleHero
+        eyebrow="Production • Approval"
+        title="Review recipe version yang menunggu keputusan supervisor"
+        description="Queue ini hanya menampilkan version pending approval sehingga supervisor bisa review, approve, atau reject tanpa mencari manual dari recipe list."
+        icon={<ClipboardCheck size={13} className="text-signal" />}
+        metrics={[
+          { label: 'Pending', value: pagination.totalItems, sub: 'sesuai filter backend' },
+          { label: 'Visible', value: items.length, sub: 'di halaman ini', tone: 'muted' },
+          { label: 'Page', value: `${pagination.page}/${pagination.totalPages || 1}`, sub: 'pagination backend', tone: 'muted' },
+        ]}
+        actions={
+          <Button asChild variant="secondary" className="border-paper/10 bg-paper/10 text-paper hover:bg-paper/15">
+            <Link to={entityLinks.recipeList()}>Back to Recipes</Link>
+          </Button>
+        }
+      />
+
+      <div className="grid gap-4 rounded-[28px] border border-white/70 bg-white/85 p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="font-display text-xl font-semibold text-ink">Filter Approval</div>
+            <p className="mt-1 text-sm text-slate-500">
+              Menampilkan {items.length} approval dari {pagination.totalItems} pending.
             </p>
           </div>
-
-          <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-            <CardContent className="p-5">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">Pending approvals</div>
-              <div className="mt-2 font-display text-3xl font-semibold text-paper">{pagination.totalItems}</div>
-              <p className="mt-1 text-sm text-paper/60">Queue memakai pagination backend.</p>
-            </CardContent>
-          </Card>
+          <Button type="button" variant="secondary" onClick={resetFilters} disabled={!hasActiveFilters}>
+            Reset Search
+          </Button>
         </div>
-      </section>
-
-      <div className="grid gap-3 rounded-[28px] border border-white/70 bg-white/85 p-4 shadow-sm sm:p-5 lg:grid-cols-[minmax(0,1fr)_200px]">
-        <Input
-          value={searchInput}
-          onChange={(event) => setSearchInput(event.target.value)}
-          placeholder="Cari recipe name, product code, atau product name"
-          className="h-12 rounded-2xl"
-        />
-        <select
-          value={query.pageSize}
-          onChange={(event) =>
-            setQuery((current) => ({ ...current, pageSize: Number(event.target.value), page: 1 }))
-          }
-          className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
-        >
-          {RECIPE_PAGE_SIZE_OPTIONS.map((value) => (
-            <option key={value} value={value}>
-              {value} / halaman
-            </option>
-          ))}
-        </select>
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_200px]">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-ink">Search</label>
+            <Input
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="Cari recipe name, product code, atau product name"
+              className="h-12 rounded-2xl"
+            />
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-ink">Page size</label>
+            <select
+              value={query.pageSize}
+              onChange={(event) =>
+                setQuery((current) => ({ ...current, pageSize: Number(event.target.value), page: 1 }))
+              }
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
+            >
+              {RECIPE_PAGE_SIZE_OPTIONS.map((value) => (
+                <option key={value} value={value}>
+                  {value} / halaman
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        {query.search ? <div className="text-xs text-slate-500">Search aktif: {query.search}</div> : null}
       </div>
 
       {items.length === 0 ? (
@@ -203,7 +224,7 @@ export function RecipeApprovalQueuePage() {
             ) : null}
           </CardHeader>
           <CardContent className="px-0 pb-0">
-            <div className="overflow-x-auto">
+            <div className="hidden overflow-x-auto md:block">
               <table className="min-w-full border-separate border-spacing-0">
                 <thead>
                   <tr className="border-y border-slate-200/80 bg-slate-50/80 text-left">
@@ -242,7 +263,7 @@ export function RecipeApprovalQueuePage() {
                       <td className="px-6 py-4 align-top">
                         <div className="flex flex-wrap justify-end gap-2">
                           <Button asChild variant="secondary" size="sm">
-                            <Link to={`/production/recipes/${item.recipeId}/versions/${item.recipeVersionId}`}>
+                            <Link to={entityLinks.recipeVersionDetail(item.recipeId, item.recipeVersionId)}>
                               <Eye size={15} />
                               Review
                             </Link>
@@ -261,6 +282,62 @@ export function RecipeApprovalQueuePage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="grid gap-3 px-4 pb-4 md:hidden">
+              {items.map((item) => (
+                <div key={item.recipeVersionId} className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-ink">{item.recipeName}</div>
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-500">
+                          V{item.versionNumber}
+                        </span>
+                        <RecipeStatusBadge status={item.status} />
+                      </div>
+                    </div>
+                    <div className="text-right text-xs text-slate-500">
+                      {item.submittedAtUtc ? formatRecipeDate(item.submittedAtUtc) : '-'}
+                    </div>
+                  </div>
+                  <div className="mt-4 rounded-2xl bg-slate-50 p-3">
+                    <div className="font-semibold text-ink">{item.product.name}</div>
+                    <div className="mt-1 font-mono text-xs uppercase tracking-[0.16em] text-slate-500">
+                      {item.product.code}
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-2xl bg-slate-50 p-3">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Submitted By</div>
+                      <div className="mt-1 font-semibold text-ink">{item.submittedBy ?? '-'}</div>
+                    </div>
+                    <div className="rounded-2xl bg-slate-50 p-3">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Output</div>
+                      <div className="mt-1 font-semibold text-ink">
+                        {formatQuantity(item.standardOutputQuantity, item.unitOfMeasure.symbol ?? item.unitOfMeasure.code)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-2">
+                    <Button asChild variant="secondary">
+                      <Link to={entityLinks.recipeVersionDetail(item.recipeId, item.recipeVersionId)}>
+                        <Eye size={15} />
+                        Review
+                      </Link>
+                    </Button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button data-tour="recipe-approve-btn" onClick={() => setApproveTarget(item)}>
+                        <CheckCircle2 size={15} />
+                        Approve
+                      </Button>
+                      <Button variant="secondary" onClick={() => setRejectTarget(item)}>
+                        <ShieldX size={15} />
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
             <MasterDataPagination
               pagination={pagination}

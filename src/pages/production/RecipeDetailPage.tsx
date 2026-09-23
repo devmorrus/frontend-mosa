@@ -3,6 +3,8 @@ import { ArrowRight, Factory, Layers3, LoaderCircle, Plus } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { recipesApi } from '@/api/recipes.api'
 import { unitOfMeasuresApi } from '@/api/unitOfMeasures.api'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -27,6 +29,7 @@ import {
   validateRecipeVersionCreateForm,
 } from '@/features/recipes/validation'
 import { useAuth } from '@/hooks/useAuth'
+import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 import type { ApiError } from '@/types/api'
 import type { UnitOfMeasureOption } from '@/features/unit-of-measures/types'
 import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
@@ -155,45 +158,23 @@ export function RecipeDetailPage() {
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <Factory size={14} className="text-signal" />
-              Recipe Detail
-            </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
-              {recipe.name}
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-paper/68 sm:text-base">
-              Product {recipe.product.code} - {recipe.product.name}. Buka setiap version secara read-only
-              atau buat version baru tanpa menyentuh approved version yang sudah terkunci.
-            </p>
+      <Breadcrumb items={breadcrumbs.recipeDetail(recipe.name)} />
+      <ModuleHero
+        eyebrow="Production • Recipe Detail"
+        title={recipe.name}
+        description={`Product ${recipe.product.code} - ${recipe.product.name}. Buka setiap version secara read-only atau buat version baru tanpa menyentuh approved version yang sudah terkunci.`}
+        icon={<Factory size={13} className="text-signal" />}
+        metrics={[
+          { label: 'Current', value: recipe.currentVersion ? `V${recipe.currentVersion.versionNumber}` : '-', sub: 'active version' },
+          { label: 'Approved visible', value: approvedCount, sub: 'di halaman ini', tone: 'success' },
+          { label: 'Versions', value: pagination.totalItems, sub: 'sesuai filter', tone: 'muted' },
+        ]}
+        bottom={
+          <div className="inline-flex rounded-full border border-paper/10 bg-paper/10 px-3 py-2">
+            <RecipeStatusBadge status={recipe.currentVersion?.status ?? recipe.status} />
           </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-              <CardContent className="p-5">
-                <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">Current version</div>
-                <div className="mt-2 font-display text-3xl font-semibold text-paper">
-                  {recipe.currentVersion ? `V${recipe.currentVersion.versionNumber}` : '-'}
-                </div>
-                <div className="mt-2">
-                  <RecipeStatusBadge status={recipe.currentVersion?.status ?? recipe.status} />
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-              <CardContent className="p-5">
-                <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">Approved in page</div>
-                <div className="mt-2 font-display text-3xl font-semibold text-paper">{approvedCount}</div>
-                <p className="mt-1 text-sm text-paper/60">Historical version tetap dapat dibuka read-only.</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+        }
+      />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.9fr)]">
         <Card>
@@ -229,18 +210,18 @@ export function RecipeDetailPage() {
                   <div className="flex flex-wrap gap-2">
                     {canApprove ? (
                       <Button asChild variant="outline">
-                        <Link to="/production/recipes/approval-queue">Approval Queue</Link>
+                        <Link to={entityLinks.recipeApprovalQueue()}>Approval Queue</Link>
                       </Button>
                     ) : null}
                     <Button asChild variant="secondary">
-                      <Link to={`/production/recipes/${recipe.id}/versions/${recipe.currentVersion.id}`}>
+                      <Link to={entityLinks.recipeVersionDetail(recipe.id, recipe.currentVersion.id)}>
                         Open Current Version
                         <ArrowRight size={16} />
                       </Link>
                     </Button>
                     {recipe.currentVersion.status === RecipeLifecycleStatus.Approved && recipe.currentVersion.steps.length > 0 ? (
                       <Button asChild>
-                        <Link to={`/production/recipes/${recipe.id}/versions/${recipe.currentVersion.id}/tutorial`}>
+                        <Link to={entityLinks.recipeTutorial(recipe.id, recipe.currentVersion.id)}>
                           Mulai Tutorial Resep
                         </Link>
                       </Button>
@@ -365,7 +346,7 @@ export function RecipeDetailPage() {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <div className="hidden overflow-x-auto md:block">
                 <table className="min-w-full border-separate border-spacing-0">
                   <thead>
                     <tr className="border-y border-slate-200/80 bg-slate-50/80 text-left">
@@ -390,13 +371,45 @@ export function RecipeDetailPage() {
                         <td className="px-6 py-4 text-sm text-slate-600">{formatRecipeDate(version.updatedAtUtc ?? version.createdAtUtc)}</td>
                         <td className="px-6 py-4">
                           <Button asChild variant="secondary" size="sm">
-                            <Link to={`/production/recipes/${recipe.id}/versions/${version.id}`}>Open Version</Link>
+                            <Link to={entityLinks.recipeVersionDetail(recipe.id, version.id)}>Open Version</Link>
                           </Button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+              <div className="grid gap-3 px-4 pb-4 md:hidden">
+                {versions.map((version) => (
+                  <div key={version.id} className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="font-display text-2xl font-semibold text-ink">V{version.versionNumber}</div>
+                        <div className="mt-2">
+                          <RecipeStatusBadge status={version.status} />
+                        </div>
+                      </div>
+                      <div className="text-right text-xs text-slate-500">
+                        {formatRecipeDate(version.updatedAtUtc ?? version.createdAtUtc)}
+                      </div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                      <div className="rounded-2xl bg-slate-50 p-3">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Output</div>
+                        <div className="mt-1 font-semibold text-ink">
+                          {formatQuantity(version.standardOutputQuantity, version.unitOfMeasure.symbol ?? version.unitOfMeasure.code)}
+                        </div>
+                      </div>
+                      <div className="rounded-2xl bg-slate-50 p-3">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Steps</div>
+                        <div className="mt-1 font-semibold text-ink">{version.stepsCount}</div>
+                      </div>
+                    </div>
+                    <Button asChild variant="secondary" className="mt-4 w-full">
+                      <Link to={entityLinks.recipeVersionDetail(recipe.id, version.id)}>Open Version</Link>
+                    </Button>
+                  </div>
+                ))}
               </div>
               <MasterDataPagination
                 pagination={pagination}

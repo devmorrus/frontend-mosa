@@ -5,6 +5,8 @@ import { productsApi } from '@/api/products.api'
 import { rawMaterialsApi } from '@/api/rawMaterials.api'
 import { recipesApi } from '@/api/recipes.api'
 import { unitOfMeasuresApi } from '@/api/unitOfMeasures.api'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -22,6 +24,7 @@ import type { RawMaterialListItem } from '@/features/raw-materials/types'
 import type { ApiError } from '@/types/api'
 import type { UnitOfMeasureOption } from '@/features/unit-of-measures/types'
 import { fetchLookupIfAllowed } from '@/utils/lookupGuard'
+import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 
 function buildUnitLabel(option: UnitOfMeasureOption) {
   return option.symbol ? `${option.name} (${option.symbol})` : `${option.name} (${option.code})`
@@ -69,6 +72,12 @@ export function RecipeCreatePage() {
     () => products.find((item) => item.id === formValues.productId) ?? null,
     [formValues.productId, products],
   )
+  const setupItems = [
+    { label: 'Product dipilih', done: Boolean(formValues.productId) },
+    { label: 'Recipe name terisi', done: Boolean(formValues.name.trim()) },
+    { label: 'Standard output terisi', done: Boolean(formValues.standardOutputQuantity.trim()) },
+    { label: 'Minimal satu step', done: formValues.steps.length > 0 },
+  ]
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -109,31 +118,24 @@ export function RecipeCreatePage() {
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <ClipboardPenLine size={14} className="text-signal" />
-              Create Recipe
-            </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
-              Susun recipe baru lengkap dengan production step awal
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-paper/68 sm:text-base">
-              Recipe baru langsung dibuat bersama standard output dan step baseline agar backend
-              menerima payload operational yang valid sejak awal.
-            </p>
-          </div>
-
-          <Button asChild variant="ghost">
-            <Link to="/production/recipes">
-              <ArrowLeft size={16} />
-              Back to List
-            </Link>
-          </Button>
-        </div>
-      </section>
+      <Breadcrumb items={breadcrumbs.recipeCreate()} />
+      <Button asChild variant="secondary" className="text-slate-600">
+        <Link to={entityLinks.recipeList()}>
+          <ArrowLeft size={16} />
+          Back to List
+        </Link>
+      </Button>
+      <ModuleHero
+        eyebrow="Production • Create Recipe"
+        title="Susun recipe baru dengan output dan step baseline"
+        description="Recipe baru langsung dibuat bersama standard output dan production step awal agar payload operational valid sejak disimpan."
+        icon={<ClipboardPenLine size={13} className="text-signal" />}
+        metrics={[
+          { label: 'Products', value: products.length, sub: 'lookup aktif' },
+          { label: 'Materials', value: rawMaterials.length, sub: 'lookup aktif', tone: 'muted' },
+          { label: 'UOM', value: uomOptions.length, sub: 'lookup aktif', tone: 'muted' },
+        ]}
+      />
 
       {bootstrapError ? (
         <Card>
@@ -142,6 +144,7 @@ export function RecipeCreatePage() {
       ) : null}
 
       <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.7fr)]">
         <Card>
           <CardHeader>
             <CardTitle>Recipe Header</CardTitle>
@@ -220,8 +223,31 @@ export function RecipeCreatePage() {
               ) : null}
               <MasterDataFormFieldError message={getFieldError(formErrors, 'unitOfMeasureId')} />
             </div>
+            {selectedProduct ? (
+              <div className="rounded-[24px] border border-blue-100 bg-blue-50/70 p-4 lg:col-span-2">
+                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Selected product</div>
+                <div className="mt-2 font-semibold text-ink">{selectedProduct.name}</div>
+                <div className="mt-1 font-mono text-xs uppercase tracking-[0.16em] text-slate-500">{selectedProduct.code}</div>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Setup Minimum</CardTitle>
+            <CardDescription>Checklist frontend untuk memastikan recipe siap disimpan.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {setupItems.map((item) => (
+              <div key={item.label} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm">
+                <span className={`h-2.5 w-2.5 rounded-full ${item.done ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                <span className={item.done ? 'font-medium text-ink' : 'text-slate-500'}>{item.label}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+        </div>
 
         <Card>
           <CardHeader>
@@ -258,7 +284,7 @@ export function RecipeCreatePage() {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <Button asChild type="button" variant="secondary">
-                <Link to="/production/recipes">Cancel</Link>
+                <Link to={entityLinks.recipeList()}>Cancel</Link>
               </Button>
               <Button data-tour="recipe-submit-approval-btn" type="submit" disabled={isSubmitting}>
                 {isSubmitting ? <LoaderCircle size={16} className="animate-spin" /> : <Save size={16} />}

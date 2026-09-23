@@ -4,6 +4,8 @@ import {
   RecipeToleranceType,
   type RecipeStep,
   type RecipeStepFormValues,
+  type RecipeApprovalQueueQueryState,
+  type RecipeQueryState,
 } from '@/features/recipes/types'
 
 export const RECIPE_PAGE_SIZE_OPTIONS = [10, 20, 50]
@@ -43,6 +45,51 @@ export function isRecipeVersionEditable(status: RecipeLifecycleStatus) {
   return status === RecipeLifecycleStatus.Draft || status === RecipeLifecycleStatus.NeedsRevision
 }
 
+export function getRecipeStatusLabel(status: RecipeLifecycleStatus) {
+  switch (status) {
+    case RecipeLifecycleStatus.Draft:
+      return 'Draft'
+    case RecipeLifecycleStatus.PendingApproval:
+      return 'Pending Approval'
+    case RecipeLifecycleStatus.Approved:
+      return 'Approved'
+    case RecipeLifecycleStatus.NeedsRevision:
+      return 'Needs Revision'
+    case RecipeLifecycleStatus.Historical:
+      return 'Historical'
+    default:
+      return 'Unknown'
+  }
+}
+
+export function getRecipeStatusTone(status: RecipeLifecycleStatus) {
+  switch (status) {
+    case RecipeLifecycleStatus.Approved:
+      return 'success'
+    case RecipeLifecycleStatus.PendingApproval:
+      return 'warning'
+    case RecipeLifecycleStatus.NeedsRevision:
+      return 'danger'
+    case RecipeLifecycleStatus.Historical:
+      return 'muted'
+    case RecipeLifecycleStatus.Draft:
+    default:
+      return 'neutral'
+  }
+}
+
+export function getRecipeStatusFilterLabel(status: RecipeQueryState['status']) {
+  return RECIPE_STATUS_FILTER_OPTIONS.find((option) => option.value === status)?.label ?? 'Semua status'
+}
+
+export function hasActiveRecipeListFilters(query: RecipeQueryState) {
+  return Boolean(query.search || query.status !== 'ALL' || query.productId)
+}
+
+export function hasActiveRecipeApprovalFilters(query: RecipeApprovalQueueQueryState) {
+  return Boolean(query.search)
+}
+
 export function getRecipeStepTypeLabel(stepType: RecipeStepType) {
   switch (stepType) {
     case RecipeStepType.Material:
@@ -56,6 +103,33 @@ export function getRecipeStepTypeLabel(stepType: RecipeStepType) {
     default:
       return 'Unknown'
   }
+}
+
+export function getRecipeStepTypeTone(stepType: RecipeStepType) {
+  switch (stepType) {
+    case RecipeStepType.Material:
+      return 'blue'
+    case RecipeStepType.Timer:
+      return 'amber'
+    case RecipeStepType.Check:
+      return 'emerald'
+    case RecipeStepType.Process:
+    default:
+      return 'slate'
+  }
+}
+
+export function countRecipeStepTypes(steps: Array<{ stepType: RecipeStepType }>) {
+  return steps.reduce(
+    (summary, step) => {
+      if (step.stepType === RecipeStepType.Material) summary.material += 1
+      else if (step.stepType === RecipeStepType.Process) summary.process += 1
+      else if (step.stepType === RecipeStepType.Timer) summary.timer += 1
+      else if (step.stepType === RecipeStepType.Check) summary.check += 1
+      return summary
+    },
+    { material: 0, process: 0, timer: 0, check: 0 },
+  )
 }
 
 export function describeRecipeStep(step: RecipeStep) {

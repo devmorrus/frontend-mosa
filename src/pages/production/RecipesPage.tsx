@@ -3,6 +3,8 @@ import { ClipboardList, Eye, Layers3, LoaderCircle, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { productsApi } from '@/api/products.api'
 import { recipesApi } from '@/api/recipes.api'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -11,8 +13,16 @@ import { MasterDataEmptyState, MasterDataErrorState, MasterDataLoadingState } fr
 import { MasterDataPagination } from '@/features/master-data/components/MasterDataPagination'
 import { RecipeStatusBadge } from '@/features/recipes/components/RecipeStatusBadge'
 import { RecipeLifecycleStatus, type RecipeListItem, type RecipeQueryState } from '@/features/recipes/types'
-import { RECIPE_PAGE_SIZE_OPTIONS, RECIPE_STATUS_FILTER_OPTIONS, formatQuantity, formatRecipeDate } from '@/features/recipes/utils'
+import {
+  RECIPE_PAGE_SIZE_OPTIONS,
+  RECIPE_STATUS_FILTER_OPTIONS,
+  formatQuantity,
+  formatRecipeDate,
+  getRecipeStatusFilterLabel,
+  hasActiveRecipeListFilters,
+} from '@/features/recipes/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 import type { ProductListItem } from '@/features/products/types'
 import type { ApiError } from '@/types/api'
 
@@ -90,47 +100,61 @@ export function RecipesPage() {
     () => items.filter((item) => item.currentVersion?.status === RecipeLifecycleStatus.Approved).length,
     [items],
   )
+  const hasActiveFilters = hasActiveRecipeListFilters(query)
+  const selectedProduct = products.find((product) => product.id === query.productId)
+
+  function resetFilters() {
+    setSearchInput('')
+    setQuery(DEFAULT_QUERY)
+  }
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-ink/8 bg-ink px-6 py-7 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8 sm:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,201,40,0.22),transparent_55%)]" />
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-paper/10 bg-paper/6 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-paper/72">
-              <ClipboardList size={14} className="text-signal" />
-              Production Recipe Management
-            </div>
-            <h1 className="mt-5 font-display text-3xl font-semibold leading-tight text-paper sm:text-4xl">
-              Recipe list dan status version yang siap dibuka supervisor
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-paper/68 sm:text-base">
-              Pantau recipe aktif, status version terbaru, dan buka detail recipe secara cepat tanpa
-              kehilangan konteks product yang diproduksi.
+      <Breadcrumb items={breadcrumbs.recipeList()} />
+      <ModuleHero
+        eyebrow="Production • Recipes"
+        title="Kelola recipe produksi dan lifecycle version"
+        description="Pantau recipe aktif, status version terbaru, approval, dan detail product tanpa kehilangan konteks operasional produksi."
+        icon={<ClipboardList size={13} className="text-signal" />}
+        metrics={[
+          { label: 'Total recipe', value: pagination.totalItems, sub: 'sesuai filter backend' },
+          { label: 'Approved visible', value: activeVersions, sub: 'di halaman ini', tone: 'success' },
+          { label: 'Page', value: `${pagination.page}/${pagination.totalPages || 1}`, sub: 'pagination backend', tone: 'muted' },
+        ]}
+        actions={
+          <>
+            {canApprove ? (
+              <Button asChild variant="secondary" className="border-paper/10 bg-paper/10 text-paper hover:bg-paper/15">
+                <Link to={entityLinks.recipeApprovalQueue()}>Approval Queue</Link>
+              </Button>
+            ) : null}
+            {canCreate ? (
+              <Button asChild className="bg-paper text-ink hover:bg-paper/90" data-tour="recipe-create-btn">
+                <Link to={entityLinks.recipeCreate()} data-tour="recipe-create-btn">
+                  <Plus size={16} />
+                  Create Recipe
+                </Link>
+              </Button>
+            ) : null}
+          </>
+        }
+      />
+
+      <div className="grid gap-4 rounded-[28px] border border-white/70 bg-white/85 p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="font-display text-xl font-semibold text-ink">Filter Recipe</div>
+            <p className="mt-1 text-sm text-slate-500">
+              Menampilkan {items.length} recipe dari {pagination.totalItems} total.
             </p>
           </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-              <CardContent className="p-5">
-                <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">Total recipe</div>
-                <div className="mt-2 font-display text-3xl font-semibold text-paper">{pagination.totalItems}</div>
-                <p className="mt-1 text-sm text-paper/60">Pagination backend aktif untuk list recipe.</p>
-              </CardContent>
-            </Card>
-            <Card className="rounded-[24px] border-paper/10 bg-paper/7 text-paper shadow-none">
-              <CardContent className="p-5">
-                <div className="text-[11px] uppercase tracking-[0.18em] text-paper/45">Approved visible</div>
-                <div className="mt-2 font-display text-3xl font-semibold text-paper">{activeVersions}</div>
-                <p className="mt-1 text-sm text-paper/60">Version approved mudah dikenali dari list.</p>
-              </CardContent>
-            </Card>
-          </div>
+          <Button type="button" variant="secondary" onClick={resetFilters} disabled={!hasActiveFilters}>
+            Reset Filter
+          </Button>
         </div>
-      </section>
 
-      <div className="grid gap-3 rounded-[28px] border border-white/70 bg-white/85 p-4 shadow-sm sm:p-5">
-        <div className="relative">
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-ink">Search</label>
           <Input
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
@@ -139,63 +163,61 @@ export function RecipesPage() {
           />
         </div>
 
-        <div className="grid gap-3 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto_auto]">
-          <select
-            value={query.status}
-            onChange={(event) => setQuery((current) => ({ ...current, status: event.target.value as RecipeQueryState['status'], page: 1 }))}
-            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
-          >
-            {RECIPE_STATUS_FILTER_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+        <div className="grid gap-3 lg:grid-cols-3">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-ink">Status</label>
+            <select
+              value={query.status}
+              onChange={(event) => setQuery((current) => ({ ...current, status: event.target.value as RecipeQueryState['status'], page: 1 }))}
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
+            >
+              {RECIPE_STATUS_FILTER_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <select
-            value={query.productId}
-            onChange={(event) => setQuery((current) => ({ ...current, productId: event.target.value, page: 1 }))}
-            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
-          >
-            <option value="">Semua product</option>
-            {products.map((product) => (
-              <option key={product.id} value={product.id}>
-                {product.code} - {product.name}
-              </option>
-            ))}
-          </select>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-ink">Product</label>
+            <select
+              value={query.productId}
+              onChange={(event) => setQuery((current) => ({ ...current, productId: event.target.value, page: 1 }))}
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
+            >
+              <option value="">Semua product</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.code} - {product.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <select
-            value={query.pageSize}
-            onChange={(event) => setQuery((current) => ({ ...current, pageSize: Number(event.target.value), page: 1 }))}
-            className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
-          >
-            {RECIPE_PAGE_SIZE_OPTIONS.map((value) => (
-              <option key={value} value={value}>
-                {value} / halaman
-              </option>
-            ))}
-          </select>
-
-          {canApprove ? (
-            <Button asChild variant="secondary" className="h-12 whitespace-nowrap">
-              <Link to="/production/recipes/approval-queue">Approval Queue</Link>
-            </Button>
-          ) : (
-            <div className="hidden lg:block" />
-          )}
-
-          {canCreate ? (
-            <Button asChild className="h-12 whitespace-nowrap" data-tour="recipe-create-btn">
-              <Link to="/production/recipes/create" data-tour="recipe-create-btn">
-                <Plus size={16} />
-                Create Recipe
-              </Link>
-            </Button>
-          ) : (
-            <div className="hidden lg:block" />
-          )}
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-ink">Page size</label>
+            <select
+              value={query.pageSize}
+              onChange={(event) => setQuery((current) => ({ ...current, pageSize: Number(event.target.value), page: 1 }))}
+              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-4 focus:ring-ink/10"
+            >
+              {RECIPE_PAGE_SIZE_OPTIONS.map((value) => (
+                <option key={value} value={value}>
+                  {value} / halaman
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
+
+        {hasActiveFilters ? (
+          <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+            {query.search ? <span className="rounded-full bg-slate-100 px-3 py-1">Search: {query.search}</span> : null}
+            {query.status !== 'ALL' ? <span className="rounded-full bg-slate-100 px-3 py-1">Status: {getRecipeStatusFilterLabel(query.status)}</span> : null}
+            {selectedProduct ? <span className="rounded-full bg-slate-100 px-3 py-1">Product: {selectedProduct.code}</span> : null}
+          </div>
+        ) : null}
       </div>
 
       {isLoading ? (
@@ -208,7 +230,7 @@ export function RecipesPage() {
           action={
             canCreate ? (
               <Button asChild>
-                <Link to="/production/recipes/create">Tambah recipe pertama</Link>
+                <Link to={entityLinks.recipeCreate()}>Tambah recipe pertama</Link>
               </Button>
             ) : null
           }
@@ -232,7 +254,7 @@ export function RecipesPage() {
             )}
           </CardHeader>
           <CardContent className="px-0 pb-0">
-            <div className="overflow-x-auto">
+            <div className="hidden overflow-x-auto md:block">
               <table className="min-w-full border-separate border-spacing-0">
                 <thead>
                   <tr className="border-y border-slate-200/80 bg-slate-50/80 text-left">
@@ -285,7 +307,7 @@ export function RecipesPage() {
                       <td className="px-6 py-4 align-top">
                         <div className="flex flex-wrap justify-end gap-2">
                           <Button asChild variant="secondary" size="sm">
-                            <Link to={`/production/recipes/${item.id}`}>
+                            <Link to={entityLinks.recipeDetail(item.id)}>
                               <Eye size={15} />
                               Open Recipe
                             </Link>
@@ -296,6 +318,52 @@ export function RecipesPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="grid gap-3 px-4 pb-4 md:hidden">
+              {items.map((item) => (
+                <div key={item.id} className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-ink">{item.name}</div>
+                      <div className="mt-1 text-sm text-slate-500">{item.product.name}</div>
+                      <div className="mt-1 font-mono text-xs uppercase tracking-[0.16em] text-slate-500">
+                        {item.product.code}
+                      </div>
+                    </div>
+                    <span data-tour="recipe-active-badge" className="inline-flex shrink-0">
+                      <RecipeStatusBadge status={item.currentVersion?.status ?? item.status} />
+                    </span>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-2xl bg-slate-50 p-3">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Version</div>
+                      <div className="mt-1 font-semibold text-ink">
+                        {item.currentVersion ? `V${item.currentVersion.versionNumber}` : '-'}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl bg-slate-50 p-3">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Output</div>
+                      <div className="mt-1 font-semibold text-ink">
+                        {item.currentVersion
+                          ? formatQuantity(
+                              item.currentVersion.standardOutputQuantity,
+                              item.currentVersion.unitOfMeasure.symbol ?? item.currentVersion.unitOfMeasure.code,
+                            )
+                          : '-'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-slate-500">
+                    Updated {formatRecipeDate(item.updatedAtUtc ?? item.createdAtUtc)}
+                  </div>
+                  <Button asChild variant="secondary" className="mt-4 w-full">
+                    <Link to={entityLinks.recipeDetail(item.id)}>
+                      <Eye size={15} />
+                      Open Recipe
+                    </Link>
+                  </Button>
+                </div>
+              ))}
             </div>
             <MasterDataPagination
               pagination={pagination}

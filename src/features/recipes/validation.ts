@@ -1,5 +1,4 @@
 import {
-  RecipeLifecycleStatus,
   RecipeStepType,
   type RecipeStep,
   type RecipeCreateFormValues,
@@ -178,23 +177,6 @@ export function validateRecipeVersionCreateForm(values: RecipeVersionCreateFormV
   }
 
   return errors
-}
-
-export function getRecipeStatusLabel(status: RecipeLifecycleStatus) {
-  switch (status) {
-    case RecipeLifecycleStatus.Draft:
-      return 'Draft'
-    case RecipeLifecycleStatus.PendingApproval:
-      return 'Pending Approval'
-    case RecipeLifecycleStatus.Approved:
-      return 'Approved'
-    case RecipeLifecycleStatus.NeedsRevision:
-      return 'Needs Revision'
-    case RecipeLifecycleStatus.Historical:
-      return 'Historical'
-    default:
-      return 'Unknown'
-  }
 }
 
 export function formatOptionalText(value: string) {
