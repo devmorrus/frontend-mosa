@@ -1,6 +1,7 @@
 import { createElement, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { BookOpen, ChevronRight, PanelLeftClose } from 'lucide-react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+import { collectAllSidebarPaths, isSidebarPathActive, normalizeSidebarPath } from '@/routes/sidebarActive'
 import { useAuth } from '@/hooks/useAuth'
 import { filterSidebarItems } from '@/routes/homeRoute'
 import { getSidebarIcon } from '@/routes/navigation.config'
@@ -17,7 +18,11 @@ import { cn } from '@/lib/utils'
 
 /** True if `item` itself or any descendant matches the current path. */
 function subtreeContainsPath(item: SidebarItem, pathname: string): boolean {
-  if (item.path === pathname) return true
+  if (item.path) {
+    const normalizedItem = normalizeSidebarPath(item.path)
+    const normalizedPath = normalizeSidebarPath(pathname)
+    if (normalizedPath === normalizedItem || normalizedPath.startsWith(`${normalizedItem}/`)) return true
+  }
   return item.children.some((child) => subtreeContainsPath(child, pathname))
 }
 
@@ -43,17 +48,22 @@ function SidebarEntry({
   openIds,
   onToggle,
   siblingIds,
+  pathname,
+  allPaths,
 }: {
   item: SidebarItem
   level?: number
   openIds: Set<string>
   onToggle: (id: string, siblingIds: string[]) => void
   siblingIds: string[]
+  pathname: string
+  allPaths: string[]
 }) {
   const closeMobileSidebar = useUiStore((state) => state.closeMobileSidebar)
   const iconComponent = getSidebarIcon(item.code)
   const hasChildren = item.children.length > 0
   const isClickable = Boolean(item.path)
+  const isActive = isClickable ? isSidebarPathActive(item.path!, pathname, allPaths) : false
   const isOpen = openIds.has(item.id)
   const childIds = useMemo(() => item.children.map((child) => child.id), [item.children])
 
@@ -80,42 +90,37 @@ function SidebarEntry({
   return (
     <div className="space-y-1">
       {isClickable ? (
-        <NavLink
+        <Link
           to={item.path!}
           data-tour={getDataTourAttr(item)}
           onClick={closeMobileSidebar}
-          className={({ isActive }) =>
-            cn(
-              'group relative flex items-center gap-3 rounded-2xl py-3 pr-2 text-sm font-medium transition-all duration-200',
-              level > 0 ? 'pl-11 pr-2' : 'px-4',
-              isActive
-                ? 'bg-paper/8 text-paper shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
-                : 'text-paper/62 hover:bg-paper/6 hover:text-paper',
-            )
-          }
-        >
-          {({ isActive }) => (
-            <>
-              <span
-                aria-hidden
-                className={[
-                  'absolute inset-y-2 left-0 w-1 rounded-r-full transition-colors',
-                  isActive ? 'bg-signal' : 'bg-transparent group-hover:bg-paper/15',
-                ].join(' ')}
-              />
-              {createElement(iconComponent, {
-                size: 18,
-                className: cn(
-                  'shrink-0',
-                  level > 0 ? 'absolute left-4 top-1/2 -translate-y-1/2' : '',
-                  isActive ? 'text-signal' : 'text-paper/60 group-hover:text-paper',
-                ),
-              })}
-              <span className="flex-1">{item.name}</span>
-              {chevron}
-            </>
+          aria-current={isActive ? 'page' : undefined}
+          className={cn(
+            'group relative flex items-center gap-3 rounded-2xl py-3 pr-2 text-sm font-medium transition-all duration-200',
+            level > 0 ? 'pl-11 pr-2' : 'px-4',
+            isActive
+              ? 'bg-paper/8 text-paper shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
+              : 'text-paper/62 hover:bg-paper/6 hover:text-paper',
           )}
-        </NavLink>
+        >
+          <span
+            aria-hidden
+            className={[
+              'absolute inset-y-2 left-0 w-1 rounded-r-full transition-colors',
+              isActive ? 'bg-signal' : 'bg-transparent group-hover:bg-paper/15',
+            ].join(' ')}
+          />
+          {createElement(iconComponent, {
+            size: 18,
+            className: cn(
+              'shrink-0',
+              level > 0 ? 'absolute left-4 top-1/2 -translate-y-1/2' : '',
+              isActive ? 'text-signal' : 'text-paper/60 group-hover:text-paper',
+            ),
+          })}
+          <span className="flex-1">{item.name}</span>
+          {chevron}
+        </Link>
       ) : hasChildren ? (
         <button
           type="button"
@@ -185,6 +190,8 @@ function SidebarEntry({
                   openIds={openIds}
                   onToggle={onToggle}
                   siblingIds={childIds}
+                  pathname={pathname}
+                  allPaths={allPaths}
                 />
               ))}
           </div>
@@ -250,6 +257,7 @@ function SidebarContent() {
   )
 
   const rootIds = useMemo(() => sortedItems.map((item) => item.id), [sortedItems])
+  const allPaths = useMemo(() => collectAllSidebarPaths(visibleItems), [visibleItems])
 
   function toggleGroup(id: string, siblingIds: string[]) {
     setOpenIds((prev) => {
@@ -302,6 +310,8 @@ function SidebarContent() {
           openIds={openIds}
           onToggle={toggleGroup}
           siblingIds={rootIds}
+          pathname={location.pathname}
+          allPaths={allPaths}
         />
       ))}
 
