@@ -181,11 +181,6 @@ export function RecipeVersionPage() {
     void loadVersion()
   }, [versionId])
 
-  const currentStepIds = useMemo(
-    () => new Set(version?.steps.map((step) => step.id) ?? []),
-    [version],
-  )
-
   async function persistBuilder(options?: { submitAfterSave?: boolean }) {
     if (!version || !versionId) return null
 
@@ -204,56 +199,7 @@ export function RecipeVersionPage() {
     setIsSaving(true)
 
     try {
-      let currentVersion = await recipesApi.updateVersion(versionId, headerValues)
-
-      const originalSteps = version.steps
-      const originalSequenceById = new Map(originalSteps.map((step) => [step.id, step.sequence]))
-      const removedSteps = originalSteps.filter(
-        (step) => !stepValues.some((formStep) => formStep.id === step.id),
-      )
-
-      for (const removedStep of removedSteps) {
-        await recipesApi.deleteStep(versionId, removedStep.id)
-      }
-
-      if (removedSteps.length > 0) {
-        currentVersion = await recipesApi.getVersionById(versionId)
-      }
-
-      for (const step of stepValues.filter((item) => currentStepIds.has(item.id))) {
-        currentVersion = await recipesApi.updateStep(
-          versionId,
-          step.id,
-          step,
-          originalSequenceById.get(step.id) ?? 1,
-        )
-      }
-
-      let workingVersion = await recipesApi.getVersionById(versionId)
-      const newStepIds = new Map<string, string>()
-      let nextSequence = workingVersion.steps.length + 1
-
-      for (const step of stepValues.filter((item) => !currentStepIds.has(item.id))) {
-        const updatedVersion = await recipesApi.addStep(versionId, step, nextSequence)
-        const addedStep = updatedVersion.steps.find(
-          (candidate) => !workingVersion.steps.some((existing) => existing.id === candidate.id),
-        )
-
-        if (addedStep) {
-          newStepIds.set(step.id, addedStep.id)
-        }
-
-        workingVersion = updatedVersion
-        nextSequence = workingVersion.steps.length + 1
-      }
-
-      currentVersion = await recipesApi.reorderSteps(
-        versionId,
-        stepValues.map((step, index) => ({
-          stepId: currentStepIds.has(step.id) ? step.id : (newStepIds.get(step.id) ?? step.id),
-          sequence: index + 1,
-        })),
-      )
+      const currentVersion = await recipesApi.saveBuilder(versionId, headerValues, stepValues)
 
       setVersion(currentVersion)
       setHeaderValues({

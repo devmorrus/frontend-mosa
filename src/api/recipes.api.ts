@@ -139,6 +139,19 @@ export const recipesApi = {
       .then((response) => response.data)
   },
 
+  saveBuilder: (versionId: string, values: RecipeVersionCreateFormValues, steps: RecipeCreateFormValues['steps'], name?: string | null) => {
+    const normalized = normalizeRecipeVersionCreateFormValues(values)
+
+    return apiClient
+      .put<RecipeVersionDetail>(`/recipe-versions/${versionId}/builder`, {
+        name: name?.trim() || null,
+        standardOutputQuantity: Number(normalized.standardOutputQuantity),
+        unitOfMeasureId: normalized.unitOfMeasureId,
+        steps: buildStepPayload(steps),
+      })
+      .then((response) => response.data)
+  },
+
   addStep: (versionId: string, step: RecipeCreateFormValues['steps'][number], sequence: number) =>
     apiClient
       .post<RecipeVersionDetail>(`/recipe-versions/${versionId}/steps`, buildSingleStepPayload(step, sequence))
