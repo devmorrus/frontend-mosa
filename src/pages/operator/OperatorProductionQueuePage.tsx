@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, CalendarDays, Factory, Play } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CalendarDays, Factory, Play, RefreshCw } from 'lucide-react'
 import { productionOrdersApi } from '@/api/productionOrders.api'
+import { Breadcrumb } from '@/components/common/Breadcrumb'
+import { ModuleHero } from '@/components/common/ModuleHero'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
@@ -83,7 +86,7 @@ export function OperatorProductionQueuePage() {
     setError(null)
     try {
       await productionOrdersApi.startProduction(id)
-      navigate(`/operator/production/${id}`)
+      navigate(entityLinks.operatorProductionDetail(id))
     } catch (caughtError) {
       setError((caughtError as ApiError).message)
     } finally {
@@ -94,27 +97,44 @@ export function OperatorProductionQueuePage() {
   function continueProduction(item: OperatorProductionQueueItem, isReleased: boolean) {
     sessionStorage.setItem(getVoiceGuidanceSessionKey(item.id), '1')
     if (isReleased) void startProduction(item.id)
-    else navigate(`/operator/production/${item.id}`)
+    else navigate(entityLinks.operatorProductionDetail(item.id))
   }
+
+  const releasedCount = useMemo(
+    () => items.filter((item) => item.status === ProductionOrderStatus.Released).length,
+    [items],
+  )
+  const inProgressCount = useMemo(
+    () => items.filter((item) => item.status !== ProductionOrderStatus.Released).length,
+    [items],
+  )
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-8">
-      <section className="relative overflow-hidden rounded-[30px] bg-ink px-6 py-8 text-paper shadow-[0_24px_80px_rgba(6,59,140,0.16)] sm:px-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,201,40,0.24),transparent_52%)]" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-paper/65">
-            <Factory size={16} className="text-signal" /> My Production
-          </div>
-          <h1 className="mt-4 font-display text-3xl font-semibold sm:text-4xl">Pekerjaan Anda hari ini</h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-paper/70">Pilih satu production order. Sistem hanya akan menampilkan langkah yang dapat Anda kerjakan sekarang.</p>
-        </div>
-      </section>
+      <Breadcrumb items={breadcrumbs.operatorProductionList()} />
+      <ModuleHero
+        eyebrow="Operator • My Production"
+        title="Pekerjaan Anda hari ini"
+        description="Pilih satu production order. Sistem hanya menampilkan langkah yang dapat Anda kerjakan sekarang dengan progress yang jelas."
+        icon={<Factory size={13} className="text-signal" />}
+        metrics={[
+          { label: 'Antrean', value: pagination.totalItems, sub: 'order ditugaskan' },
+          { label: 'Released', value: releasedCount, sub: 'siap dimulai', tone: 'success' },
+          { label: 'In Progress', value: inProgressCount, sub: 'dilanjutkan', tone: 'muted' },
+        ]}
+      />
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-3 rounded-[24px] border border-white/70 bg-white/85 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div>
+          <div className="font-display text-lg font-semibold text-ink">Antrean Produksi</div>
+          <p className="mt-1 text-xs text-slate-500">
+            {lastUpdatedAt ? `Terakhir diperbarui ${lastUpdatedAt} · auto-refresh 15 detik` : 'Auto-refresh 15 detik saat halaman terlihat.'}
+          </p>
+        </div>
         <Button variant="secondary" disabled={isLoading || isRefreshing} onClick={() => void loadQueue(true)}>
+          <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
           {isRefreshing ? 'Menyegarkan...' : 'Refresh antrean'}
         </Button>
-        {lastUpdatedAt ? <span className="text-xs text-slate-500">Terakhir diperbarui {lastUpdatedAt} · auto-refresh 15 detik</span> : null}
       </div>
 
       {isLoading ? <MasterDataLoadingState description="Memuat antrean produksi Anda." /> : error ? (
@@ -127,22 +147,28 @@ export function OperatorProductionQueuePage() {
             const isReleased = item.status === ProductionOrderStatus.Released
             const uom = item.unitOfMeasureSymbol ?? item.unitOfMeasureCode
             const progress = item.progress.totalSteps === 0 ? 0 : Math.round((item.progress.completedSteps / item.progress.totalSteps) * 100)
-            return <Card key={item.id} data-tour={index === 0 ? 'operator-queue-row' : undefined} className="overflow-hidden">
+            return <Card key={item.id} data-tour={index === 0 ? 'operator-queue-row' : undefined} className="overflow-hidden rounded-[24px] border-slate-200/80 shadow-sm transition-shadow hover:shadow-md">
               <CardContent className="flex flex-col gap-5 p-6 sm:p-7 md:flex-row md:items-center md:justify-between">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2"><Badge variant={isReleased ? 'signal' : 'default'}>{isReleased ? 'Released' : 'In progress'}</Badge><span className="text-xs font-semibold tracking-wide text-slate-500">{item.productionOrderNumber}</span></div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2"><Badge variant={isReleased ? 'signal' : 'default'}>{isReleased ? 'Released' : 'In progress'}</Badge><span className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{item.productionOrderNumber}</span></div>
                   <h2 className="mt-3 font-display text-2xl font-semibold text-ink">{item.productName}</h2>
                   <p className="mt-1 text-sm text-slate-500">{item.targetOutput} {uom} target output · Recipe v{item.recipeVersionNumber}</p>
                   <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-600"><span className="inline-flex items-center gap-2"><CalendarDays size={16} />{formatSchedule(item.scheduledDate)}</span><span>Step {item.progress.currentStepSequence ?? item.progress.totalSteps} of {item.progress.totalSteps} · {progress}%</span></div>
+                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div className={`h-full rounded-full transition-all ${isReleased ? 'bg-signal' : 'bg-blue-600'}`} style={{ width: `${progress}%` }} />
+                  </div>
                 </div>
-                <Button size="lg" className="h-12 min-w-[164px]" disabled={startingId === item.id} onClick={() => continueProduction(item, isReleased)}><Play size={18} fill="currentColor" />{startingId === item.id ? 'Memulai...' : isReleased ? 'Start Production' : 'Continue'}</Button>
+                <div className="flex shrink-0 flex-col gap-2 md:items-end">
+                  <Button size="lg" className="h-12 min-w-[164px]" disabled={startingId === item.id} onClick={() => continueProduction(item, isReleased)}><Play size={18} fill="currentColor" />{startingId === item.id ? 'Memulai...' : isReleased ? 'Start Production' : 'Continue'}</Button>
+                  <span className="text-xs text-slate-400">{isReleased ? 'Mulai dari langkah pertama' : 'Lanjut ke langkah aktif'}</span>
+                </div>
               </CardContent>
             </Card>
           })}
         </section>
       )}
 
-      {!isLoading && !error && pagination.totalPages > 1 ? <div className="flex items-center justify-between rounded-2xl border border-ink/8 bg-white/70 p-3"><Button variant="secondary" disabled={!pagination.hasPreviousPage} onClick={() => setSearchParams({ page: String(page - 1) })}><ArrowLeft size={17} /> Previous</Button><span className="text-sm font-medium text-slate-600">Page {pagination.page} of {pagination.totalPages}</span><Button variant="secondary" disabled={!pagination.hasNextPage} onClick={() => setSearchParams({ page: String(page + 1) })}>Next <ArrowRight size={17} /></Button></div> : null}
+      {!isLoading && !error && pagination.totalPages > 1 ? <div className="flex items-center justify-between gap-3 rounded-[24px] border border-white/70 bg-white/85 p-3 shadow-sm"><Button variant="secondary" disabled={!pagination.hasPreviousPage} onClick={() => setSearchParams({ page: String(page - 1) })}><ArrowLeft size={17} /> Previous</Button><span className="text-sm font-medium text-slate-600">Page {pagination.page} of {pagination.totalPages} · {pagination.totalItems} order</span><Button variant="secondary" disabled={!pagination.hasNextPage} onClick={() => setSearchParams({ page: String(page + 1) })}>Next <ArrowRight size={17} /></Button></div> : null}
     </div>
   )
 }
