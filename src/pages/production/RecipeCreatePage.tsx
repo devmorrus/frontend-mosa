@@ -277,9 +277,9 @@ export function RecipeCreatePage() {
         <Card>
           <CardContent className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="font-semibold text-ink">Validasi frontend mengikuti rule backend</div>
+              <div className="font-semibold text-ink">Periksa kembali sebelum menyimpan</div>
               <p className="mt-1 text-sm text-slate-500">
-                Quantity harus lebih dari 0, tolerance tidak boleh negatif, dan timer harus lebih besar dari 0.
+                Pastikan quantity lebih dari 0, tolerance tidak negatif, dan durasi timer lebih dari 0.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
