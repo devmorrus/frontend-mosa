@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, RotateCcw, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -44,6 +44,21 @@ export function TutorialTooltip({
     right: '24px',
     zIndex: 60,
   })
+  const tooltipRef = useRef<HTMLDivElement>(null)
+
+  // Bawa target ke area terlihat saat step berganti, agar tooltip tidak
+  // nempel di elemen yang sedang di luar viewport.
+  useEffect(() => {
+    const el =
+      document.querySelector<HTMLElement>(targetSelector) ??
+      (targetFallback ? document.querySelector<HTMLElement>(targetFallback) : null)
+    const bounds = el?.getBoundingClientRect()
+    if (!el || !bounds || (bounds.width === 0 && bounds.height === 0)) return
+    const fullyVisible = bounds.top >= 0 && bounds.bottom <= window.innerHeight
+    if (!fullyVisible) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [targetSelector, targetFallback, stepNumber])
 
   useEffect(() => {
     const updateTooltipPosition = () => {
@@ -61,6 +76,7 @@ export function TutorialTooltip({
           left: '50%',
           transform: 'translateX(-50%)',
           maxWidth: 'calc(100vw - 32px)',
+          maxHeight: 'calc(100dvh - 48px)',
           zIndex: 60,
         })
         return
@@ -76,14 +92,17 @@ export function TutorialTooltip({
           left: '50%',
           transform: 'translateX(-50%)',
           maxWidth: 'calc(100vw - 24px)',
+          maxHeight: 'calc(100dvh - 32px)',
           zIndex: 60,
         })
         return
       }
 
-      // Desktop placement logic
-      const tooltipWidth = 360
-      const tooltipHeight = 220
+      // Desktop placement logic. Pakai tinggi aktual card (bukan estimasi)
+      // agar footer Next/Back tidak kepotong di bawah viewport.
+      const tooltipWidth = Math.min(360, window.innerWidth - 32)
+      const measuredHeight = tooltipRef.current?.offsetHeight ?? 420
+      const tooltipHeight = Math.min(Math.max(measuredHeight, 280), window.innerHeight - 32)
       const padding = 16
 
       let top = rect.bottom + padding
@@ -104,9 +123,12 @@ export function TutorialTooltip({
         left = padding
       }
 
-      // Clamp top to avoid going off top edge
+      // Clamp top agar card selalu muat penuh di viewport (footer tetap terlihat)
+      const maxTop = Math.max(padding, window.innerHeight - tooltipHeight - padding)
       if (top < padding) {
         top = padding
+      } else if (top > maxTop) {
+        top = maxTop
       }
 
       setStyle({
@@ -114,7 +136,23 @@ export function TutorialTooltip({
         top: `${top}px`,
         left: `${left}px`,
         width: `${tooltipWidth}px`,
+        maxWidth: 'calc(100vw - 32px)',
+        maxHeight: 'calc(100dvh - 32px)',
         zIndex: 60,
+      })
+
+      // Koreksi setelah render: kalau tinggi aktual beda dari estimasi,
+      // pastikan card tetap muat di viewport.
+      requestAnimationFrame(() => {
+        const actual = tooltipRef.current?.offsetHeight
+        if (!actual) return
+        const clamped = Math.min(
+          Math.max(top, padding),
+          Math.max(padding, window.innerHeight - actual - padding),
+        )
+        if (Math.abs(clamped - top) > 2) {
+          setStyle((prev) => ({ ...prev, top: `${clamped}px` }))
+        }
       })
     }
 
@@ -133,8 +171,9 @@ export function TutorialTooltip({
 
   return (
     <div
+      ref={tooltipRef}
       style={style}
-      className="w-full max-w-sm rounded-2xl border border-paper/15 bg-ink p-5 shadow-2xl backdrop-blur-md transition-all duration-200"
+      className="flex w-full max-w-[calc(100vw-32px)] flex-col overflow-y-auto overscroll-contain rounded-2xl border border-paper/15 bg-ink p-4 shadow-2xl backdrop-blur-md transition-all duration-200 sm:max-w-sm sm:p-5"
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-2 border-b border-paper/10 pb-3">
@@ -170,8 +209,8 @@ export function TutorialTooltip({
             </span>
           ) : null}
         </div>
-        <h4 className="mt-2 font-display text-base font-semibold text-paper">{title}</h4>
-        <p className="mt-1.5 text-xs leading-relaxed text-paper/70">{instruction}</p>
+        <h4 className="mt-2 break-words font-display text-base font-semibold text-paper">{title}</h4>
+        <p className="mt-1.5 break-words text-xs leading-relaxed text-paper/70">{instruction}</p>
         {type === 'ACTION' && !isActionValid && (
           <p className="mt-2 text-[11px] font-medium text-amber-400">
             🔒 Selesaikan tindakan di atas untuk melanjutkan ke langkah berikutnya.
@@ -187,23 +226,23 @@ export function TutorialTooltip({
         />
       </div>
 
-      {/* Footer Navigation */}
-      <div className="flex items-center justify-between gap-2">
-        <div>
+      {/* Footer Navigation — sticky agar Next/Back selalu terjangkau saat card di-scroll */}
+      <div className="sticky bottom-0 -mx-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-3 bg-ink pb-1 pt-3">
+        <div className="min-w-0">
           {canSkip && (
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={onSkip}
-              className="text-xs text-paper/50 hover:bg-paper/10 hover:text-paper px-2"
+              className="h-8 shrink-0 whitespace-nowrap px-2 text-xs text-paper/50 hover:bg-paper/10 hover:text-paper"
             >
               Skip Tutorial
             </Button>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
           {onRestart ? (
             <Button
               type="button"
@@ -212,9 +251,9 @@ export function TutorialTooltip({
               onClick={onRestart}
               title="Ulangi tutorial dari awal"
               aria-label="Ulangi tutorial dari awal"
-              className="h-8 text-xs px-2 text-paper/50 hover:bg-paper/10 hover:text-paper"
+              className="h-8 shrink-0 whitespace-nowrap px-2 text-xs text-paper/50 hover:bg-paper/10 hover:text-paper"
             >
-              <RotateCcw size={14} className="mr-1" /> Restart
+              <RotateCcw size={14} className="mr-1 shrink-0" /> Restart
             </Button>
           ) : null}
           {!isFirstStep && (
@@ -223,9 +262,9 @@ export function TutorialTooltip({
               variant="secondary"
               size="sm"
               onClick={onBack}
-              className="h-8 text-xs px-3"
+              className="h-8 shrink-0 whitespace-nowrap px-3 text-xs"
             >
-              <ArrowLeft size={14} className="mr-1" /> Back
+              <ArrowLeft size={14} className="mr-1 shrink-0" /> Back
             </Button>
           )}
 
@@ -234,9 +273,9 @@ export function TutorialTooltip({
             size="sm"
             onClick={onNext}
             disabled={type === 'ACTION' && !isActionValid}
-            className="h-8 text-xs px-3 bg-signal text-paper hover:bg-signal/90 font-medium"
+            className="h-8 shrink-0 whitespace-nowrap bg-signal px-3 text-xs font-medium text-paper hover:bg-signal/90"
           >
-            {isLastStep ? 'Selesai' : 'Next'} <ArrowRight size={14} className="ml-1" />
+            {isLastStep ? 'Selesai' : 'Next'} <ArrowRight size={14} className="ml-1 shrink-0" />
           </Button>
         </div>
       </div>
