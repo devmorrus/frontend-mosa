@@ -2,7 +2,7 @@ import { Building2, LoaderCircle } from 'lucide-react'
 import { suppliersApi } from '@/api/suppliers.api'
 import { Button } from '@/components/ui/button'
 import { SupplierStatusDialog } from '@/features/suppliers/components/SupplierStatusDialog'
-import { MasterDataEmptyState, MasterDataErrorState, MasterDataLoadingState } from '@/features/master-data/components/MasterDataStates'
+import { MasterDataEmptyState, MasterDataErrorState, MasterDataTableSkeleton } from '@/features/master-data/components/MasterDataStates'
 import { useMasterDataModule } from '@/features/master-data/hooks/useMasterDataModule'
 import type { SupplierDetail, SupplierFormValues, SupplierListItem } from '@/features/suppliers/types'
 import { emptySupplierFormValues, validateSupplierForm } from '@/features/suppliers/validation'
@@ -93,7 +93,7 @@ export function SuppliersPage() {
 
       {/* ── Table area ── */}
       {supplierModule.isLoading ? (
-        <MasterDataLoadingState description="Daftar supplier sedang dimuat." />
+        <MasterDataTableSkeleton rows={supplierModule.query.pageSize} label="Daftar supplier sedang dimuat" />
       ) : supplierModule.error ? (
         <MasterDataErrorState description={supplierModule.error} onRetry={supplierModule.reload} />
       ) : supplierModule.items.length === 0 ? (

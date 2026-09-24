@@ -7,7 +7,7 @@ import { ProductStatusDialog } from '@/features/products/components/ProductStatu
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
-  MasterDataLoadingState,
+  MasterDataTableSkeleton,
 } from '@/features/master-data/components/MasterDataStates'
 import { useMasterDataModule } from '@/features/master-data/hooks/useMasterDataModule'
 import { ProductFormDialog } from '@/features/products/components/ProductFormDialog'
@@ -198,7 +198,7 @@ export function ProductsPage() {
       />
 
       {productModule.isLoading ? (
-        <MasterDataLoadingState description="Daftar product sedang dimuat." />
+        <MasterDataTableSkeleton rows={productModule.query.pageSize} label="Daftar product sedang dimuat" />
       ) : productModule.error ? (
         <MasterDataErrorState description={productModule.error} onRetry={productModule.reload} />
       ) : productModule.items.length === 0 ? (

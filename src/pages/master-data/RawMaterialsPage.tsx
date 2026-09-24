@@ -7,7 +7,7 @@ import { RawMaterialStatusDialog } from '@/features/raw-materials/components/Raw
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
-  MasterDataLoadingState,
+  MasterDataTableSkeleton,
 } from '@/features/master-data/components/MasterDataStates'
 import { useMasterDataModule } from '@/features/master-data/hooks/useMasterDataModule'
 import { RawMaterialFormDialog } from '@/features/raw-materials/components/RawMaterialFormDialog'
@@ -224,7 +224,7 @@ export function RawMaterialsPage() {
       />
 
       {rawMaterialModule.isLoading ? (
-        <MasterDataLoadingState description="Daftar raw material sedang dimuat." />
+        <MasterDataTableSkeleton rows={rawMaterialModule.query.pageSize} label="Daftar raw material sedang dimuat" />
       ) : rawMaterialModule.error ? (
         <MasterDataErrorState
           description={rawMaterialModule.error}

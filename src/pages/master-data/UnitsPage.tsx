@@ -5,7 +5,7 @@ import { UnitStatusDialog } from '@/features/unit-of-measures/components/UnitSta
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
-  MasterDataLoadingState,
+  MasterDataTableSkeleton,
 } from '@/features/master-data/components/MasterDataStates'
 import { useMasterDataModule } from '@/features/master-data/hooks/useMasterDataModule'
 import { UnitFormDialog } from '@/features/unit-of-measures/components/UnitFormDialog'
@@ -110,7 +110,7 @@ export function UnitsPage() {
       />
 
       {unitModule.isLoading ? (
-        <MasterDataLoadingState description="Daftar unit sedang dimuat." />
+        <MasterDataTableSkeleton rows={unitModule.query.pageSize} label="Daftar unit sedang dimuat" />
       ) : unitModule.error ? (
         <MasterDataErrorState description={unitModule.error} onRetry={unitModule.reload} />
       ) : unitModule.items.length === 0 ? (

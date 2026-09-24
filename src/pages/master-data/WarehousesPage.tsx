@@ -5,7 +5,7 @@ import { WarehouseStatusDialog } from '@/features/warehouses/components/Warehous
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
-  MasterDataLoadingState,
+  MasterDataTableSkeleton,
 } from '@/features/master-data/components/MasterDataStates'
 import { useMasterDataModule } from '@/features/master-data/hooks/useMasterDataModule'
 import { WarehouseFormDialog } from '@/features/warehouses/components/WarehouseFormDialog'
@@ -109,7 +109,7 @@ export function WarehousesPage() {
       />
 
       {warehouseModule.isLoading ? (
-        <MasterDataLoadingState description="Daftar warehouse sedang dimuat." />
+        <MasterDataTableSkeleton rows={warehouseModule.query.pageSize} label="Daftar warehouse sedang dimuat" />
       ) : warehouseModule.error ? (
         <MasterDataErrorState description={warehouseModule.error} onRetry={warehouseModule.reload} />
       ) : warehouseModule.items.length === 0 ? (
