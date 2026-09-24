@@ -93,6 +93,51 @@ export function MasterDataTableSkeleton({
   )
 }
 
+export function MasterDataDetailSkeleton({
+  label = 'Memuat detail data',
+}: {
+  label?: string
+}) {
+  return (
+    <div role="status" aria-busy="true" aria-label={label} className="space-y-5">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+        <div className="h-4 w-40 animate-pulse rounded-md bg-slate-200" />
+        <div className="mt-2 h-3 w-64 animate-pulse rounded-md bg-slate-100" />
+      </div>
+      <div className="rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 animate-pulse rounded-2xl bg-slate-200" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-1/3 animate-pulse rounded-md bg-slate-200" />
+            <div className="h-3 w-1/2 animate-pulse rounded-md bg-slate-100" />
+          </div>
+          <div className="h-6 w-20 animate-pulse rounded-full bg-slate-100" />
+        </div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="space-y-2">
+              <div className="h-3 w-24 animate-pulse rounded bg-slate-100" />
+              <div className="h-10 w-full animate-pulse rounded-2xl bg-slate-100" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
+        <div className="h-4 w-36 animate-pulse rounded-md bg-slate-200" />
+        <div className="mt-4 space-y-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+              <div className="h-4 w-2/5 animate-pulse rounded-md bg-slate-200" />
+              <div className="mt-2 h-3 w-3/5 animate-pulse rounded-md bg-slate-100" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <span className="sr-only">{label}…</span>
+    </div>
+  )
+}
+
 export function MasterDataErrorState({
   title = 'Terjadi kendala saat memuat data',
   description,

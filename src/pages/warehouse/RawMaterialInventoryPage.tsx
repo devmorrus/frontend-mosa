@@ -8,7 +8,7 @@ import { ModuleHero } from '@/components/common/ModuleHero'
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
-  MasterDataLoadingState,
+  MasterDataTableSkeleton,
 } from '@/features/master-data/components/MasterDataStates'
 import type { MasterDataPagination as PaginationMeta } from '@/features/master-data/types'
 import { EMPTY_PAGINATION } from '@/features/master-data/utils'
@@ -164,7 +164,7 @@ export function RawMaterialInventoryPage() {
       ) : null}
 
       {isLoading ? (
-        <MasterDataLoadingState description="Inventory raw material sedang dimuat dari backend." />
+        <MasterDataTableSkeleton rows={query.pageSize} label="Inventory raw material sedang dimuat" />
       ) : listError ? (
         <MasterDataErrorState description={listError} onRetry={() => void loadData(query)} />
       ) : items.length === 0 ? (

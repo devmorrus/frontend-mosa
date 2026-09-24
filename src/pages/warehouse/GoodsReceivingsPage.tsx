@@ -26,7 +26,7 @@ import { Input } from '@/components/ui/input'
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
-  MasterDataLoadingState,
+  MasterDataTableSkeleton,
 } from '@/features/master-data/components/MasterDataStates'
 import {
   PAGE_SIZE_OPTIONS,
@@ -253,7 +253,7 @@ export function GoodsReceivingsPage() {
       </div>
 
       {isLoading ? (
-        <MasterDataLoadingState description="Daftar goods receiving sedang dimuat dari backend." />
+        <MasterDataTableSkeleton rows={query.pageSize} label="Daftar goods receiving sedang dimuat" />
       ) : error ? (
         <MasterDataErrorState description={error} onRetry={() => void loadData(query)} />
       ) : items.length === 0 ? (

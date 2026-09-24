@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { MasterDataErrorState, MasterDataLoadingState } from '@/features/master-data/components/MasterDataStates'
+import { MasterDataDetailSkeleton, MasterDataErrorState } from '@/features/master-data/components/MasterDataStates'
 import type { StockOpnameDetail, StockOpnameItem } from '@/features/stock-opname/types'
 import { getStockOpnameSummary } from '@/features/stock-opname/validation'
 import { getStockOpnameProgress, getStockOpnameStatusLabel, getStockOpnameStatusTone, getStockOpnameVarianceLabel, getStockOpnameVarianceTone } from '@/features/stock-opname/utils'
@@ -103,7 +103,7 @@ export function StockOpnameDetailPage() {
     }
   }
 
-  if (isLoading) return <MasterDataLoadingState description="Detail stock opname sedang dimuat." />
+  if (isLoading) return <MasterDataDetailSkeleton label="Detail stock opname sedang dimuat" />
   if (error || !detail) return <MasterDataErrorState description={error ?? 'Stock opname tidak ditemukan.'} onRetry={() => void loadData()} />
 
   return (

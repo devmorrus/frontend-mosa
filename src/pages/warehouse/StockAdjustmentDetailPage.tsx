@@ -6,7 +6,7 @@ import { ModuleHero } from '@/components/common/ModuleHero'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { MasterDataErrorState, MasterDataLoadingState } from '@/features/master-data/components/MasterDataStates'
+import { MasterDataDetailSkeleton, MasterDataErrorState } from '@/features/master-data/components/MasterDataStates'
 import type { StockAdjustmentDetail } from '@/features/stock-adjustments/types'
 import type { ApiError } from '@/types/api'
 
@@ -28,7 +28,7 @@ export function StockAdjustmentDetailPage() {
   }
 
   useEffect(() => { void loadData() }, [id])
-  if (isLoading) return <MasterDataLoadingState description="Detail stock adjustment sedang dimuat." />
+  if (isLoading) return <MasterDataDetailSkeleton label="Detail stock adjustment sedang dimuat" />
   if (error || !detail) return <MasterDataErrorState description={error ?? 'Stock adjustment tidak ditemukan.'} onRetry={() => void loadData()} />
 
   return <div className="space-y-6"><Button asChild variant="secondary" className="text-slate-600"><Link to="/warehouse/stock-adjustments"><ArrowLeft size={16} />Kembali</Link></Button><ModuleHero

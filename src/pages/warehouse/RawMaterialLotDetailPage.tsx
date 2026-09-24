@@ -20,8 +20,8 @@ import { rawMaterialLotsApi } from '@/api/rawMaterialLots.api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
+  MasterDataDetailSkeleton,
   MasterDataErrorState,
-  MasterDataLoadingState,
 } from '@/features/master-data/components/MasterDataStates'
 import { RawMaterialLotQrCard } from '@/features/raw-material-lots/components/RawMaterialLotQrCard'
 import type {
@@ -134,7 +134,7 @@ export function RawMaterialLotDetailPage() {
   }
 
   if (isLoading) {
-    return <MasterDataLoadingState description="Detail raw material LOT sedang dimuat." />
+    return <MasterDataDetailSkeleton label="Detail raw material LOT sedang dimuat" />
   }
 
   if (error || !detail) {

@@ -8,7 +8,7 @@ import { ModuleHero } from '@/components/common/ModuleHero'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { MasterDataEmptyState, MasterDataErrorState, MasterDataLoadingState } from '@/features/master-data/components/MasterDataStates'
+import { MasterDataEmptyState, MasterDataErrorState, MasterDataTableSkeleton } from '@/features/master-data/components/MasterDataStates'
 import { MasterDataPagination } from '@/features/master-data/components/MasterDataPagination'
 import type { MasterDataPagination as PaginationMeta } from '@/features/master-data/types'
 import { EMPTY_PAGINATION } from '@/features/master-data/utils'
@@ -118,7 +118,7 @@ export function StockOpnamesPage() {
         {filterError ? <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{filterError}</p> : null}
       </CardContent></Card>
 
-      {isLoading ? <MasterDataLoadingState description="Stock opname sedang dimuat." /> : error ? <MasterDataErrorState description={error} onRetry={() => void loadData(query)} /> : items.length === 0 ? <MasterDataEmptyState description={hasActiveFilter ? 'Tidak ada stock opname yang cocok dengan filter saat ini.' : 'Belum ada dokumen stock opname.'} action={canCreateOpname ? <Button asChild><Link to={`${canonicalRoutes.stockOpname}/create`}>Create Opname</Link></Button> : undefined} /> : <StockOpnameResults items={items} pagination={pagination} isRefreshing={isRefreshing} onPageChange={(page) => setQuery((current) => ({ ...current, page }))} />}
+      {isLoading ? <MasterDataTableSkeleton rows={query.pageSize} label="Stock opname sedang dimuat" /> : error ? <MasterDataErrorState description={error} onRetry={() => void loadData(query)} /> : items.length === 0 ? <MasterDataEmptyState description={hasActiveFilter ? 'Tidak ada stock opname yang cocok dengan filter saat ini.' : 'Belum ada dokumen stock opname.'} action={canCreateOpname ? <Button asChild><Link to={`${canonicalRoutes.stockOpname}/create`}>Create Opname</Link></Button> : undefined} /> : <StockOpnameResults items={items} pagination={pagination} isRefreshing={isRefreshing} onPageChange={(page) => setQuery((current) => ({ ...current, page }))} />}
     </div>
   )
 }

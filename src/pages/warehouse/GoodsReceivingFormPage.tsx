@@ -42,8 +42,8 @@ import {
 } from '@/features/goods-receivings/utils'
 import { MasterDataFormFieldError } from '@/features/master-data/components/MasterDataFormFieldError'
 import {
+  MasterDataDetailSkeleton,
   MasterDataErrorState,
-  MasterDataLoadingState,
 } from '@/features/master-data/components/MasterDataStates'
 import { useAuth } from '@/hooks/useAuth'
 import { canFetchLookup, fetchLookupIfAllowed } from '@/utils/lookupGuard'
@@ -207,7 +207,7 @@ export function GoodsReceivingFormPage() {
   }
 
   if (form.isLoading) {
-    return <MasterDataLoadingState description="Detail goods receiving sedang dimuat." />
+    return <MasterDataDetailSkeleton label="Detail goods receiving sedang dimuat" />
   }
 
   if (form.loadError) {

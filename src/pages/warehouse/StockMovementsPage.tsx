@@ -11,7 +11,7 @@ import { breadcrumbs } from '@/routes/canonicalRoutes'
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
-  MasterDataLoadingState,
+  MasterDataTableSkeleton,
 } from '@/features/master-data/components/MasterDataStates'
 import type { MasterDataPagination as PaginationMeta } from '@/features/master-data/types'
 import { EMPTY_PAGINATION } from '@/features/master-data/utils'
@@ -215,7 +215,7 @@ export function StockMovementsPage() {
       ) : null}
 
       {isLoading ? (
-        <MasterDataLoadingState description="Riwayat stock movement sedang dimuat dari backend." />
+        <MasterDataTableSkeleton rows={query.pageSize} label="Riwayat stock movement sedang dimuat" />
       ) : listError ? (
         <MasterDataErrorState description={listError} onRetry={() => void loadData(query)} />
       ) : items.length === 0 ? (
