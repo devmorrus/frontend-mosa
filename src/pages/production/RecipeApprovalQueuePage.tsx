@@ -11,7 +11,7 @@ import { MasterDataPagination } from '@/features/master-data/components/MasterDa
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
-  MasterDataLoadingState,
+  MasterDataTableSkeleton,
 } from '@/features/master-data/components/MasterDataStates'
 import { RecipeApprovalDecisionDialog } from '@/features/recipes/components/RecipeApprovalDecisionDialog'
 import { RecipeStatusBadge } from '@/features/recipes/components/RecipeStatusBadge'
@@ -136,7 +136,7 @@ export function RecipeApprovalQueuePage() {
   }
 
   if (isLoading) {
-    return <MasterDataLoadingState description="Approval queue sedang dimuat dari backend." />
+    return <MasterDataTableSkeleton rows={query.pageSize} label="Approval queue sedang dimuat" />
   }
 
   if (error) {

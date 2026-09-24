@@ -7,7 +7,7 @@ import { ModuleHero } from '@/components/common/ModuleHero'
 import {
   MasterDataEmptyState,
   MasterDataErrorState,
-  MasterDataLoadingState,
+  MasterDataTableSkeleton,
 } from '@/features/master-data/components/MasterDataStates'
 import { EMPTY_PAGINATION } from '@/features/master-data/utils'
 import { ProductionOrderTable } from '@/features/production-orders/components/ProductionOrderTable'
@@ -119,7 +119,7 @@ export function ProductionOrdersPage() {
       />
 
       {isLoading ? (
-        <MasterDataLoadingState description="Daftar production order sedang dimuat dari backend." />
+        <MasterDataTableSkeleton rows={query.pageSize} label="Daftar production order sedang dimuat" />
       ) : error ? (
         <MasterDataErrorState description={error} onRetry={() => void loadData(query)} />
       ) : items.length === 0 ? (

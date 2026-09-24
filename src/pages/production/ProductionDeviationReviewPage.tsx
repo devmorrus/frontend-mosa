@@ -10,7 +10,7 @@ import { StatusBadge } from '@/components/common/StatusBadge'
 import { productionDeviationsApi } from '@/features/production-deviations/api'
 import { ProductionDeviationStatus, type ProductionDeviationDetail } from '@/features/production-deviations/types'
 import { validateRejectReason, validateReviewNotes } from '@/features/production-deviations/validation'
-import { MasterDataErrorState, MasterDataLoadingState } from '@/features/master-data/components/MasterDataStates'
+import { MasterDataDetailSkeleton, MasterDataErrorState } from '@/features/master-data/components/MasterDataStates'
 import { breadcrumbs, entityLinks } from '@/routes/canonicalRoutes'
 import { useAuth } from '@/hooks/useAuth'
 import { formatAllowedRange } from '@/features/operator-production/deviation/validation'
@@ -40,7 +40,7 @@ export function ProductionDeviationReviewPage() {
     setSubmitting(true); setSubmitError(null)
     try { const updated = action === 'approve' ? await productionDeviationsApi.approve(detail.id, notes) : await productionDeviationsApi.reject(detail.id, notes); setDetail(updated); setDialog(null); setNotes('') } catch (caught) { const apiError = caught as ApiError; setSubmitError(apiError.message); if (apiError.status === 409) void load() } finally { setSubmitting(false) }
   }
-  if (loading) return <MasterDataLoadingState description="Memuat konteks deviation dan LOT usage." />
+  if (loading) return <MasterDataDetailSkeleton label="Memuat konteks deviation dan LOT usage" />
   if (error || !detail) return <MasterDataErrorState description={error ?? 'Deviation tidak ditemukan.'} onRetry={() => void load()} />
   const pending = detail.decision.status === ProductionDeviationStatus.PendingApproval
   const uom = detail.material.unitOfMeasureSymbol

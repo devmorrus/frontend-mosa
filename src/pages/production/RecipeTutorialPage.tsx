@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, CheckCircle2, Clock3, LoaderCircle, Pause, Play, RotateCcw, X } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Clock3, Pause, Play, RotateCcw, X } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { recipesApi } from '@/api/recipes.api'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
@@ -7,6 +7,7 @@ import { ModuleHero } from '@/components/common/ModuleHero'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { MasterDataDetailSkeleton } from '@/features/master-data/components/MasterDataStates'
 import { Input } from '@/components/ui/input'
 import { MaterialTutorialSimulation } from '@/features/recipes/tutorial/material-simulation/MaterialTutorialSimulation'
 import { ProductionCompletionSimulation } from '@/features/recipes/tutorial/ProductionCompletionSimulation'
@@ -107,7 +108,7 @@ export function RecipeTutorialPage() {
     try { const result = await loadAllSteps(versionId, target); setPreview(result); restore(userId, versionId, target) } catch (caught) { setError((caught as ApiError).message) } finally { setLoading(false) }
   }
 
-  if (loading) return <Card><CardContent className="flex items-center gap-3 py-12 text-sm text-slate-500"><LoaderCircle className="animate-spin" size={18} />Memuat tutorial recipe...</CardContent></Card>
+  if (loading) return <MasterDataDetailSkeleton label="Memuat tutorial recipe" />
   if (error || !preview || !versionId) return <Card><CardContent className="py-8 text-red-700">{error ?? 'Tutorial tidak ditemukan.'}</CardContent></Card>
   const timerTotal = preview.steps.reduce((total, step) => total + (step.timerDurationSeconds ?? 0), 0)
   const isStarted = progress?.status === 'IN_PROGRESS'

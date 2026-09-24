@@ -19,8 +19,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
+  MasterDataDetailSkeleton,
   MasterDataErrorState,
-  MasterDataLoadingState,
 } from '@/features/master-data/components/MasterDataStates'
 import { hasFormErrors } from '@/features/master-data/utils'
 import { RecipeApprovalDecisionDialog } from '@/features/recipes/components/RecipeApprovalDecisionDialog'
@@ -314,7 +314,7 @@ export function RecipeVersionPage() {
   }
 
   if (isLoading) {
-    return <MasterDataLoadingState description="Detail recipe version sedang dimuat dari backend." />
+    return <MasterDataDetailSkeleton label="Detail recipe version sedang dimuat" />
   }
 
   if (error || !version) {

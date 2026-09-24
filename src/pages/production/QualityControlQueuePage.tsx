@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { Input } from '@/components/ui/input'
 import { MasterDataPagination } from '@/features/master-data/components/MasterDataPagination'
-import { MasterDataErrorState, MasterDataLoadingState } from '@/features/master-data/components/MasterDataStates'
+import { MasterDataErrorState, MasterDataTableSkeleton } from '@/features/master-data/components/MasterDataStates'
 import type { ProductListItem } from '@/features/products/types'
 import type { QcPaged, QcQuery, QcQueueItem } from '@/features/quality-control/types'
 
@@ -64,7 +64,7 @@ export function QualityControlQueuePage() {
   }, [loadQueue])
 
   if (error) return <MasterDataErrorState description={error} onRetry={() => setQuery({ ...query })} />
-  if (!data) return <MasterDataLoadingState description="Memuat QC queue." />
+  if (!data) return <MasterDataTableSkeleton rows={query.pageSize} label="Memuat QC queue" />
   const update = (value: Partial<QcQuery>) => setQuery((current) => ({ ...current, ...value, page: value.page ?? 1 }))
   return (
     <div className="space-y-6" data-tour="qc-queue">

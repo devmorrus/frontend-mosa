@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Breadcrumb } from '@/components/common/Breadcrumb'
 import { PageHeader } from '@/components/common/PageHeader'
 import { StatusBadge } from '@/components/common/StatusBadge'
-import { MasterDataErrorState, MasterDataLoadingState } from '@/features/master-data/components/MasterDataStates'
+import { MasterDataDetailSkeleton, MasterDataErrorState } from '@/features/master-data/components/MasterDataStates'
 import { breadcrumbs, canonicalRoutes, entityLinks } from '@/routes/canonicalRoutes'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -61,7 +61,7 @@ export function FinishedGoodsLotDetailPage() {
   }, [id])
 
   if (error) return <MasterDataErrorState description={error} onRetry={() => window.location.reload()} />
-  if (!lot) return <MasterDataLoadingState description="Memuat Finished Goods LOT." />
+  if (!lot) return <MasterDataDetailSkeleton label="Memuat Finished Goods LOT" />
 
   const uom = lot.unitOfMeasure.symbol ?? lot.unitOfMeasure.code
   const canOpenPo = can('production-orders.view') && lot.productionOrderId

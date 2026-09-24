@@ -23,7 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { MasterDataFormFieldError } from '@/features/master-data/components/MasterDataFormFieldError'
 import {
-  MasterDataLoadingState,
+  MasterDataDetailSkeleton,
   MasterDataErrorState,
 } from '@/features/master-data/components/MasterDataStates'
 import { ProductionOrderStatusBadge } from '@/features/production-orders/components/ProductionOrderStatusBadge'
@@ -278,7 +278,7 @@ export function ProductionOrderDetailPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <MasterDataLoadingState description="Memuat production order..." />
+        <MasterDataDetailSkeleton label="Memuat production order" />
       </div>
     )
   }

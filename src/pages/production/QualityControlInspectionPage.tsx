@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { MasterDataPagination } from '@/features/master-data/components/MasterDataPagination'
-import { MasterDataErrorState, MasterDataLoadingState } from '@/features/master-data/components/MasterDataStates'
+import { MasterDataDetailSkeleton, MasterDataErrorState } from '@/features/master-data/components/MasterDataStates'
 import { QcResultType, type QcHistoryItem, type QcInspection, type QcPaged, type QcResultInput } from '@/features/quality-control/types'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -55,7 +55,7 @@ export function QualityControlInspectionPage() {
   useEffect(() => { void load() }, [finishedGoodsLotId])
 
   if (error) return <MasterDataErrorState description={error} onRetry={() => void load()} />
-  if (!inspection || !fg || !history) return <MasterDataLoadingState description="Memuat QC inspection." />
+  if (!inspection || !fg || !history) return <MasterDataDetailSkeleton label="Memuat QC inspection" />
 
   const isEditable = isInspectionEditable(inspection.inspectionStatus)
   const setValue = (parameterId: string, patch: Partial<QcResultInput>) => setValues((current) => ({ ...current, [parameterId]: current[parameterId] ? { ...current[parameterId], ...patch } : { parameterId, resultValue: patch.resultValue ?? '', isPassed: patch.isPassed ?? null, notes: patch.notes ?? null } }))

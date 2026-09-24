@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { MasterDataFormFieldError } from '@/features/master-data/components/MasterDataFormFieldError'
+import { MasterDataDetailSkeleton } from '@/features/master-data/components/MasterDataStates'
 import { getFieldError, hasFormErrors } from '@/features/master-data/utils'
 import { RecipeStepEditor } from '@/features/recipes/components/RecipeStepEditor'
 import type { RecipeCreateFormValues } from '@/features/recipes/types'
@@ -106,12 +107,7 @@ export function RecipeCreatePage() {
   if (isBootstrapping) {
     return (
       <div className="space-y-6">
-        <Card>
-          <CardContent className="flex items-center gap-3 py-10 text-sm text-slate-500">
-            <LoaderCircle size={18} className="animate-spin" />
-            Memuat referensi product, raw material, dan UOM...
-          </CardContent>
-        </Card>
+        <MasterDataDetailSkeleton label="Memuat referensi product, raw material, dan UOM" />
       </div>
     )
   }

@@ -11,7 +11,7 @@ import {
   MasterDataFormFieldError,
 } from '@/features/master-data/components/MasterDataFormFieldError'
 import {
-  MasterDataLoadingState,
+  MasterDataDetailSkeleton,
 } from '@/features/master-data/components/MasterDataStates'
 import {
   emptyProductionOrderFormValues,
@@ -221,7 +221,7 @@ export function ProductionOrderCreatePage() {
   if (isLoadingLookups) {
     return (
       <div className="space-y-6">
-        <MasterDataLoadingState description="Memuat data lookup..." />
+        <MasterDataDetailSkeleton label="Memuat data lookup production order" />
       </div>
     )
   }

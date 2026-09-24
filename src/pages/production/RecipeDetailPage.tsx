@@ -10,9 +10,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { MasterDataFormFieldError } from '@/features/master-data/components/MasterDataFormFieldError'
 import {
+  MasterDataDetailSkeleton,
   MasterDataEmptyState,
   MasterDataErrorState,
-  MasterDataLoadingState,
 } from '@/features/master-data/components/MasterDataStates'
 import { MasterDataPagination } from '@/features/master-data/components/MasterDataPagination'
 import { getFieldError, hasFormErrors } from '@/features/master-data/utils'
@@ -149,7 +149,7 @@ export function RecipeDetailPage() {
   }
 
   if (isLoading) {
-    return <MasterDataLoadingState description="Detail recipe sedang dimuat dari backend." />
+    return <MasterDataDetailSkeleton label="Detail recipe sedang dimuat" />
   }
 
   if (error || !recipe) {

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { AlertOctagon, ClipboardPlus, LoaderCircle, Pencil, Plus, RotateCcw, Search } from 'lucide-react'
+import { AlertOctagon, ClipboardPlus, Pencil, Plus, RotateCcw, Search } from 'lucide-react'
 import { qcApi } from '@/api/qc.api'
 import { AppPagination } from '@/components/common/AppPagination'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { MasterDataTableSkeleton } from '@/features/master-data/components/MasterDataStates'
 import {
   Dialog,
   DialogContent,
@@ -266,9 +267,7 @@ export function QualityControlNcrPage() {
           <h2 className="font-display text-xl font-semibold text-ink">Daftar NCR</h2>
         </div>
         {loading ? (
-          <div className="flex items-center justify-center gap-2 p-12 text-sm text-slate-500">
-            <LoaderCircle className="animate-spin" size={18} /> Memuat NCR...
-          </div>
+          <div className="p-4"><MasterDataTableSkeleton rows={query.pageSize} label="Daftar NCR sedang dimuat" /></div>
         ) : loadError ? (
           <div className="p-12 text-center">
             <p className="font-display text-xl font-semibold text-ink">

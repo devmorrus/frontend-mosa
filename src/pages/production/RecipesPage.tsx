@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { MasterDataEmptyState, MasterDataErrorState, MasterDataLoadingState } from '@/features/master-data/components/MasterDataStates'
+import { MasterDataEmptyState, MasterDataErrorState, MasterDataTableSkeleton } from '@/features/master-data/components/MasterDataStates'
 import { MasterDataPagination } from '@/features/master-data/components/MasterDataPagination'
 import { RecipeStatusBadge } from '@/features/recipes/components/RecipeStatusBadge'
 import { RecipeLifecycleStatus, type RecipeListItem, type RecipeQueryState } from '@/features/recipes/types'
@@ -221,7 +221,7 @@ export function RecipesPage() {
       </div>
 
       {isLoading ? (
-        <MasterDataLoadingState description="Recipe sedang dimuat dari backend." />
+        <MasterDataTableSkeleton rows={query.pageSize} label="Daftar recipe sedang dimuat" />
       ) : error ? (
         <MasterDataErrorState description={error} onRetry={() => setQuery((current) => ({ ...current }))} />
       ) : items.length === 0 ? (
